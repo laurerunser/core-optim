@@ -1,0 +1,12 @@
+# Projet long 2022: optimization of the compilation of the language Core of GHC 
+
+## Students
+
+Runser Laure, laure.runser@etu.u-paris.fr
+Zhang Maryline, maryline.zhang@etu.u-paris.fr
+
+## Project description
+
+You can find a description of the projet in the file `optimizer.pdf`.
+The markdown source is in `communication/sujet/optimizer.md`.
+
