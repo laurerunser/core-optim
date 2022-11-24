@@ -1,0 +1,4 @@
+(executable
+ (public_name funoptimizer)
+ (name main)
+ (libraries funoptimizer))
