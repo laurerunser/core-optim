@@ -2,7 +2,7 @@
  (public_name funoptimizer)
  (modules main)
  (name main)
- (libraries funoptimizer))
+ (libraries funoptimizer pprint))
 
 (library
  (name libfun)
