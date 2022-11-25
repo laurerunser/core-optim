@@ -7,4 +7,4 @@
 (library
  (name libfun)
  (preprocess (pps ppx_deriving.show))
- (modules term types))
+ (modules terms types))

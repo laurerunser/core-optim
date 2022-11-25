@@ -2,7 +2,7 @@
 
 (* The tests *)
 let test_ppshow () = 
-  Alcotest.(check string) "same string" "(Term.Var \"toto\")" (Libfun.Term.(Format.asprintf "%a" pp_term (Var("toto")))) 
+  Alcotest.(check string) "same string" "(Terms.Var \"toto\")" (Libfun.Terms.(Format.asprintf "%a" pp_term (Var("toto"))))
 
 (* Run it *)
 let () =

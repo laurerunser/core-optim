@@ -1,0 +1,43 @@
+# 24 Nov 2022 - 13h30
+avec Pierre-Evariste Dagand
+On se revoit jeudi prochain à 13h30 en 3012.
+
+## Mise en place de l'infrastructure du projet
+
+Pour initialiser un projet dune: `dune init proj funoptimizer`
+puis rapatrier les fichiers créés dans le dossier `funoptimizer` à la racine du projet.
+
+Pour installer les dépendances facilement avec `opam`:
+- préciser les dépendances dans le fichier `dune-project` 
+(et aussi dans les fichiers `dune` pour pouvoir les utiliser)
+- puis lancer `opam install --deps-only --with-test .`
+On a eu un problème avec la librairie `ppx-deriving`: le nom qu'on précise
+dans `dune-project` n'est pas le bon. Ca marche chez Maryline, mais Laure a du
+installer `ppx-deriving` à la main. On n'a pas encore trouvé de solution.
+
+On utilisera `alcotest` pour faire nos tests.
+La documentation est [ici](https://github.com/mirage/alcotest).
+- on écrira les tests dans le fichier `test/funoptimizer.ml`.
+- Pour lancer les tests, faire `dune runtest`
+
+## Definition de la syntaxe
+Dans le fichier `docs/syntax.md`
+C'est une syntaxe allégée du langage Core de GHC.
+On ne fera ni parser ni lexer pour ce projet. On ecrira des tests unitaires,
+et peut-être quelques fonctions pour les écrire plus facilement.
+
+## To do
+- dans les fichiers `bin/terms.ml` et `bin/types.ml`, créer des structures OCaml pour
+les types et les termes.
+
+- faire un pretty printer pour afficher la syntaxe. On utilisera `pprint`.
+La doc est [ici](https://cambium.inria.fr/~fpottier/pprint/doc/pprint/)
+- écrire des tests pour vérifier le comportement du pretty printer.
+
+- faire une fonction `free_vars` de type `term -> VarSet.t` qui donne le set des
+variables libres d'un term. `VarSet.t` est un `Set.t` de la lib standard.
+- écrire des tests pour vérifier le comportement de `free_vars`
+
+- lire la doc de `ppx-deriving`, notamment la fonction `show`. Ajouter ce qu'il faut
+à la definition des types. La doc est [ici](https://github.com/ocaml-ppx/ppx_deriving)
+
