@@ -19,7 +19,7 @@
  (name funoptimizer)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune (alcotest :with-test) ppx_deriving.std pprint)
+ (depends ocaml dune (alcotest :with-test) ppx_deriving pprint)
  (tags
   (topics "to describe" your project)))
 
