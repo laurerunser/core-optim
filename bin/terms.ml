@@ -76,25 +76,4 @@ and print_type_annotation x t =
   parens
     ((pretty_print x) 
       ^^ string ":"
-      ^^ (pretty_print_type t)) 
-
-
-and pretty_print_type ty =
-  match ty with 
-  | TyVar x -> string x
-  | TyFun(f, x) -> print_ty_fun f x
-  | PolymorphicType(tyvar, ty) -> print_poly_type tyvar ty
-  | TyTuple(ty_list) -> failwith "todo"
-
-and print_ty_fun f x = 
-  group @@
-  prefix 2 1 
-  ((pretty_print_type f) ^^ string "->")
-  (pretty_print_type x)
-
-and print_poly_type tyvar ty =
-  group @@
-  string "for all"
-  ^^ string tyvar
-  ^^ string "."
-  ^^ (pretty_print_type ty)
+      ^^ (pretty_print_type t))
