@@ -38,42 +38,64 @@ let rec pretty_print t =
   | TypeApply(t, ty) -> print_type_apply t ty
   | TypeAnnotation(x, t) -> print_type_annotation x t
 
+and get_term_with_parens t = 
+  match t with
+  | Fun(_) | FunApply(_) -> parens (pretty_print t)   
+  | _ -> pretty_print t
+
 and print_abstraction x ty body =
+  let body_parens = get_term_with_parens body in
   group @@
-  prefix 2 1 
-  (string "fun" ^^ parens (pretty_print (TypeAnnotation(Var(x), ty))) ^^ equals)
-  (pretty_print body)
+  prefix 2 1
+  (string "fun" ^^ blank 1 ^^ (pretty_print (TypeAnnotation(Var(x), ty))) 
+  ^^ blank 1 ^^ equals)
+  body_parens
+
 and print_fun_apply f x =
+  let f_parens = get_term_with_parens f in 
+  let x_parens = get_term_with_parens x in 
   group @@ 
   prefix 2 1
-  (pretty_print f)
-  (pretty_print x)
+  f_parens
+  x_parens
+
 and print_let_in lhs rhs body = 
+ let rhs_parens = get_term_with_parens rhs in
   group @@
   string "let"
   ^^ surround 2 1 empty (string lhs) empty
   ^^ string "="
-  ^^ surround 2 1 empty (pretty_print rhs) empty
+  ^^ surround 2 1 empty rhs_parens empty
   ^^ string "in"
   ^^ prefix 0 1 empty (pretty_print body)
 
 and print_type_abstraction tyvar t = 
+  let t_parens = get_term_with_parens t in
   group @@
   prefix 2 1 
-    (string "fun" ^^ brackets (string tyvar) ^^ equals)
-    (pretty_print t)
+    (string "fun" ^^ blank 1 ^^ 
+    brackets (string tyvar) ^^ blank 1 ^^ equals)
+    t_parens
 
 and print_type_apply t ty = 
+  let t_parens = get_term_with_parens t in
   group @@
-  (pretty_print t)
-  ^^ lbracket ^^ break 1
+  t_parens
+  ^^ lbracket
   ^^ (pretty_print_type ty)
-  ^^ break 1
   ^^ rbracket
 
 and print_type_annotation x t = 
+  let x_parens = get_term_with_parens x in
   group @@
   parens
-    ((pretty_print x) 
-      ^^ string ":"
+    (x_parens 
+      ^^ string ":" ^^ break 1
       ^^ (pretty_print_type t))
+
+
+let to_string t =
+  let b = Buffer.create 16 in
+  ToBuffer.pretty 0.8 80 b (pretty_print t);
+  Buffer.contents b
+      

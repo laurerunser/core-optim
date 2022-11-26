@@ -31,7 +31,7 @@ let rec pretty_print_type_paren paren t =
     if paren then parens ty else ty
 
 and print_ty_fun s t =
-  ((pretty_print_type_paren true s) ^/^ !^ "->")
+  ((pretty_print_type_paren true s) ^^ blank 1 ^^ !^ "->")
   ^//^
   (pretty_print_type_paren true t)
 
