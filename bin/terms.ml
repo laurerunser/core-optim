@@ -98,4 +98,15 @@ let to_string t =
   let b = Buffer.create 16 in
   ToBuffer.pretty 0.8 80 b (pretty_print t);
   Buffer.contents b
-      
+
+module VarSet = Set.Make(String)
+
+let rec free_vars t = 
+  let open VarSet in
+  match t with
+  | Var x -> singleton x
+  | Fun (x,_,t) -> diff (free_vars t) (singleton x)
+  | FunApply (t,u) -> union (free_vars t) (free_vars u)
+  | Let (x,t,u) -> union (free_vars t) (diff (free_vars u) (singleton x))
+  | TypeAbstraction (_,t) | TypeApply (t,_) | TypeAnnotation (t,_) -> free_vars t
+  
