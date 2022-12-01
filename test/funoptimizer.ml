@@ -188,11 +188,11 @@ let test_free_vars_Let2() =
   )))
 
 let test_free_var_type_abstraction() =
-  Alcotest.(check checkVarSet) "same set" ["a";"d";"e"]
+  Alcotest.(check checkVarSet) "same set" ["d";"e"]
   (set_to_list (Terms.free_vars (
     TypeAbstraction("ty", Let("a",
-      FunApply(Fun ("b", TyVar "ty", Var "a"),
-      Let("c", Var "d", Var "c")), Var "e" )))))
+      FunApply(Fun ("b", TyVar "ty", Var "e"),
+      Let("c", Var "d", Var "c")), Var "a" )))))
 
   let test_free_var_type_apply() =
   Alcotest.(check checkVarSet) "same set" ["a";"d";"e"]
