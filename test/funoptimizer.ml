@@ -7,100 +7,102 @@ let test_ppshow () =
     (Libfun.Terms.(Format.asprintf "%a" pp_term (Var("toto"))))
 
 (* Pretty print tests for Types *)
+let test_pretty_print expected ast = 
+  Alcotest.(check string) expected expected ast
 let test_print_ty_fun_simple () =
-  Alcotest.(check string) "same string" "x1 -> x2"
+  test_pretty_print "x1 -> x2"
     (Types.to_string (TyFun (TyVar "x1", TyVar "x2")))
 let test_print_ty_fun_double_left () =
-  Alcotest.(check string) "same string" "(x1 -> x2) -> x3"
+  test_pretty_print "(x1 -> x2) -> x3"
     (Types.to_string (TyFun (TyFun (TyVar "x1", TyVar "x2"), TyVar "x3")))
 let test_print_ty_fun_double_right () =
-  Alcotest.(check string) "same string" "x1 -> (x2 -> x3)"
+  test_pretty_print "x1 -> (x2 -> x3)"
     (Types.to_string (TyFun (TyVar "x1", TyFun (TyVar "x2", TyVar "x3"))))
 let test_print_ty_fun_very_long () = (* to test line breaks and indents *)
-      Alcotest.(check string) "same string" "long_variable_name1 ->\n  (long_variable_name2 ->\n    (long_variable_name1 ->\n      (long_variable_name2 ->\n        (long_variable_name1 ->\n          (long_variable_name2 ->\n            (long_variable_name1 ->\n              (long_variable_name2 -> long_variable_name3)))))))"
+      test_pretty_print "long_variable_name1 ->\n  (long_variable_name2 ->\n    (long_variable_name1 ->\n      (long_variable_name2 ->\n        (long_variable_name1 ->\n          (long_variable_name2 ->\n            (long_variable_name1 ->\n              (long_variable_name2 -> long_variable_name3)))))))"
         (Types.to_string (TyFun (TyVar "long_variable_name1", TyFun (TyVar "long_variable_name2", 
           TyFun (TyVar "long_variable_name1", TyFun (TyVar "long_variable_name2", 
           TyFun (TyVar "long_variable_name1", TyFun (TyVar "long_variable_name2", 
           TyFun (TyVar "long_variable_name1", TyFun (TyVar "long_variable_name2", TyVar "long_variable_name3"))))))))))
     
 let test_print_poly_type_simple() =
-  Alcotest.(check string) "same string" "forall x1. x1"
+  test_pretty_print "forall x1. x1"
     (Types.to_string (PolymorphicType("x1", TyVar "x1")))
 let test_print_poly_type_double() =
-  Alcotest.(check string) "same string" "forall x1. (forall x2. x1)"
+  test_pretty_print "forall x1. (forall x2. x1)"
     (Types.to_string (PolymorphicType("x1", PolymorphicType("x2", TyVar "x1"))))
 
 let test_print_ty_tuple_simple() =
-  Alcotest.(check string) "same string" "x * y * z"
+  test_pretty_print "x * y * z"
     (Types.to_string (TyTuple [TyVar "x"; TyVar "y"; TyVar "z"]))
 let test_print_ty_tuple_double() =
-  Alcotest.(check string) "same string" "(x1 * x2 * x3) * y * z"
+  test_pretty_print "(x1 * x2 * x3) * y * z"
     (Types.to_string (TyTuple [
       TyTuple [TyVar "x1"; TyVar "x2"; TyVar "x3"];
       TyVar "y"; TyVar "z"]))
 
 let test_print_ty_compose1() =
-  Alcotest.(check string) "same string" "(forall x. (x -> y)) -> (a * b)"
+  test_pretty_print "(forall x. (x -> y)) -> (a * b)"
     (Types.to_string (TyFun(
       PolymorphicType("x", TyFun(TyVar "x", TyVar "y")),
       TyTuple [TyVar "a"; TyVar "b"])))
 let test_print_ty_compose2() =
-  Alcotest.(check string) "same string" "(a * b) -> (forall x. (x -> y))"
+  test_pretty_print "(a * b) -> (forall x. (x -> y))"
     (Types.to_string (TyFun(
       TyTuple [TyVar "a"; TyVar "b"],
       PolymorphicType("x", TyFun(TyVar "x", TyVar "y")))))
 let test_print_ty_compose3() =
-  Alcotest.(check string) "same string" "forall x. ((a * b) -> (x -> y))"
+  test_pretty_print "forall x. ((a * b) -> (x -> y))"
     (Types.to_string (PolymorphicType("x", TyFun(
       TyTuple [TyVar "a"; TyVar "b"],
       TyFun(TyVar "x", TyVar "y")))))
 let test_print_ty_compose4() =
-  Alcotest.(check string) "same string" "forall x. ((a * (x -> y)) -> b)"
+  test_pretty_print "forall x. ((a * (x -> y)) -> b)"
     (Types.to_string (PolymorphicType("x", TyFun(
       TyTuple [TyVar "a"; TyFun(TyVar "x", TyVar "y")],
       TyVar "b"))))
 
 (* Pretty print tests for Terms *)
 let test_print_variable() = 
-  Alcotest.(check string) "same string" "toto"
+  test_pretty_print "toto"
   (Terms.to_string (Var("toto")))
 
 let test_print_fun1() = 
-  Alcotest.(check string) "same string" "fun (x: ty) = y"
+  test_pretty_print "fun (x: ty) = y"
   (Terms.to_string (Fun("x", TyVar("ty"), Var("y"))))
 
 let test_print_fun2() = 
-  Alcotest.(check string) "same string" "fun (y: ty1) = z[ty2]"
+  test_pretty_print "fun (y: ty1) = z[ty2]"
   (Terms.to_string (Fun("y", TyVar("ty1"), TypeApply(Var("z"), TyVar("ty2")))))
 let test_print_fun3() = 
-  Alcotest.(check string) "same string" "fun (x: forall poly_ty. (ty1 -> ty2)) = z"
+  test_pretty_print "fun (x: forall poly_ty. (ty1 -> ty2)) = z"
   (Terms.to_string (Fun("x", 
     PolymorphicType("poly_ty", TyFun(TyVar("ty1"), TyVar("ty2"))),
     Var("z"))))
 let test_print_fun4() = 
-  Alcotest.(check string) "same string" "fun (x: forall poly_ty. (ty1 -> (ty2 -> (ty3 -> ty4)))) =\n  (fun (y: ty4 -> ty5) = (fun (z: ty6 -> ty7) = z))"
+  test_pretty_print "fun (x: forall poly_ty. (ty1 -> (ty2 -> (ty3 -> ty4)))) =\n  (fun (y: ty4 -> ty5) = (fun (z: ty6 -> ty7) = z))"
   (Terms.to_string (Fun("x", 
     PolymorphicType("poly_ty", TyFun(TyVar("ty1"), TyFun(TyVar("ty2"), TyFun(TyVar("ty3"), TyVar("ty4"))))),
       Fun("y", TyFun(TyVar("ty4"), TyVar("ty5")), 
         Fun("z", TyFun(TyVar("ty6"), TyVar("ty7")), Var("z"))))))
 let test_print_fun_apply1() =
-  Alcotest.(check string) "same string" "f x"
+  test_pretty_print "f x"
   (Terms.to_string (FunApply(Var("f"), Var("x"))))
 
 let test_print_fun_apply2() =
-  Alcotest.(check string) "same string" "(x y) (fun (z: ty) = (z x))"
+  test_pretty_print "(x y) (fun (z: ty) = (z x))"
   (Terms.to_string (FunApply(FunApply(Var("x"), Var("y")), Fun("z", TyVar("ty"), FunApply(Var("z"), Var("x"))))))
 
 let test_print_let1() = 
-  Alcotest.(check string) "same string" "let x = y in z"
+  test_pretty_print "let x = y in z"
     (Terms.to_string (Let("x", Var("y"), Var("z"))))
 
 let test_print_let2() = 
-  Alcotest.(check string) "same string" "let x = (f y) in g toto"
+  test_pretty_print "let x = (f y) in g toto"
   (Terms.to_string (Let("x", FunApply(Var("f"), Var("y")), FunApply(Var("g"), Var("toto")))))
 
 let test_print_let3() = 
-  Alcotest.(check string) "same string" "let x = (f y) in\ng let x = (f2 y2) in let x2 = (f3 y3) in g5 toto"
+  test_pretty_print "let x = (f y) in\ng let x = (f2 y2) in let x2 = (f3 y3) in g5 toto"
   (Terms.to_string (Let("x", FunApply(Var("f"), Var("y")), 
       FunApply(Var("g"), Let("x", 
       FunApply(Var("f2"), Var("y2")), 
@@ -108,19 +110,19 @@ let test_print_let3() =
       FunApply(Var("g5"), Var("toto"))))))))         
 
 let test_print_type_abstraction1() = 
-  Alcotest.(check string) "same string" "fun [tyvar] = y"
+  test_pretty_print "fun [tyvar] = y"
   (Terms.to_string (TypeAbstraction("tyvar", Var("y"))))
 
 let test_print_type_abstraction2() = 
-  Alcotest.(check string) "same string" "fun [tyvar] = (fun (x: ty2) = z)"
+  test_pretty_print "fun [tyvar] = (fun (x: ty2) = z)"
   (Terms.to_string (TypeAbstraction("tyvar", Fun("x", TyVar("ty2"), Var("z")))))
 
 let test_print_type_apply1() = 
-  Alcotest.(check string) "same string" "x[y]"
+  test_pretty_print "x[y]"
   (Terms.to_string (TypeApply(Var("x"), TyVar("y"))))
 
 let test_print_type_apply2() = 
-  Alcotest.(check string) "same string" "(fun (x: ty) = (g let x = (f2 y2) in y))[forall x.\n  ((a * (tyvar3 -> tyvar4)) -> b)]"
+  test_pretty_print "(fun (x: ty) = (g let x = (f2 y2) in y))[forall x.\n  ((a * (tyvar3 -> tyvar4)) -> b)]"
   (Terms.to_string (TypeApply(
       Fun("x", TyVar("ty"),
         FunApply(Var("g"), Let("x", 
@@ -131,6 +133,7 @@ let test_print_type_apply2() =
         TyVar "b")))))
 
 (* free_vars tests *)
+
 let checkVarSet = Alcotest.(slist string String.compare)
 let set_to_list = fun s -> List.of_seq (Terms.VarSet.to_seq s)
 let test_free_vars_var() =
@@ -206,13 +209,6 @@ let test_free_var_type_annotation() =
       FunApply(Fun ("b", TyVar "ty", Var "a"),
       Let("c", Var "d", Var "c")), Var "e" ),
       TyVar "ty"))))
-
-(* template
-let test_print_() = 
-  Alcotest.(check string) "same string" ""
-  (Terms.to_string )
-  *)
-
 
 (* Run it *)
 let () =
