@@ -133,27 +133,31 @@ let test_print_type_apply2() =
         TyVar "b")))))
 
 (* free_vars tests *)
-
 let checkVarSet = Alcotest.(slist string String.compare)
 let set_to_list = fun s -> List.of_seq (Terms.VarSet.to_seq s)
+let list_to_string l = (* prints a list of string as [x1; x2; ...; xn;]*)
+  "[" ^ List.fold_left (fun x acc -> acc ^ "; " ^ x) "" l ^ "]"
+
+let test_free_vars l ast = 
+  Alcotest.(check checkVarSet) (list_to_string l) l ast
 let test_free_vars_var() =
-  Alcotest.(check checkVarSet) "same set" ["a"]
+  test_free_vars ["a"]
   (set_to_list (Terms.free_vars (Var "a")))
 
 let test_free_vars_fun1() =
-  Alcotest.(check checkVarSet) "same set" ["a"]
+  test_free_vars ["a"]
   (set_to_list (Terms.free_vars (Fun("b", TyVar "ty", Var "a"))))
 let test_free_vars_fun2() =
-  Alcotest.(check checkVarSet) "same set" []
+  test_free_vars []
   (set_to_list (Terms.free_vars (Fun("b", TyVar "ty", Fun("a", TyVar "ty", Var "b")))))
 
 let test_free_vars_funApply1() =
-  Alcotest.(check checkVarSet) "same set" ["a"; "b"]
+  test_free_vars ["a"; "b"]
   (set_to_list (Terms.free_vars (
     FunApply(Fun("a", TyVar "ty", Var "b"), Fun("b", TyVar "ty", Var "a")))))
 
 let test_free_vars_funApply2() =
-  Alcotest.(check checkVarSet) "same set" ["z"; "x"; "y"; "v"]
+  test_free_vars ["z"; "x"; "y"; "v"]
   (set_to_list (Terms.free_vars (
     FunApply(
       FunApply(
@@ -169,14 +173,14 @@ let test_free_vars_funApply2() =
 
 
 let test_free_vars_Let1() =
-  Alcotest.(check checkVarSet) "same set" ["a";"d";"e"]
+  test_free_vars ["a";"d";"e"]
   (set_to_list (Terms.free_vars (
     Let("a",
       FunApply(Fun ("b", TyVar "ty", Var "a"),
       Let("c", Var "d", Var "c")), Var "e" ))))
 
 let test_free_vars_Let2() = 
-  Alcotest.(check checkVarSet) "same set" ["a"; "b"]
+  test_free_vars ["a"; "b"]
   (set_to_list (Terms.free_vars (
     Let("x",
       Var "a",
@@ -188,14 +192,14 @@ let test_free_vars_Let2() =
   )))
 
 let test_free_var_type_abstraction() =
-  Alcotest.(check checkVarSet) "same set" ["d";"e"]
+  test_free_vars ["d";"e"]
   (set_to_list (Terms.free_vars (
     TypeAbstraction("ty", Let("a",
       FunApply(Fun ("b", TyVar "ty", Var "e"),
       Let("c", Var "d", Var "c")), Var "a" )))))
 
   let test_free_var_type_apply() =
-  Alcotest.(check checkVarSet) "same set" ["a";"d";"e"]
+  test_free_vars ["a";"d";"e"]
   (set_to_list (Terms.free_vars (
     TypeApply(Let("a",
       FunApply(Fun ("b", TyVar "ty", Var "a"),
@@ -203,7 +207,7 @@ let test_free_var_type_abstraction() =
       TyVar "ty"))))
 
 let test_free_var_type_annotation() =
-  Alcotest.(check checkVarSet) "same set" ["a";"d";"e"]
+  test_free_vars ["a";"d";"e"]
   (set_to_list (Terms.free_vars (
     TypeAnnotation(Let("a",
       FunApply(Fun ("b", TyVar "ty", Var "a"),
