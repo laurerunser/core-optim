@@ -75,7 +75,7 @@ so we can't easily know
 Example of the problem: in `forall X. X -> forall X. X`
 -> to whom does the last `X` refer to? The first binding? The second one?
 
-### The representation
+### The representation: locally nameless type variables
 There is a consensus on a representation to easily distinguish a bound variable from 
 a free one.
 Free variables keep an identifier (in our case a `tyvar` which is a `string`): `TyFreeVar of tyvar`.
@@ -97,6 +97,10 @@ becomes `forall "Z". forall "Y". 0 -> X`
 becomes `forall "Z". forall "Y". 1 -> 0`
 - `Y` gets the number `0` because it is the closest one
 - `Z` gets the number `1` because it is the binding before `Y`.
+
+The bound type variables don't have a name anymore: the name only appear
+in the `forall` that binds them. The free variables still have a string to represent them.
+Hence the name of the representation: "locally nameless".
 
 TODO: implement that representation
 
