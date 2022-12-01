@@ -2,7 +2,8 @@ open PPrint
 
 type ty = 
   (* type variable *)
-  | TyVar of tyvar  
+  | TyFreeVar of tyvar  
+  | TyBoundVar of int
 
   (* function type: TyFun(S, T) is S -> T *)
   | TyFun of ty * ty  
@@ -19,7 +20,8 @@ and tyvar = string  (* type variable *)
 
 let rec pretty_print_type_paren paren t =
   match t with
-  | TyVar x -> !^ x
+  | TyFreeVar x -> !^ x
+  | TyBoundVar x -> !^ (Int.to_string x)
   | _ -> let ty =
     match t with
     | TyFun (s,t) -> print_ty_fun s t
