@@ -6,6 +6,12 @@ let test_ppshow () =
   Alcotest.(check string) "same string" "(Terms.Var \"toto\")"
     (Libfun.Terms.(Format.asprintf "%a" pp_term (Var("toto"))))
 
+let id = Syntax.fn "x" (TyFreeVar "X") (fun x -> x)
+let poly_id = let open Syntax in
+  ty_fn "X" (fun _X -> fn "x" _X (fun x -> x))
+let test_fn_id () = Alcotest.(check string) "toto" "fun (x: X) = x" (Libfun.Terms.to_string id)
+let test_fn_poly_id () = Alcotest.(check string) "toto" "fun [X] = (fun (x: X) = x)" (Libfun.Terms.to_string poly_id)
+
 (* Pretty print tests for Types *)
 let test_pretty_print expected ast = 
   Alcotest.(check string) expected expected ast
@@ -224,6 +230,10 @@ let () =
   let open Alcotest in
   run "Utils" [
       "test Var", [ test_case "String mashing" `Quick test_ppshow  ];
+      "test fn", [
+        test_case "fn id" `Quick test_fn_id;
+        test_case "fn poly id" `Quick test_fn_poly_id
+      ];
       "test print function type", [
         test_case "Simple" `Quick test_print_ty_fun_simple;
         test_case "Left assoc" `Quick test_print_ty_fun_double_left;
