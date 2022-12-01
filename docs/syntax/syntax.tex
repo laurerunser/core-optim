@@ -1,0 +1,31 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amsthm, amssymb}
+
+\begin{document}
+\section{Terms}
+$
+\begin{array}{ccll}
+t,u & ::= & & \\
+& | & x & \text{(variable)} \\
+& | & \textbf{fun } (x : T) = t & \text{(abstraction)} \\
+& | & t \: u & \text{(function application)} \\
+& | & \textbf{let } x = t \textbf{ in } u & \text{(let binding)} \\
+& | & \textbf{fun }[X] = t & \text{(type abstraction)} \\
+& | & t[T] & \text{(type application)} \\
+& | & (t:T) & \text{(type annotation)}
+\end{array}
+$
+\newline
+\section{Types}
+$
+\begin{array}{ccll}
+S,T & ::= & & \\
+& | & X & \text{(type variable)} \\
+& | & S \to T & \text{(function type)} \\
+& | & \forall X. T & \text{(polymorphic type)} \\
+& | & T_0 * ... * T_k & \text{(tuples)}
+\end{array}
+$
+\end{document}
