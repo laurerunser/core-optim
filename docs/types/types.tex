@@ -1,0 +1,41 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[]{mathpartir}
+
+\begin{document}
+\begin{mathpar}
+\inferrule [Variable]
+{\Gamma(x) = T}
+{\Gamma \vdash x \in T}
+
+\inferrule [Abstraction]
+{\Gamma, x : S \vdash t \in T}
+{\Gamma \vdash \textbf{fun } (x : S) = t \in S \to T}
+
+\inferrule [Function application]
+{\Gamma \vdash t \in S \to T \\ \Gamma \vdash S \ni u}
+{\Gamma \vdash t \: u \in T}
+
+\inferrule [Let binding]
+{\Gamma \vdash t \in T \\ \Gamma, x:T \vdash u \in S}
+{\Gamma \vdash \textbf{let } x = t \textbf{ in } u \in S}
+
+\inferrule [Type abstraction]
+{\Gamma, X \vdash t \in T \\ X \notin freetyvars(\Gamma)}
+{\Gamma \vdash \textbf{fun }[X] = t \in \forall X.T}
+
+\inferrule [Type application]
+{\Gamma \vdash t \in \forall X. T}
+{\Gamma \vdash t[S] \in T[X \mapsto S]}
+
+\inferrule [Type annotation]
+{\Gamma \vdash T \ni t}
+{\Gamma \vdash (t:T) \in T}
+
+\inferrule [Type checking]
+{\Gamma \vdash t \in S \\ \Gamma \vdash S \equiv T}
+{\Gamma \vdash T \ni t}
+
+\end{mathpar}
+\end{document}
