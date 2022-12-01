@@ -5,7 +5,7 @@ t,u ::=
     | fun (x:T) = t     (abstraction)  
     | t u               (function application)  
     | let x = t in u    (let binding)  
-    | fun[X]=t          (type abstraction)  
+    | fun[X].t          (type abstraction)  
     | t[T]              (type application)  
     | (t:T)             (type annotation)  
 
