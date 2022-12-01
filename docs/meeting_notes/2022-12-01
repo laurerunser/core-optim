@@ -1,0 +1,138 @@
+# 01 Dec 2022 - 13h30
+avec Pierre-Evariste Dagand
+On se revoit jeudi prochain à 13h30 en 3012.
+On finira avant 15h pour qu'on puisse aller voir Michele Pagani.
+
+## Code review
+TODO:
+- make wrappers around `Alcotest.check` to make things less verbose
+    - one for the pretty print and one for free_vars
+- change the test for free_vars for type annotation so that it is less strict
+and shows that `a` is indeed a bound variable.
+
+## Smart constructors
+We saw that writing tests directly with our AST constructors is very verbose,
+annoying and unreadable. So instead we are going to define **smart constructors**
+that make things easier.
+This will be written in the file `test/syntax.ml` because we are only going to use
+it to write tests.
+
+A smart constructor takes as arguments a function and the arguments we want to
+inject inside.
+
+1) function
+ [`fn v ty f`] produces `Fun(var, ty, f(Var(v)))`
+
+Example: to make the identity function
+`let id = fn "v" TyVar("ty") (fun x -> x)`
+This will inject the variable `v`, and the type `TyVar(ty)` inside of the function `f`.
+
+2) function application
+[`$` f s] will produce `FunApply(f, s)`
+
+3) let
+[`letin` v ty f] will produce `Let(v, ty, f(Var(v)))`
+
+4) type abstraction and type application
+[`ty_fn v f`] will produce `TyAbstraction(v, f(TyVar(v)))`
+[`$! t ty`] will produce `TypeApply(term, type)`
+
+5) type annotation
+[`^ t ty`] will produce `TypeAnnotation(term, type)`
+
+TODO: put the tests for this new syntax at the top of the test file
+TODO: rewrite the previous tests with this new syntax
+
+TODO: write a similar syntax for the types and rewrite the old tests with it
+-> this should be done AFTER updating the type syntax (next section).
+Otherwise we will have to do the work twice.
+
+## Type system
+We won't do any type inference because this is an undecidable problem for System F.
+
+TODO: write a LaTeX file with rules: in `docs/types/`.
+Use the `mathpartir` module.
+
+### The problem of type equality
+In our typechecking functions, we will need to test if two types are equal.
+
+OCaml's usual equality doesn't work.
+It would say that:
+- `forall Y. Y->Y` and
+- `forall Z. Z -> Z`
+are not equal, even though they should be.
+
+We want our types to be equal after alpha-renaming.
+For example: `(fun[X]. fun(x:X).x) : forall Y. Y -> Y` is valid.
+The left-hand part has type `forall X. X -> X` which can be alpha-renamed
+into `forall Y. Y -> Y`.
+
+The problem with our current syntax is that all type variables have the same status, 
+so we can't easily know 
+- if a variable is free or not
+- to which binding a bound variable refers to
+
+Example of the problem: in `forall X. X -> forall X. X`
+-> to whom does the last `X` refer to? The first binding? The second one?
+
+### The representation
+There is a consensus on a representation to easily distinguish a bound variable from 
+a free one.
+Free variables keep an identifier (in our case a `tyvar` which is a `string`): `TyFreeVar of tyvar`.
+Inside of the `forall`, there is a `TyFreeVar` with a string identifier.
+
+Bound variables have a number: `TyBoundVar of int`. It represents the position of the binding
+they refer to. `0` is the previous one, `1` is the one before that, etc.
+
+Examples:
+1) `forall Y. Y -> X` (X free, Y is not)
+becomes `forall "Y". 0 -> X`
+We keep the string for the variable inside of the `forall`, but the ones outside which refer to the 
+binding get the number `0`.
+
+2) `forall Z. forall Y. Y -> X`
+becomes `forall "Z". forall "Y". 0 -> X`
+
+3) `forall Z. forall Y. Z -> Y`
+becomes `forall "Z". forall "Y". 1 -> 0`
+- `Y` gets the number `0` because it is the closest one
+- `Z` gets the number `1` because it is the binding before `Y`.
+
+TODO: implement that representation
+
+### Solving the problem of type equality
+To test for type equality with our new representation, we would need to:
+- not compare the `tyvar` inside of the `forall`: they can be alpha-renamed if necessary
+- compare the numbers inside of the `TyBoundVar` to make sure the "structure" of the type
+is the same.
+
+Thankfully, `ppx-deriving` has an option to do just that.
+
+TODO: look at the doc for the right annotation, but it should look something like
+`@@deriving equality opaque`.
+This should be put on `tyvar` so that it is excluded from the type equality.
+
+### Navigating between TyFreeVar and TyBoundVar
+
+We need to write 2 functions to navigate between the types:
+1) `abstract: tyvar -> type -> type`
+[`abstract X T`] returns a new type `forall X. T`
+    - with the right variable in the `forall`
+    - in `T`, increment the references to the bindings if needed
+    - in `T`, change `X` into a `FreeBoundVar` with the right index
+This will allow us to make universal types during the type checking.
+It will be useful for the rule `fun[X].t` which returns `forall X. T`
+
+2) `fill: type -> type -> type`
+[`fill (forall X.T) S`] makes `T[X replaced by S]`
+    - check that the first type is indeed a forall
+    - update the references to the bindings (because we removed the outer-most one)
+This will allow us to make substitutions during the type checking.
+It will be useful for the rule `t[S]` which returns `T[X replaced by S]`
+
+TODO: implement the functions
+TODO: implement the bigger recursive function to go down a term and make changes
+TODO: write tests. The ones we presented above are a good starting point.
+
+TODO: make some tests about equality to convince yourselves the `ppx-deriving` annotation
+is doing its job.

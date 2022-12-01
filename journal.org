@@ -17,6 +17,10 @@ The markdown source is in `communication/sujet/optimizer.md`.
 - projet, approuvé. Elles commencent à lire litterature. 
 - on se voit jeudi 8 decembre (suivis aussi par PEDagand)
 
-24/11/2022 - voir docs/meeting_notes/2022-11-24 pour les détails
+24/11/2022 - voir `docs/meeting_notes/2022-11-24` pour les détails
 - mise en place de l'infrastructure du projet
 - definition de la syntaxe
+
+01/12/22 - voir le fichier `2022-12-01` pour les details
+- discussion de la merge request
+- présentation du système de type
