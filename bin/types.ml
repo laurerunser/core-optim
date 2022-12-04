@@ -18,6 +18,34 @@ type ty =
 and tyvar = string  (* type variable *)
 [@@deriving show]
 
+
+(********** Type manipulation **********)
+
+(* [replace_ty x ty c] replaces the free variable
+   [x] with the bound variable [c] in the type [ty]. 
+   It goes down the type recursively and increments [c]
+   each time it enters a new PolyMorphicType binding. *)
+let rec replace_ty x ty c = 
+  match ty with
+  | PolymorphicType(_, t) -> replace_ty x t (c+1)
+  | TyFreeVar(v) when v = x -> TyBoundVar(c)
+  | TyFun(t1, t2) -> 
+    let t1 = replace_ty x t1 c in 
+    let t2 = replace_ty x t2 c in 
+    TyFun(t1, t2)
+  | TyTuple(l) -> 
+    let l' = List.map (fun t -> replace_ty x t c) l in 
+    TyTuple(l')
+  | _ as t -> t
+
+(* [abstract X ty] returns a new type `forall X. ty` where
+   the free variable [X] is replaced with a bound variable. *)
+let abstract x ty = 
+  let ty = replace_ty x ty 0
+  in PolymorphicType(x, ty)
+  
+
+(********** Pretty printing **********)
 let rec pretty_print_type_paren paren t =
   match t with
   | TyFreeVar x -> !^ x
