@@ -22,10 +22,10 @@ type term =
 
   (* type annotation: TypeAnnotation(t,T) is (t:T) *)
   | TypeAnnotation of term * ty
-[@@deriving show]
+[@@deriving show, eq]
 
 and variable = string (* variable *)
-[@@deriving show]
+[@@deriving show, eq]
 
 
 let rec pretty_print t = 
