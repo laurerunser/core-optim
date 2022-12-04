@@ -9,14 +9,14 @@ type ty =
   | TyFun of ty * ty  
 
   (* polymorphic type: PolymorphicType(X, T) is forAll X. T *)
-  | PolymorphicType of tyvar * ty 
+  | PolymorphicType of (tyvar [@opaque][@equal fun _ _ -> true]) * ty
 
   (* tuple: T_0 * ... * T_k *)  
   | TyTuple of ty list            
-[@@deriving show]
+[@@deriving show, eq]
 
 and tyvar = string  (* type variable *)
-[@@deriving show]
+[@@deriving show, eq]
 
 
 (********** Type manipulation **********)

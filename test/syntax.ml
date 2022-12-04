@@ -12,7 +12,6 @@ let (^) t ty = TypeAnnotation(t, ty)
 (* smart constructors for the types *)
 let fv s = TyFreeVar s
 let bv i = TyBoundVar i 
+let (=>) s t = TyFun(s, t)
 let tuple l = TyTuple l 
-let ($!!) s t = TyFun(s, t)
-let tp l = TyTuple(l)
 let fn_ty _ _ = failwith "todo"
