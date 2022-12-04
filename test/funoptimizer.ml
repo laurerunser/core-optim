@@ -13,53 +13,108 @@ let test_equal expected bool =
 (* ppx_deriving tests *)
 let test_ppshow_var () = 
   test_string "(Terms.Var \"toto\")"
-    (Libfun.Terms.(Format.asprintf "%a" pp_term (Var("toto"))))
+    (Terms.(Format.asprintf "%a" pp_term (Var("toto"))))
 
 let test_ppshow_opaque () =
   test_string "(Types.PolymorphicType (<opaque>, (Types.TyBoundVar 0)))"
-   (Libfun.Types.(Format.asprintf "%a" pp_ty (PolymorphicType("toto", TyBoundVar(0)))))
+   (Types.(Format.asprintf "%a" pp_ty (poly_ty "toto" (fun x -> x))))
 
 let test_ppeq_polyty1 () =
   test_equal true (Types.equal_ty
-    (PolymorphicType("titi", TyBoundVar(0)))
-    (PolymorphicType("toto", TyBoundVar(0))))
+    (poly_ty "titi" (fun x -> x))
+    (poly_ty "toto" (fun x -> x)))
 
 let test_ppeq_polyty2 () =
   test_equal true (Types.equal_ty
-    (PolymorphicType("a", PolymorphicType("b", TyFun(TyBoundVar(0), TyBoundVar(1)))))
-    (PolymorphicType("b",PolymorphicType("a", TyFun(TyBoundVar(0), TyBoundVar(1))))))
+    (poly_ty "a" (fun x -> poly_ty "b" (fun y -> y => x)))
+    (poly_ty "b" (fun x -> poly_ty "a" (fun y -> y => x))))
 
 let test_ppeq_polyty3 () =
   test_equal false (Types.equal_ty
-    (PolymorphicType("a", PolymorphicType("b", TyFun(TyBoundVar(0), TyFreeVar("c")))))
-    (PolymorphicType("b",PolymorphicType("a", TyFun(TyBoundVar(0), TyFreeVar("d"))))))
+    (poly_ty "a" (fun _x -> poly_ty "b" (fun y -> y => TyFreeVar("c"))))
+    (poly_ty "a" (fun _x -> poly_ty "b" (fun y -> y => TyFreeVar("d")))))
 
 let test_ppeq_term_polyty () =
   test_equal true (Terms.equal_term
-    (TypeAnnotation(Var "x", PolymorphicType("a", PolymorphicType("b", TyFun(TyBoundVar(0), TyBoundVar(1))))))
-    (TypeAnnotation(Var "x", (PolymorphicType("b",PolymorphicType("a", TyFun(TyBoundVar(0), TyBoundVar(1))))))))
+    (Var "x" ^ (poly_ty "a" (fun x -> poly_ty "b" (fun y -> y => x))))
+    (Var "x" ^ (poly_ty "b" (fun x -> poly_ty "a" (fun y -> y => x)))))
 
 (*****************************************************************************)
 (* Smart constructeur tests *)
+let id = fn "x" (TyFreeVar "X") (fun x -> x)
 
-let id = Syntax.fn "x" (TyFreeVar "X") (fun x -> x)
-let poly_id = let open Syntax in
+let poly_id =
   ty_fn "X" (fun _X -> fn "x" _X (fun x -> x))
-let test_fn_id () = Alcotest.(check string) "toto" "fun (x: X) = x" (Libfun.Terms.to_string id)
-let test_fn_poly_id () = Alcotest.(check string) "toto" "fun [X] = (fun (x: X) = x)" (Libfun.Terms.to_string poly_id)
 
+let test_fn_id () =
+  test_string "fun (x: X) = x" (Terms.to_string id)
+
+let test_fn_poly_id () =
+  test_string "fun [X] = (fun (x: X) = x)" (Terms.to_string poly_id)
+
+let test_fn2 () =
+  test_string "fun (x: X) = (fun (y: X) = (y x))" (Terms.to_string (
+    fn "x" (TyFreeVar "X") (fun x -> (fn "y" (TyFreeVar "X") (fun y -> y $ x)))))
+
+let test_letin () =
+  test_string "let x = a in (fun (x: X) = x) x" (Terms.to_string (
+    letin "x" (Var "a") (fun y -> id $ y)))
+
+let test_poly_ty1 () =
+  test_string "forall X. (forall Y. (1 -> 0))" (Types.to_string (
+    poly_ty "X" (fun x -> poly_ty "Y" (fun y -> x => y))))
+
+let test_poly_ty2 () =
+  test_string "forall X. (a -> (forall Y. (0 * (forall Z. (2 -> 0)))))"
+    (Types.to_string (poly_ty "X" (fun x -> TyFreeVar "a" =>
+      (poly_ty "Y" (fun y -> tuple [y; poly_ty "Z" (fun z -> x => z)])))))
+
+(*****************************************************************************)
+(* Test abstract and fill *)
+let test_abstract_fn () =
+  test_string "forall a. (0 -> b)"
+    (Types.(to_string (abstract "a" (TyFreeVar "a" => TyFreeVar "b"))))
+
+let test_abstract_poly1 () =
+  test_string "forall a. (0 -> (forall b. (c * 0 * 1)))"
+    (Types.(to_string (abstract "a" (TyFreeVar "a" =>
+      PolymorphicType("b", tuple [TyFreeVar "c"; TyBoundVar 0; TyFreeVar "a"])))))
+
+let test_abstract_poly2 () =
+  test_string "forall a. (0 -> (forall b. ((forall a. (0 -> 2)) * 0 * 1)))" 
+    (Types.(to_string (abstract "a" (TyFreeVar "a" => PolymorphicType("b",
+      tuple [PolymorphicType("a", TyBoundVar 0 => TyFreeVar "a"); TyBoundVar 0; TyFreeVar "a"])))))
+
+let test_fill_fn () =
+  test_string "T -> b"
+  (Types.(to_string (fill (poly_ty "X" (fun x -> x => TyFreeVar "b")) (TyFreeVar "T"))))
+
+let test_fill_poly1 () =
+  test_string "c -> (forall Y. (T * 0))"
+    (Types.(to_string (fill (poly_ty "X"
+      (fun x -> TyFreeVar "c" => poly_ty "Y" (fun y -> tuple [x;y]))) (TyFreeVar "T"))))
+
+let test_fill_poly2 () =
+  test_string ""
+    Types.(to_string (fill (poly_ty "a" (fun x -> x => (poly_ty "b" (fun y -> tuple [poly_ty "a" (fun y -> y => x); y; x])))) (TyFreeVar "T")))
+
+(*****************************************************************************)
 (* Pretty print tests for Types *)
 let test_pretty_print expected ast = 
   Alcotest.(check string) expected expected ast
+
 let test_print_ty_fun_simple () =
   let t = (fv "x1") => (fv "x2") in 
   test_pretty_print "x1 -> x2" (Types.to_string t)
+
 let test_print_ty_fun_double_left () =
   let t = (fv "x1" => fv "x2") => (fv "x3") in 
   test_pretty_print "(x1 -> x2) -> x3" (Types.to_string t)
+
 let test_print_ty_fun_double_right () =
   let t = (fv "x1") => (fv "x2" => fv "x3") in
   test_pretty_print "x1 -> (x2 -> x3)" (Types.to_string t)
+
 let test_print_ty_fun_very_long () = (* to test line breaks and indents *)
   let t =  (fv "long_variable_name1" => (fv "long_variable_name2" 
       => (fv "long_variable_name1" => (fv "long_variable_name2"
@@ -70,44 +125,42 @@ let test_print_ty_fun_very_long () = (* to test line breaks and indents *)
         (Types.to_string t)
     
 let test_print_poly_type_simple() =
-  test_pretty_print "forall x1. 0"
-    (Types.to_string (PolymorphicType("x1", TyBoundVar 0)))
+  let t = poly_ty "x1" (fun x -> x) in
+  test_pretty_print "forall x1. 0" (Types.to_string t)
+
 let test_print_poly_type_double() =
-  test_pretty_print "forall x1. (forall x2. 1)"
-    (Types.to_string (PolymorphicType("x1", PolymorphicType("x2", TyBoundVar 1))))
+  let t = poly_ty "x1" (fun x -> poly_ty "x2" (fun _y -> x)) in
+  test_pretty_print "forall x1. (forall x2. 1)" (Types.to_string t)
 
 let test_print_poly_type_complex() =
-  test_pretty_print "forall x1. (forall x2. (forall x3. (0 * 1 * 2)))"
-    (Types.to_string (PolymorphicType("x1", PolymorphicType("x2", 
-        PolymorphicType("x3", TyTuple([TyBoundVar 0; TyBoundVar 1; TyBoundVar 2]))))))
+  let t = poly_ty "x1" (fun x -> poly_ty "x2" (fun y -> poly_ty "x3" (fun z -> tuple [z;y;x]))) in
+  test_pretty_print "forall x1. (forall x2. (forall x3. (0 * 1 * 2)))" (Types.to_string t)
 
 let test_print_ty_tuple_simple() = 
   let t = tuple [fv "x"; fv "y"; fv "z"]  in
   test_pretty_print "x * y * z" (Types.to_string t)
+
 let test_print_ty_tuple_double() =
   let t = tuple [tuple [fv "x1"; fv "x2"; fv "x3"]; fv "y"; fv "z"] in 
   test_pretty_print "(x1 * x2 * x3) * y * z" (Types.to_string t)
 
 let test_print_ty_compose1() =
-  let t = (PolymorphicType("x", (TyBoundVar(0) => fv "y"))) 
-          => tuple [fv "a"; fv "b"] in 
+  let t = poly_ty "x" (fun x -> x => fv "y") => tuple [fv "a"; fv "b"] in
   test_pretty_print "(forall x. (0 -> y)) -> (a * b)" (Types.to_string t)
-let test_print_ty_compose2() =
-  let t = tuple [fv "a"; fv "b"]
-      => (PolymorphicType("x", TyBoundVar(0) => fv "y")) in
-  test_pretty_print "(a * b) -> (forall x. (0 -> y))"
-    (Types.to_string t)
-let test_print_ty_compose3() =
-  let t = Types.PolymorphicType("x", 
-  tuple [fv "a"; fv "b"] => (TyBoundVar(0) => fv "y")) in 
-  test_pretty_print "forall x. ((a * b) -> (0 -> y))"
-    (Types.to_string t)
-let test_print_ty_compose4() =
-  let t = Types.PolymorphicType("x", 
-            tuple [fv "a"; TyBoundVar(0) => fv "y"] => fv "b") in
-  test_pretty_print "forall x. ((a * (0 -> y)) -> b)"
-    (Types.to_string t)
 
+let test_print_ty_compose2() =
+  let t = tuple [fv "a"; fv "b"] => poly_ty "x" (fun x -> x => fv "y") in
+  test_pretty_print "(a * b) -> (forall x. (0 -> y))" (Types.to_string t)
+
+let test_print_ty_compose3() =
+  let t = poly_ty "x" (fun x -> tuple [fv "a"; fv "b"] => (x => fv "y")) in 
+  test_pretty_print "forall x. ((a * b) -> (0 -> y))" (Types.to_string t)
+
+let test_print_ty_compose4() =
+  let t = poly_ty "x" (fun x -> tuple [fv "a"; x => fv "y"] => fv "b") in
+  test_pretty_print "forall x. ((a * (0 -> y)) -> b)" (Types.to_string t)
+
+(*****************************************************************************)
 (* Pretty print tests for Terms *)
 let test_print_variable() = 
   test_pretty_print "toto"
@@ -121,19 +174,21 @@ let test_print_fun2() =
   let t = fn "y" (fv "ty1") (fun _ -> (Var("z")) $! (fv "ty2")) in
   test_pretty_print "fun (y: ty1) = z[ty2]"
   (Terms.to_string t)
+
 let test_print_fun3() = 
-  let t = fn "x" (PolymorphicType("poly_ty", fv "ty1" => fv "ty2")) 
-            (fun _ -> Var "z") in
+  let t = fn "x" (poly_ty "poly_ty" (fun _x -> fv "ty1" => fv "ty2"))
+    (fun _ -> Var "z") in
   test_pretty_print "fun (x: forall poly_ty. (ty1 -> ty2)) = z"
   (Terms.to_string t)
+
 let test_print_fun4() = 
   let t = fn "x"
-            (PolymorphicType("poly_ty", fv "ty1" => (fv "ty2" => 
-                            (fv "ty3" => fv "ty4")))) 
-            (fun _ -> (fn "y" (fv "ty4" => fv "ty5")
-                        (fun _ -> fn "z" (fv "ty6" => fv "ty7") (fun _ -> Var("z"))))) in 
+    (poly_ty "poly_ty" (fun _x -> fv "ty1" => (fv "ty2" => (fv "ty3" => fv "ty4"))))
+    (fun _ -> (fn "y" (fv "ty4" => fv "ty5")
+      (fun _ -> fn "z" (fv "ty6" => fv "ty7") (fun _ -> Var("z"))))) in 
   test_pretty_print "fun (x: forall poly_ty. (ty1 -> (ty2 -> (ty3 -> ty4)))) =\n  (fun (y: ty4 -> ty5) = (fun (z: ty6 -> ty7) = z))"
   (Terms.to_string t)
+
 let test_print_fun_apply1() =
   let t = Var "f" $ Var "x" in 
   test_pretty_print "f x" (Terms.to_string t)
@@ -145,7 +200,7 @@ let test_print_fun_apply2() =
   (Terms.to_string t)
 
 let test_print_let1() =
-  let t = letin "x" (Var("y")) (fun _ -> Terms.Var("z")) in 
+  let t = letin "x" (Var("y")) (fun _ -> Var("z")) in 
   test_pretty_print "let x = y in z" (Terms.to_string t)
 
 let test_print_let2() = 
@@ -175,13 +230,14 @@ let test_print_type_apply1() =
   test_pretty_print "x[y]" (Terms.to_string t)
 
 let test_print_type_apply2() = 
-  let t = (fn "x" (fv "ty") (fun _ -> Var "g" $
-              letin "x" (Var "f2" $ Var "y2") (fun _ -> Var"y")))
-  $! PolymorphicType("x", tuple [fv "a"; 
-                              fv "tyvar3" => fv "tyvar4"] => fv "b") in 
+  let t =
+    (fn "x" (fv "ty") (fun _ -> Var "g" $ letin "x" (Var "f2" $ Var "y2")
+      (fun _ -> Var"y")))
+    $! poly_ty "x" (fun _ -> tuple [fv "a"; fv "tyvar3" => fv "tyvar4"] => fv "b") in 
   test_pretty_print "(fun (x: ty) = (g let x = (f2 y2) in y))[forall x.\n  ((a * (tyvar3 -> tyvar4)) -> b)]"
   (Terms.to_string t)
 
+(*****************************************************************************)
 (* free_vars tests *)
 let checkVarSet = Alcotest.(slist string String.compare)
 let set_to_list = fun s -> List.of_seq (Terms.VarSet.to_seq s)
@@ -264,6 +320,26 @@ let test_free_var_type_annotation() =
 let () =
   let open Alcotest in
   run "Utils" [
+      "test smart constructors", [
+        test_case "fn id" `Quick test_fn_id;
+        test_case "fn poly id" `Quick test_fn_poly_id;
+        test_case "fn fun 2" `Quick test_fn2;
+        test_case "letin" `Quick test_letin;
+      ];
+      "test abstract", [
+        test_case "abstract fn" `Quick test_abstract_fn;
+        test_case "abstract poly" `Quick test_abstract_poly1;
+        test_case "abstract poly2" `Quick test_abstract_poly2;
+      ];
+      "test smart constructors poly", [
+        test_case "poly type 1" `Quick test_poly_ty1;
+        test_case "poly type 2" `Quick test_poly_ty2;
+      ];
+      "test fill", [
+        test_case "fill fn" `Quick test_fill_fn;
+        test_case "fill poly" `Quick test_fill_poly1;
+        test_case "fill poly2" `Quick test_fill_poly2;
+      ];
       "test pp_deriving", [
         test_case "ppshow var" `Quick test_ppshow_var;
         test_case "ppshow opaque polytypes var" `Quick test_ppshow_opaque;
@@ -271,10 +347,6 @@ let () =
         test_case "ppeq polytype 2b" `Quick test_ppeq_polyty2;
         test_case "ppeq polytype 2b+1f" `Quick test_ppeq_polyty3;
         test_case "ppeq term with" `Quick test_ppeq_term_polyty
-      ];
-      "test fn", [
-        test_case "fn id" `Quick test_fn_id;
-        test_case "fn poly id" `Quick test_fn_poly_id
       ];
       "test print function type", [
         test_case "Simple" `Quick test_print_ty_fun_simple;
