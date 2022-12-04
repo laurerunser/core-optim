@@ -1,5 +1,6 @@
 (* Build with `ocamlbuild -pkg alcotest simple.byte` *)
 open Libfun
+open Syntax
 
 (* The tests *)
 let test_ppshow () = 
@@ -16,20 +17,22 @@ let test_fn_poly_id () = Alcotest.(check string) "toto" "fun [X] = (fun (x: X) =
 let test_pretty_print expected ast = 
   Alcotest.(check string) expected expected ast
 let test_print_ty_fun_simple () =
-  test_pretty_print "x1 -> x2"
-    (Types.to_string (TyFun (TyFreeVar "x1", TyFreeVar "x2")))
+  let t = (fv "x1") $!! (fv "x2") in 
+  test_pretty_print "x1 -> x2" (Types.to_string t)
 let test_print_ty_fun_double_left () =
-  test_pretty_print "(x1 -> x2) -> x3"
-    (Types.to_string (TyFun (TyFun (TyFreeVar "x1", TyFreeVar "x2"), TyFreeVar "x3")))
+  let t = (fv "x1" $!! fv "x2") $!! (fv "x3") in 
+  test_pretty_print "(x1 -> x2) -> x3" (Types.to_string t)
 let test_print_ty_fun_double_right () =
-  test_pretty_print "x1 -> (x2 -> x3)"
-    (Types.to_string (TyFun (TyFreeVar "x1", TyFun (TyFreeVar "x2", TyFreeVar "x3"))))
+  let t = (fv "x1") $!! (fv "x2" $!! fv "x3") in
+  test_pretty_print "x1 -> (x2 -> x3)" (Types.to_string t)
 let test_print_ty_fun_very_long () = (* to test line breaks and indents *)
-      test_pretty_print "long_variable_name1 ->\n  (long_variable_name2 ->\n    (long_variable_name1 ->\n      (long_variable_name2 ->\n        (long_variable_name1 ->\n          (long_variable_name2 ->\n            (long_variable_name1 ->\n              (long_variable_name2 -> long_variable_name3)))))))"
-        (Types.to_string (TyFun (TyFreeVar "long_variable_name1", TyFun (TyFreeVar "long_variable_name2", 
-          TyFun (TyFreeVar "long_variable_name1", TyFun (TyFreeVar "long_variable_name2", 
-          TyFun (TyFreeVar "long_variable_name1", TyFun (TyFreeVar "long_variable_name2", 
-          TyFun (TyFreeVar "long_variable_name1", TyFun (TyFreeVar "long_variable_name2", TyFreeVar "long_variable_name3"))))))))))
+  let t =  (fv "long_variable_name1" $!! (fv "long_variable_name2" 
+      $!! (fv "long_variable_name1" $!! (fv "long_variable_name2"
+      $!! (fv "long_variable_name1" $!! (fv "long_variable_name2"
+      $!! (fv "long_variable_name1"
+      $!! (fv "long_variable_name 2" $!! fv "long_variable_name3")))))))) in 
+    test_pretty_print "long_variable_name1 ->\n  (long_variable_name2 ->\n    (long_variable_name1 ->\n      (long_variable_name2 ->\n        (long_variable_name1 ->\n          (long_variable_name2 ->\n            (long_variable_name1 ->\n              (long_variable_name 2 -> long_variable_name3)))))))"
+        (Types.to_string t)
     
 let test_print_poly_type_simple() =
   test_pretty_print "forall x1. 0"
@@ -43,35 +46,32 @@ let test_print_poly_type_complex() =
     (Types.to_string (PolymorphicType("x1", PolymorphicType("x2", 
         PolymorphicType("x3", TyTuple([TyBoundVar 0; TyBoundVar 1; TyBoundVar 2]))))))
 
-let test_print_ty_tuple_simple() =
-  test_pretty_print "x * y * z"
-    (Types.to_string (TyTuple [TyFreeVar "x"; TyFreeVar "y"; TyFreeVar "z"]))
+let test_print_ty_tuple_simple() = 
+  let t = tp [fv "x"; fv "y"; fv "z"]  in
+  test_pretty_print "x * y * z" (Types.to_string t)
 let test_print_ty_tuple_double() =
-  test_pretty_print "(x1 * x2 * x3) * y * z"
-    (Types.to_string (TyTuple [
-      TyTuple [TyFreeVar "x1"; TyFreeVar "x2"; TyFreeVar "x3"];
-      TyFreeVar "y"; TyFreeVar "z"]))
+  let t = tp [tp [fv "x1"; fv "x2"; fv "x3"]; fv "y"; fv "z"] in 
+  test_pretty_print "(x1 * x2 * x3) * y * z" (Types.to_string t)
 
 let test_print_ty_compose1() =
-  test_pretty_print "(forall x. (0 -> y)) -> (a * b)"
-    (Types.to_string (TyFun(
-      PolymorphicType("x", TyFun(TyBoundVar 0, TyFreeVar "y")),
-      TyTuple [TyFreeVar "a"; TyFreeVar "b"])))
+  let t = (PolymorphicType("x", (TyBoundVar(0) $!! fv "y"))) 
+          $!! tp [fv "a"; fv "b"] in 
+  test_pretty_print "(forall x. (0 -> y)) -> (a * b)" (Types.to_string t)
 let test_print_ty_compose2() =
+  let t = tp [fv "a"; fv "b"]
+      $!! (PolymorphicType("x", TyBoundVar(0) $!! fv "y")) in
   test_pretty_print "(a * b) -> (forall x. (0 -> y))"
-    (Types.to_string (TyFun(
-      TyTuple [TyFreeVar "a"; TyFreeVar "b"],
-      PolymorphicType("x", TyFun(TyBoundVar 0, TyFreeVar "y")))))
+    (Types.to_string t)
 let test_print_ty_compose3() =
+  let t = Types.PolymorphicType("x", 
+  tp [fv "a"; fv "b"] $!! (TyBoundVar(0) $!! fv "y")) in 
   test_pretty_print "forall x. ((a * b) -> (0 -> y))"
-    (Types.to_string (PolymorphicType("x", TyFun(
-      TyTuple [TyFreeVar "a"; TyFreeVar "b"],
-      TyFun(TyBoundVar 0, TyFreeVar "y")))))
+    (Types.to_string t)
 let test_print_ty_compose4() =
+  let t = Types.PolymorphicType("x", 
+            tp [fv "a"; TyBoundVar(0) $!! fv "y"] $!! fv "b") in
   test_pretty_print "forall x. ((a * (0 -> y)) -> b)"
-    (Types.to_string (PolymorphicType("x", TyFun(
-      TyTuple [TyFreeVar "a"; TyFun(TyBoundVar 0, TyFreeVar "y")],
-      TyFreeVar "b"))))
+    (Types.to_string t)
 
 (* Pretty print tests for Terms *)
 let test_print_variable() = 
@@ -79,75 +79,80 @@ let test_print_variable() =
   (Terms.to_string (Var("toto")))
 
 let test_print_fun1() = 
-  test_pretty_print "fun (x: ty) = y"
-  (Terms.to_string (Fun("x", TyFreeVar("ty"), Var("y"))))
+  let t = fn "x" (fv "ty") (fun _ -> Var("y")) in
+  test_pretty_print "fun (x: ty) = y" (Terms.to_string t)
 
 let test_print_fun2() = 
+  let t = fn "y" (fv "ty1") (fun _ -> (Var("z")) $! (fv "ty2")) in
   test_pretty_print "fun (y: ty1) = z[ty2]"
-  (Terms.to_string (Fun("y", TyFreeVar("ty1"), TypeApply(Var("z"), TyFreeVar("ty2")))))
+  (Terms.to_string t)
 let test_print_fun3() = 
+  let t = fn "x" (PolymorphicType("poly_ty", fv "ty1" $!! fv "ty2")) 
+            (fun _ -> Var "z") in
   test_pretty_print "fun (x: forall poly_ty. (ty1 -> ty2)) = z"
-  (Terms.to_string (Fun("x", 
-    PolymorphicType("poly_ty", TyFun(TyFreeVar("ty1"), TyFreeVar("ty2"))),
-    Var("z"))))
+  (Terms.to_string t)
 let test_print_fun4() = 
+  let t = fn "x"
+            (PolymorphicType("poly_ty", fv "ty1" $!! (fv "ty2" $!! 
+                            (fv "ty3" $!! fv "ty4")))) 
+            (fun _ -> (fn "y" (fv "ty4" $!! fv "ty5")
+                        (fun _ -> fn "z" (fv "ty6" $!! fv "ty7") (fun _ -> Var("z"))))) in 
   test_pretty_print "fun (x: forall poly_ty. (ty1 -> (ty2 -> (ty3 -> ty4)))) =\n  (fun (y: ty4 -> ty5) = (fun (z: ty6 -> ty7) = z))"
-  (Terms.to_string (Fun("x", 
-    PolymorphicType("poly_ty", TyFun(TyFreeVar("ty1"), TyFun(TyFreeVar("ty2"), TyFun(TyFreeVar("ty3"), TyFreeVar("ty4"))))),
-      Fun("y", TyFun(TyFreeVar("ty4"), TyFreeVar("ty5")), 
-        Fun("z", TyFun(TyFreeVar("ty6"), TyFreeVar("ty7")), Var("z"))))))
+  (Terms.to_string t)
 let test_print_fun_apply1() =
-  test_pretty_print "f x"
-  (Terms.to_string (FunApply(Var("f"), Var("x"))))
+  let t = Var "f" $ Var "x" in 
+  test_pretty_print "f x" (Terms.to_string t)
 
 let test_print_fun_apply2() =
+  let t = (Var "x" $ Var "y") 
+          $ (fn "z" (fv "ty") (fun z -> z $ Var "x"))in 
   test_pretty_print "(x y) (fun (z: ty) = (z x))"
-  (Terms.to_string (FunApply(FunApply(Var("x"), Var("y")), Fun("z", TyFreeVar("ty"), FunApply(Var("z"), Var("x"))))))
+  (Terms.to_string t)
 
-let test_print_let1() = 
-  test_pretty_print "let x = y in z"
-    (Terms.to_string (Let("x", Var("y"), Var("z"))))
+let test_print_let1() =
+  let t = letin "x" (Var("y")) (fun _ -> Terms.Var("z")) in 
+  test_pretty_print "let x = y in z" (Terms.to_string t)
 
 let test_print_let2() = 
-  test_pretty_print "let x = (f y) in g toto"
-  (Terms.to_string (Let("x", FunApply(Var("f"), Var("y")), FunApply(Var("g"), Var("toto")))))
+  let t = letin "x" (Var "f" $ Var "y") (fun _ -> Var "g" $ Var "toto") in 
+  test_pretty_print "let x = (f y) in g toto" (Terms.to_string t)
 
 let test_print_let3() = 
+  let t = letin "x" (Var "f" $ Var "y")
+          (fun _ -> Var "g" $ 
+            letin "x" (Var "f2" $ Var "y2")
+              (fun _ -> letin "x2" (Var "f3" $ Var "y3")
+                (fun _ -> Var "g5" $ Var "toto"))) in
   test_pretty_print "let x = (f y) in\ng let x = (f2 y2) in let x2 = (f3 y3) in g5 toto"
-  (Terms.to_string (Let("x", FunApply(Var("f"), Var("y")), 
-      FunApply(Var("g"), Let("x", 
-      FunApply(Var("f2"), Var("y2")), 
-      Let("x2", FunApply(Var("f3"), Var("y3")), 
-      FunApply(Var("g5"), Var("toto"))))))))         
+  (Terms.to_string t)         
 
 let test_print_type_abstraction1() = 
-  test_pretty_print "fun [tyvar] = y"
-  (Terms.to_string (TypeAbstraction("tyvar", Var("y"))))
+  let t = ty_fn "tyvar" (fun _ -> Var "y") in
+  test_pretty_print "fun [tyvar] = y" (Terms.to_string t)
 
 let test_print_type_abstraction2() = 
+  let t = ty_fn "tyvar" (fun _ -> fn "x" (fv "ty2") (fun _ -> Var "z"))  in 
   test_pretty_print "fun [tyvar] = (fun (x: ty2) = z)"
-  (Terms.to_string (TypeAbstraction("tyvar", Fun("x", TyFreeVar("ty2"), Var("z")))))
+  (Terms.to_string t)
 
-let test_print_type_apply1() = 
-  test_pretty_print "x[y]"
-  (Terms.to_string (TypeApply(Var("x"), TyFreeVar("y"))))
+let test_print_type_apply1() =
+  let t = Var "x" $! fv "y" in
+  test_pretty_print "x[y]" (Terms.to_string t)
 
 let test_print_type_apply2() = 
+  let t = (fn "x" (fv "ty") (fun _ -> Var "g" $
+              letin "x" (Var "f2" $ Var "y2") (fun _ -> Var"y")))
+  $! PolymorphicType("x", tp [fv "a"; 
+                              fv "tyvar3" $!! fv "tyvar4"] $!! fv "b") in 
   test_pretty_print "(fun (x: ty) = (g let x = (f2 y2) in y))[forall x.\n  ((a * (tyvar3 -> tyvar4)) -> b)]"
-  (Terms.to_string (TypeApply(
-      Fun("x", TyFreeVar("ty"),
-        FunApply(Var("g"), Let("x", 
-        FunApply(Var("f2"), Var("y2")), 
-        Var("y")))), 
-      PolymorphicType("x", TyFun(
-        TyTuple [TyFreeVar "a"; TyFun(TyFreeVar "tyvar3", TyFreeVar "tyvar4")],
-        TyFreeVar "b")))))
+  (Terms.to_string t)
 
 (* free_vars tests *)
 let checkVarSet = Alcotest.(slist string String.compare)
 let set_to_list = fun s -> List.of_seq (Terms.VarSet.to_seq s)
 let list_to_string l = (* prints a list of string as [x1; x2; ...; xn;]*)
-  "[" ^ List.fold_left (fun x acc -> acc ^ "; " ^ x) "" l ^ "]"
+  let s = List.fold_left (fun x acc -> String.concat "" [acc; "; "; x]) "" l in   
+  String.concat "" ["["; s; "]"]
 
 let test_free_vars l ast = 
   Alcotest.(check checkVarSet) (list_to_string l) l ast
@@ -156,74 +161,69 @@ let test_free_vars_var() =
   (set_to_list (Terms.free_vars (Var "a")))
 
 let test_free_vars_fun1() =
+  let t = fn "b" (fv "ty") (fun _ -> Var "a") in 
   test_free_vars ["a"]
-  (set_to_list (Terms.free_vars (Fun("b", TyFreeVar "ty", Var "a"))))
+  (set_to_list (Terms.free_vars t))
 let test_free_vars_fun2() =
+  let t = fn "b" (fv "ty") (fun x -> fn "a" (fv "ty") (fun _ -> x)) in 
   test_free_vars []
-  (set_to_list (Terms.free_vars (Fun("b", TyFreeVar "ty", Fun("a", TyFreeVar "ty", Var "b")))))
+  (set_to_list (Terms.free_vars t))
 
 let test_free_vars_funApply1() =
+  let t = (fn "a" (fv "ty") (fun _ -> Var "b"))
+          $ (fn "b" (fv "ty") (fun _ -> Var "a")) in 
   test_free_vars ["a"; "b"]
-  (set_to_list (Terms.free_vars (
-    FunApply(Fun("a", TyFreeVar "ty", Var "b"), Fun("b", TyFreeVar "ty", Var "a")))))
+  (set_to_list (Terms.free_vars t))
 
 let test_free_vars_funApply2() =
+  let t = 
+    ((((Var "y" $ Var "v") $ (fn "x" (fv "ty") (fun x -> x))) 
+        $ ((Var "z" $ Var "x")$ (Var "y" $ Var "x"))))
+    $ ((fn "z" (fv "ty") (fun _ -> Var "x")) 
+        $ (fn "u" (fv "ty") (fun x -> x))) 
+  in 
   test_free_vars ["z"; "x"; "y"; "v"]
-  (set_to_list (Terms.free_vars (
-    FunApply(
-      FunApply(
-        FunApply(
-          FunApply(Var "y", Var "v"),
-          Fun("x", TyFreeVar "ty", Var "x")),
-        FunApply(
-          FunApply(Var "z", Var "x"),
-          FunApply(Var "y", Var "x"))),
-      FunApply(
-        Fun("z", TyFreeVar "ty", Var "x"),
-        Fun("u", TyFreeVar "ty", Var "u"))))))
-
+  (set_to_list (Terms.free_vars t))
 
 let test_free_vars_Let1() =
+  let t = letin "a" ((fn "b" (fv "ty") (fun _ -> Var "a"))
+                      $ (letin "c" (Var "d") (fun x -> x))) 
+                (fun _ -> Var "e") in
   test_free_vars ["a";"d";"e"]
-  (set_to_list (Terms.free_vars (
-    Let("a",
-      FunApply(Fun ("b", TyFreeVar "ty", Var "a"),
-      Let("c", Var "d", Var "c")), Var "e" ))))
+  (set_to_list (Terms.free_vars t))
 
 let test_free_vars_Let2() = 
+  let t = letin "x" (Var "a")
+    (fun x -> 
+      letin "y" ((fn "z" (fv "ty") (fun _ -> Var "b" $ x)) $ x) 
+        (fun y -> y $ x)) in
   test_free_vars ["a"; "b"]
-  (set_to_list (Terms.free_vars (
-    Let("x",
-      Var "a",
-      Let("y",
-        FunApply(
-          Fun ("z", TyFreeVar "ty", FunApply(Var "b", Var "x")),
-          Var "x"),
-        FunApply(Var "y", Var "x")))
-  )))
+  (set_to_list (Terms.free_vars t))
 
 let test_free_var_type_abstraction() =
+  let t = ty_fn "ty" 
+        (fun x -> letin "a" ((fn "b" x (fun _ -> Var "e")) 
+                  $ letin "c" (Var "d") (fun y -> y))
+                  (fun z -> z))
+   in 
   test_free_vars ["d";"e"]
-  (set_to_list (Terms.free_vars (
-    TypeAbstraction("ty", Let("a",
-      FunApply(Fun ("b", TyFreeVar "ty", Var "e"),
-      Let("c", Var "d", Var "c")), Var "a" )))))
+  (set_to_list (Terms.free_vars t))
 
-  let test_free_var_type_apply() =
+let test_free_var_type_apply() =
+  let t = (letin "a" ((fn "b" (fv "ty") (fun _ -> Var "a")) 
+                      $ (letin "c" (Var "d") (fun c -> c)))
+                      (fun _ -> Var "e"))
+          $! fv "ty" in 
   test_free_vars ["a";"d";"e"]
-  (set_to_list (Terms.free_vars (
-    TypeApply(Let("a",
-      FunApply(Fun ("b", TyFreeVar "ty", Var "a"),
-      Let("c", Var "d", Var "c")), Var "e" ),
-      TyFreeVar "ty"))))
+  (set_to_list (Terms.free_vars t))
 
 let test_free_var_type_annotation() =
+  let t = (letin "a" ((fn "b" (fv "ty") (fun _ -> Var "a")) 
+                      $ (letin "c" (Var "d") (fun x -> x))) 
+            (fun _ -> Var "e")) 
+          ^ fv "ty" in 
   test_free_vars ["a";"d";"e"]
-  (set_to_list (Terms.free_vars (
-    TypeAnnotation(Let("a",
-      FunApply(Fun ("b", TyFreeVar "ty", Var "a"),
-      Let("c", Var "d", Var "c")), Var "e" ),
-      TyFreeVar "ty"))))
+  (set_to_list (Terms.free_vars t))
 
 (* Run it *)
 let () =
