@@ -14,4 +14,4 @@ let fv s = TyFreeVar s
 let bv i = TyBoundVar i 
 let (=>) s t = TyFun(s, t)
 let tuple l = TyTuple l 
-let fn_ty _ _ = failwith "todo"
+let poly_ty v f = abstract v (f(TyFreeVar v))
