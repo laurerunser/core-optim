@@ -81,9 +81,9 @@ let test_abstract_poly1 () =
       PolymorphicType("b", tuple [TyFreeVar "c"; TyBoundVar 0; TyFreeVar "a"])))))
 
 let test_abstract_poly2 () =
-  test_string "forall a. (0 -> (forall b. ((forall a. (0 -> 2)) * 0 * 1)))" 
+  test_string "forall a. (0 -> (forall b. ((forall a. (0 -> 0)) * 0 * 1)))" 
     (Types.(to_string (abstract "a" (TyFreeVar "a" => PolymorphicType("b",
-      tuple [PolymorphicType("a", TyBoundVar 0 => TyFreeVar "a"); TyBoundVar 0; TyFreeVar "a"])))))
+      tuple [PolymorphicType("a", TyBoundVar 0 => TyBoundVar 0); TyBoundVar 0; TyFreeVar "a"])))))
 
 let test_fill_fn () =
   test_string "T -> b"
@@ -95,8 +95,8 @@ let test_fill_poly1 () =
       (fun x -> TyFreeVar "c" => poly_ty "Y" (fun y -> tuple [x;y]))) (TyFreeVar "T"))))
 
 let test_fill_poly2 () =
-  test_string ""
-    Types.(to_string (fill (poly_ty "a" (fun x -> x => (poly_ty "b" (fun y -> tuple [poly_ty "a" (fun y -> y => x); y; x])))) (TyFreeVar "T")))
+  test_string "T -> (forall b. ((forall a. (0 -> 0)) * 0 * T))"
+    Types.(to_string (fill (poly_ty "a" (fun x -> x => (poly_ty "b" (fun y -> tuple [poly_ty "a" (fun z -> z => x); y; x])))) (TyFreeVar "T")))
 
 (*****************************************************************************)
 (* Pretty print tests for Types *)
