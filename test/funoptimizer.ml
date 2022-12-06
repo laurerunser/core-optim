@@ -84,7 +84,11 @@ let test_abstract_poly2 () =
   test_string "forall a. (0 -> (forall b. ((forall a. (0 -> 0)) * 0 * 1)))" 
     (Types.(to_string (abstract "a" (TyFreeVar "a" => PolymorphicType("b",
       tuple [PolymorphicType("a", TyBoundVar 0 => TyBoundVar 0); TyBoundVar 0; TyFreeVar "a"])))))
-
+  
+let test_abstract_poly3 () =
+  test_string "forall d.\n  (forall b.\n    (0 -> (forall c. ((forall a. ((0 -> 2) -> 1)) * 1 * 0))))"
+    Types.(to_string (abstract "d" (poly_ty "b" (fun x -> x => (poly_ty "c" (fun z -> tuple [poly_ty "a" (fun a -> a => x => z); x; z]))))))
+      
 let test_fill_fn () =
   test_string "T -> b"
   (Types.(to_string (fill (poly_ty "X" (fun x -> x => TyFreeVar "b")) (TyFreeVar "T"))))
@@ -97,6 +101,10 @@ let test_fill_poly1 () =
 let test_fill_poly2 () =
   test_string "T -> (forall b. ((forall a. (0 -> 0)) * 0 * T))"
     Types.(to_string (fill (poly_ty "a" (fun x -> x => (poly_ty "b" (fun y -> tuple [poly_ty "a" (fun z -> z => x); y; x])))) (TyFreeVar "T")))
+
+let test_fill_poly3 () =
+  test_string "T -> (forall c. ((forall a. ((0 -> T) -> 1)) * T * 0))"
+  Types.(to_string (fill (poly_ty "b" (fun x -> x => (poly_ty "c" (fun z -> tuple [poly_ty "a" (fun a -> a => x => z); x; z])))) (TyFreeVar "T")))
 
 (*****************************************************************************)
 (* Pretty print tests for Types *)
@@ -330,6 +338,7 @@ let () =
         test_case "abstract fn" `Quick test_abstract_fn;
         test_case "abstract poly" `Quick test_abstract_poly1;
         test_case "abstract poly2" `Quick test_abstract_poly2;
+        test_case "abstract poly3" `Quick test_abstract_poly3
       ];
       "test smart constructors poly", [
         test_case "poly type 1" `Quick test_poly_ty1;
@@ -337,8 +346,9 @@ let () =
       ];
       "test fill", [
         test_case "fill fn" `Quick test_fill_fn;
-        test_case "fill poly" `Quick test_fill_poly1;
-        test_case "fill poly2" `Quick test_fill_poly2;
+        test_case "fill poly: basic case" `Quick test_fill_poly1;
+        test_case "fill poly2: 2 PolyTypes with the same var name " `Quick test_fill_poly2;
+        test_case "fill poly3: general case with several other PolyTypes" `Quick test_fill_poly3
       ];
       "test pp_deriving", [
         test_case "ppshow var" `Quick test_ppshow_var;
