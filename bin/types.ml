@@ -29,15 +29,15 @@ and tyvar = string  (* type variable *)
 let rec replace_free x ty c = 
   match ty with
   | PolymorphicType(y, t) when x <> y ->
-    PolymorphicType(y, replace_free x t (c+1))
+      PolymorphicType(y, replace_free x t (c+1))
   | TyFreeVar(v) when v = x -> TyBoundVar(c)
   | TyFun(t1, t2) -> 
-    let t1 = replace_free x t1 c in 
-    let t2 = replace_free x t2 c in 
-    TyFun(t1, t2)
+      let t1 = replace_free x t1 c in 
+      let t2 = replace_free x t2 c in 
+      TyFun(t1, t2)
   | TyTuple(l) -> 
-    let l' = List.map (fun t -> replace_free x t c) l in 
-    TyTuple(l')
+      let l' = List.map (fun t -> replace_free x t c) l in 
+      TyTuple(l')
   | _ as t -> t
 
 (* [abstract X ty] returns a new type `forall X. ty` where
@@ -53,15 +53,15 @@ let abstract x ty =
    each time it enters a new PolymorphicType *)
 let rec replace_bound c s = function
   | PolymorphicType(x, t) -> 
-    PolymorphicType(x, replace_bound (c+1) s t)
+      PolymorphicType(x, replace_bound (c+1) s t)
   | TyBoundVar x when x = c -> s
   | TyFun(t1, t2) ->
-    let t1 = replace_bound c s t1 in
-    let t2 = replace_bound c s t2 in
-    TyFun(t1, t2)
+      let t1 = replace_bound c s t1 in
+      let t2 = replace_bound c s t2 in
+      TyFun(t1, t2)
   | TyTuple l ->
-    let l = List.map (replace_bound c s) l in
-    TyTuple l
+      let l = List.map (replace_bound c s) l in
+      TyTuple l
   | t -> t
 
 (* [fill t s] raises Not_Polymorphic if [t] is not a
