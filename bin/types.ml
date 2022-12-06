@@ -28,7 +28,7 @@ and tyvar = string  (* type variable *)
    each time it enters a new PolyMorphicType binding. *)
 let rec replace_free x ty c = 
   match ty with
-  | PolymorphicType(y, t) -> 
+  | PolymorphicType(y, t) when x <> y ->
     PolymorphicType(y, replace_free x t (c+1))
   | TyFreeVar(v) when v = x -> TyBoundVar(c)
   | TyFun(t1, t2) -> 
@@ -52,7 +52,7 @@ let abstract x ty =
    It does down the type recursively and increments [c]
    each time it enters a new PolymorphicType *)
 let rec replace_bound c s = function
-  | PolymorphicType(x, t) ->
+  | PolymorphicType(x, t) -> 
     PolymorphicType(x, replace_bound (c+1) s t)
   | TyBoundVar x when x = c -> s
   | TyFun(t1, t2) ->
