@@ -29,3 +29,9 @@ The markdown source is in `communication/sujet/optimizer.md`.
 - code review -> discussion sur l'égalité des variables
 - review du LaTex
 - présentation du typechecker
+
+- 8/12/22
+Pagani:
+- ok pour avancement projet
+- discussion sur type system
+- on se voit en janvier
