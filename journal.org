@@ -24,3 +24,8 @@ The markdown source is in `communication/sujet/optimizer.md`.
 01/12/22 - voir le fichier `2022-12-01` pour les details
 - discussion de la merge request
 - présentation du système de type
+
+-8/12/22 - voir le fichier `2022-12-08`
+- code review -> discussion sur l'égalité des variables
+- review du LaTex
+- présentation du typechecker
