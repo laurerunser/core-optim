@@ -1,0 +1,46 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{plong}[2022/12/08 Package of notations for the PLONG project]
+
+\RequirePackage{xifthen}
+
+\newcommand{\aTerm}[1][0]%
+           {\ifthenelse{#1 = 0}{t}%
+             {\ifthenelse{#1 = 1}{u}%
+               {t_{\the\numexpr #1 - 2 \relax}}}}
+
+\newcommand{\aVar}[1][0]%
+           {\ifthenelse{#1 = 0}{x}%
+             {\ifthenelse{#1 = 1}{y}%
+               {\ifthenelse{#1 = 2}{z}%
+                 {x_{\the\numexpr #1 - 3 \relax}}}}}
+
+\newcommand{\aType}[1][0]%
+           {\ifthenelse{#1 = 0}{T}%
+             {\ifthenelse{#1 = 1}{S}%
+               {T_{\the\numexpr #1 - 2 \relax}}}}
+\newcommand{\aDomType}{S}
+\newcommand{\aCodType}{T}
+
+\newcommand{\aTypeVar}[1][0]%
+           {\ifthenelse{#1 = 0}{X}%
+             {\ifthenelse{#1 = 1}{Y}%
+               {\ifthenelse{#1 = 2}{Z}%
+                 {x_{\the\numexpr #1 - 3 \relax}}}}}
+
+\newcommand{\hasType}[2]{#1 \::\: #2}
+
+\newcommand{\ttyann}[2]{(\hasType{#1}{#2})}
+\newcommand{\tfun}[3]%
+           {\textbf{fun } \ttyann{#1}{#2} = #3}
+\newcommand{\ttyfun}[2]%
+           {\textbf{fun } [ #1 ] = #2}
+\newcommand{\tapp}[2]%
+           {#1 \: #2}
+\newcommand{\ttyapp}[2]%
+           {#1 \: [ #2 ]}
+\newcommand{\tlet}[3]%
+           {\textbf{let } #1 = #2 \textbf{ in } #3}
+
+\newcommand{\tforall}[2]%
+           {\forall #1. #2}
+\newcommand{\tprod}{\mathrel{\times}}

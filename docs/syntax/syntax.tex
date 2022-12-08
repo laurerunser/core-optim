@@ -1,0 +1,32 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{plong}
+
+\begin{document}
+\section{Terms}
+$
+\begin{array}{ccll}
+\aTerm, \aTerm[1] & ::= & & \\
+& | & \aVar & \text{(variable)} \\
+& | & \tfun \aVar \aType \aTerm & \text{(abstraction)} \\
+& | & \tapp \aTerm {\aTerm[1]} & \text{(function application)} \\
+& | & \tlet \aVar \aTerm {\aTerm[1]} & \text{(let binding)} \\
+& | & \ttyfun \aTypeVar \aTerm & \text{(type abstraction)} \\
+& | & \ttyapp \aTerm \aType & \text{(type application)} \\
+& | & \ttyann \aTerm \aType & \text{(type annotation)}
+\end{array}
+$
+\newline
+\section{Types}
+$
+\begin{array}{ccll}
+\aType, \aType[1] & ::= & & \\
+& | & \aTypeVar & \text{(type variable)} \\
+& | & \aDomType \to \aCodType & \text{(function type)} \\
+& | & \tforall \aTypeVar \aType & \text{(polymorphic type)} \\
+& | & \aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k} & \text{(tuples)}
+\end{array}
+$
+\end{document}

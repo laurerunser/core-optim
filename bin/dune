@@ -1,4 +1,11 @@
 (executable
  (public_name funoptimizer)
+ (modules main)
  (name main)
  (libraries funoptimizer))
+
+(library
+ (name libfun)
+ (preprocess (pps ppx_deriving.show))
+ (modules terms types)
+ (libraries pprint))

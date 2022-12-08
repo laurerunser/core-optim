@@ -1,2 +1,4 @@
 (test
+ (libraries alcotest libfun)
  (name funoptimizer))
+ 
