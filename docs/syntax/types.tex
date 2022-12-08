@@ -1,0 +1,47 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[]{mathpartir}
+\usepackage[]{plong}
+
+\begin{document}
+\begin{mathpar}
+
+\aRule  {\judgequal \aContext \aVar \aType} 
+        {\judge \aContext \aVar \aType}
+        {Variable}
+
+\aRule  {\judge {\aCtxtExtended \aContext \aVar {\aType[1]}} \aTerm \aType}
+        {\judge \aContext {\tfun \aVar {\aType[1]} \aTerm} \domToCod}
+        {Abstraction}
+
+\aBigRule   {\judge \aContext \aTerm \domToCod}
+            {\judgecheck \aContext {\aType[1]} {\aTerm[1]}}
+            {\judge \aContext {\tapp \aTerm {\aTerm[1]}} \aType}
+            {Function application}
+
+\aBigRule   {\judge \aContext \aTerm \aType}
+            {\judge {\aCtxtExtended \aContext \aVar \aType} {\aTerm[1]} {\aType[1]}}
+            {\judge \aContext {\tlet \aVar \aTerm {\aTerm[1]}} {\aType[1]}}
+            {Let binding}
+
+\aBigRule   {\judge {\aCtxtPlusOne \aContext \aTypeVar} \aTerm \aType}
+            {\aType \notin freetyvars(\aContext)}
+            {\judge \aContext {\ttyfun \aTypeVar \aTerm} {\tforall \aTypeVar \aType}}
+            {Type abstraction}
+
+\aRule  {\judge \aContext \aTerm {\tforall \aTypeVar \aType}}
+        {\judge \aContext {\ttyapp \aTerm {\aType[1]}} {\ttyapp \aType {\aTypeVar \mapsto {\aType[1]}}}}
+        {Type application}
+
+\aRule  {\judgecheck \aContext \aType \aTerm}
+        {\judge \aContext {\ttyann \aTerm \aType} \aType}
+        {Type annotation}
+
+\aBigRule   {\judge \aContext \aTerm {\aType[1]}}
+            {\judgequiv \aContext {\aType[1]} \aType}
+            {\judgecheck \aContext \aType \aTerm}
+            {Type checking}
+
+\end{mathpar}
+\end{document}
