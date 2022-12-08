@@ -22,45 +22,45 @@ and tyvar = string  (* type variable *)
 
 (********** Type manipulation **********)
 
-(* [replace_free x ty c] replaces the free variable
+(* [abstract_gen x ty c] replaces the free variable
    [x] with the bound variable [c] in the type [ty]. 
    It goes down the type recursively and increments [c]
    each time it enters a new PolyMorphicType binding. *)
-let rec replace_free x ty c = 
+let rec abstract_gen x ty c = 
   match ty with
   | PolymorphicType(y, t) when x <> y ->
-      PolymorphicType(y, replace_free x t (c+1))
+      PolymorphicType(y, abstract_gen x t (c+1))
   | TyFreeVar(v) when v = x -> TyBoundVar(c)
   | TyFun(t1, t2) -> 
-      let t1 = replace_free x t1 c in 
-      let t2 = replace_free x t2 c in 
+      let t1 = abstract_gen x t1 c in 
+      let t2 = abstract_gen x t2 c in 
       TyFun(t1, t2)
   | TyTuple(l) -> 
-      let l' = List.map (fun t -> replace_free x t c) l in 
+      let l' = List.map (fun t -> abstract_gen x t c) l in 
       TyTuple(l')
   | _ as t -> t
 
 (* [abstract X ty] returns a new type `forall X. ty` where
    the free variable [X] is replaced with a bound variable. *)
 let abstract x ty = 
-  let ty = replace_free x ty 0
+  let ty = abstract_gen x ty 0
   in PolymorphicType(x, ty)
 
-(* [replace_bound c s t] replaces the bound variable with
+(* [fill_gen c s t] replaces the bound variable with
    value [c] with the type [s] in the type [t] and decrements
    the others bound variables.
    It does down the type recursively and increments [c]
    each time it enters a new PolymorphicType *)
-let rec replace_bound c s = function
+let rec fill_gen c s = function
   | PolymorphicType(x, t) -> 
-      PolymorphicType(x, replace_bound (c+1) s t)
+      PolymorphicType(x, fill_gen (c+1) s t)
   | TyBoundVar x when x = c -> s
   | TyFun(t1, t2) ->
-      let t1 = replace_bound c s t1 in
-      let t2 = replace_bound c s t2 in
+      let t1 = fill_gen c s t1 in
+      let t2 = fill_gen c s t2 in
       TyFun(t1, t2)
   | TyTuple l ->
-      let l = List.map (replace_bound c s) l in
+      let l = List.map (fill_gen c s) l in
       TyTuple l
   | t -> t
 
@@ -69,7 +69,7 @@ let rec replace_bound c s = function
     of [t] with [s] *)
 let fill t s =
   match t with
-  | PolymorphicType (_, t) -> replace_bound 0 s t
+  | PolymorphicType (_, t) -> fill_gen 0 s t
   | _ -> raise Not_Polymorphic
 
 (********** Pretty printing **********)
