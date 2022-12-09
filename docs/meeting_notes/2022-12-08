@@ -81,3 +81,7 @@ Todo:
 - write the typechecker for the lambda calcul part
 - for TypeAbstraction, try to find where there would be problems if we ignore the `X`.
     - write a bunch of small unit tests so that we can talk about it next time
+
+## OCamlFormat
+We should run OCamlFormat automatically on our code before committing.
+Todo: find out if this can be added directly into VSCode or if we need an external program

@@ -3,10 +3,14 @@
 \usepackage[T1]{fontenc}
 \usepackage[]{mathpartir}
 \usepackage[]{plong}
+\usepackage{amsmath, amsthm, amssymb}
 
 \begin{document}
-\begin{mathpar}
 
+The type synthesis judgment is written
+\fbox{$\judge \aContext \aTerm \aType$}
+and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aContext$".
+\begin{mathpar}
 \aRule  {\judgequal \aContext \aVar \aType} 
         {\judge \aContext \aVar \aType}
         {Variable}
@@ -26,7 +30,7 @@
             {Let binding}
 
 \aBigRule   {\judge {\aCtxtPlusOne \aContext \aTypeVar} \aTerm \aType}
-            {\aType \notin freetyvars(\aContext)}
+            {\aTypeVar \notin freetyvars(\aContext)}
             {\judge \aContext {\ttyfun \aTypeVar \aTerm} {\tforall \aTypeVar \aType}}
             {Type abstraction}
 
@@ -37,7 +41,13 @@
 \aRule  {\judgecheck \aContext \aType \aTerm}
         {\judge \aContext {\ttyann \aTerm \aType} \aType}
         {Type annotation}
+\end{mathpar}
+\newline
 
+The type checking judgment is written
+\fbox{$\judgecheck \aContext \aType \aTerm$}
+and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aContext$".
+\begin{mathpar}
 \aBigRule   {\judge \aContext \aTerm {\aType[1]}}
             {\judgequiv \aContext {\aType[1]} \aType}
             {\judgecheck \aContext \aType \aTerm}
