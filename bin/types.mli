@@ -7,7 +7,7 @@ type ty =
   | PolymorphicType of tyvar * ty
   | TyTuple of ty list
 
-and tyvar = Atom.atom
+and tyvar = Atom.Atom.t
 
 val abstract_gen : tyvar -> ty -> int -> ty
 (** [abstract_gen x ty c] replaces the free variable
