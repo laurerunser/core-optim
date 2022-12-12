@@ -81,11 +81,7 @@ let to_string t =
   ToBuffer.pretty 0.8 80 b (pretty_print t);
   Buffer.contents b
 
-module VarSet = Set.Make (struct
-  type t = Atom.t
-
-  let compare = Atom.compare
-end)
+module VarSet = Set.Make (Atom)
 
 let rec free_vars t =
   let open VarSet in
