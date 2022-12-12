@@ -15,4 +15,6 @@ module Atom = struct
 
   let fresh ident = { indentifier = ident; number = number () }
 
+  (* let compare a1 a2 = a1.number < a2.number *)
+
 end
