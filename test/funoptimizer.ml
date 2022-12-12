@@ -1,4 +1,4 @@
-(* Build with `ocamlbuild -pkg alcotest simple.byte` *)
+(* Build with `ocamlbuild -pkg alcotest simple.byte`
 open Libfun
 open Syntax
 
@@ -556,4 +556,4 @@ let () =
           test_case "TypleApply" `Quick test_free_var_type_apply;
           test_case "TypeAnnotation" `Quick test_free_var_type_annotation;
         ] );
-    ]
+    ] *)

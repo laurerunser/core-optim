@@ -19,11 +19,11 @@ type term =
   | TypeAnnotation of term * ty
 [@@deriving show, eq]
 
-and variable = atom (* variable *) [@@deriving show, eq]
+and variable = Atom.t (* variable *) [@@deriving show, eq]
 
 let rec pretty_print t =
   match t with
-  | Var x -> string (pretty_print_atom x)
+  | Var x -> string (Atom.pretty_print_atom x)
   | Fun (x, ty, body) -> print_abstraction x ty body
   | FunApply (f, x) -> print_fun_apply f x
   | Let (lhs, rhs, body) -> print_let_in lhs rhs body
@@ -53,7 +53,7 @@ and print_fun_apply f x =
 and print_let_in lhs rhs body =
   let rhs_parens = get_term_with_parens rhs in
   group @@ string "let"
-  ^^ surround 2 1 empty (string (pretty_print_atom lhs)) empty
+  ^^ surround 2 1 empty (string (Atom.pretty_print_atom lhs)) empty
   ^^ string "="
   ^^ surround 2 1 empty rhs_parens empty
   ^^ string "in"
@@ -64,7 +64,7 @@ and print_type_abstraction tyvar t =
   group
   @@ prefix 2 1
        (string "fun" ^^ blank 1
-       ^^ brackets (string (pretty_print_atom tyvar))
+       ^^ brackets (string (Atom.pretty_print_atom tyvar))
        ^^ blank 1 ^^ equals)
        t_parens
 
@@ -82,9 +82,9 @@ let to_string t =
   Buffer.contents b
 
 module VarSet = Set.Make (struct
-  type t = Atom.atom
+  type t = Atom.t
 
-  let compare = Atom.compare_atom
+  let compare = Atom.compare
 end)
 
 let rec free_vars t =
@@ -93,7 +93,6 @@ let rec free_vars t =
   | Var x -> singleton x
   | Fun (x, _, t) -> diff (free_vars t) (singleton x)
   | FunApply (t, u) -> union (free_vars t) (free_vars u)
-  | Let (x, t, u) ->
-      union (free_vars t) (diff (free_vars u) (singleton x))
+  | Let (x, t, u) -> union (free_vars t) (diff (free_vars u) (singleton x))
   | TypeAbstraction (_, t) | TypeApply (t, _) | TypeAnnotation (t, _) ->
       free_vars t
