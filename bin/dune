@@ -6,6 +6,6 @@
 
 (library
  (name libfun)
- (preprocess (pps ppx_deriving.show ppx_deriving.eq))
- (modules terms types)
+ (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))
+ (modules terms types atom)
  (libraries pprint))

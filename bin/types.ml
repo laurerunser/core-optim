@@ -1,4 +1,5 @@
 open PPrint
+open Atom
 
 exception Not_Polymorphic
 
@@ -9,12 +10,12 @@ type ty =
   (* function type: TyFun(S, T) is S -> T *)
   | TyFun of ty * ty
   (* polymorphic type: PolymorphicType(X, T) is forAll X. T *)
-  | PolymorphicType of (tyvar[@equal fun _ _ -> true]) * ty
+  | PolymorphicType of (tyvar [@equal fun _ _ -> true]) * ty
   (* tuple: T_0 * ... * T_k *)
   | TyTuple of ty list
 [@@deriving show, eq]
 
-and tyvar = string (* type variable *) [@@deriving show, eq]
+and tyvar = atom (* type variable *) [@@deriving show, eq]
 
 (********** Type manipulation **********)
 
@@ -56,7 +57,7 @@ let fill t s =
 (********** Pretty printing **********)
 let rec pretty_print_type_paren paren t =
   match t with
-  | TyFreeVar x -> !^x
+  | TyFreeVar x -> !^ (pretty_print_atom x)
   | TyBoundVar x -> !^(Int.to_string x)
   | _ ->
       let ty =
@@ -73,7 +74,7 @@ and print_ty_fun s t =
   ^//^ pretty_print_type_paren true t
 
 and print_poly_type x t =
-  (!^"forall" ^^ space ^^ !^x ^^ char '.') ^//^ pretty_print_type_paren true t
+  (!^"forall" ^^ space ^^ !^ (pretty_print_atom x) ^^ char '.') ^//^ pretty_print_type_paren true t
 
 and print_ty_tuple ts =
   separate_map (space ^^ star ^^ space) (pretty_print_type_paren true) ts
