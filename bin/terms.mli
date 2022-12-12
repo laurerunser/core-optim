@@ -3,7 +3,7 @@ type term =
   | Fun of variable * Types.ty * term
   | FunApply of term * term
   | Let of variable * term * term
-  | TypeAbstraction of string * term
+  | TypeAbstraction of Types.tyvar * term
   | TypeApply of term * Types.ty
   | TypeAnnotation of term * Types.ty
 
@@ -14,7 +14,7 @@ val get_term_with_parens : term -> PPrint.document
 val print_abstraction : variable -> Types.ty -> term -> PPrint.document
 val print_fun_apply : term -> term -> PPrint.document
 val print_let_in : variable -> term -> term -> PPrint.document
-val print_type_abstraction : string -> term -> PPrint.document
+val print_type_abstraction : Types.tyvar -> term -> PPrint.document
 val print_type_apply : term -> Types.ty -> PPrint.document
 val print_type_annotation : term -> Types.ty -> PPrint.document
 val to_string : term -> string
