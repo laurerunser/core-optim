@@ -1,72 +1,53 @@
 open PPrint
+
 exception Not_Polymorphic
 
-type ty = 
+type ty =
   (* type variable *)
-  | TyFreeVar of tyvar  
+  | TyFreeVar of tyvar
   | TyBoundVar of int
-
   (* function type: TyFun(S, T) is S -> T *)
-  | TyFun of ty * ty  
-
+  | TyFun of ty * ty
   (* polymorphic type: PolymorphicType(X, T) is forAll X. T *)
-  | PolymorphicType of (tyvar [@opaque][@equal fun _ _ -> true]) * ty
-
-  (* tuple: T_0 * ... * T_k *)  
-  | TyTuple of ty list            
+  | PolymorphicType of (tyvar[@equal fun _ _ -> true]) * ty
+  (* tuple: T_0 * ... * T_k *)
+  | TyTuple of ty list
 [@@deriving show, eq]
 
-and tyvar = string  (* type variable *)
-[@@deriving show, eq]
-
+and tyvar = string (* type variable *) [@@deriving show, eq]
 
 (********** Type manipulation **********)
 
-(* [abstract_gen x ty c] replaces the free variable
-   [x] with the bound variable [c] in the type [ty]. 
-   It goes down the type recursively and increments [c]
-   each time it enters a new PolyMorphicType binding. *)
-let rec abstract_gen x ty c = 
+let rec abstract_gen x ty c =
   match ty with
-  | PolymorphicType(y, t) when x <> y ->
-      PolymorphicType(y, abstract_gen x t (c+1))
-  | TyFreeVar(v) when v = x -> TyBoundVar(c)
-  | TyFun(t1, t2) -> 
-      let t1 = abstract_gen x t1 c in 
-      let t2 = abstract_gen x t2 c in 
-      TyFun(t1, t2)
-  | TyTuple(l) -> 
-      let l' = List.map (fun t -> abstract_gen x t c) l in 
-      TyTuple(l')
+  | PolymorphicType (y, t) when x <> y ->
+      PolymorphicType (y, abstract_gen x t (c + 1))
+  | TyFreeVar v when v = x -> TyBoundVar c
+  | TyFun (t1, t2) ->
+      let t1 = abstract_gen x t1 c in
+      let t2 = abstract_gen x t2 c in
+      TyFun (t1, t2)
+  | TyTuple l ->
+      let l' = List.map (fun t -> abstract_gen x t c) l in
+      TyTuple l'
   | _ as t -> t
 
-(* [abstract X ty] returns a new type `forall X. ty` where
-   the free variable [X] is replaced with a bound variable. *)
-let abstract x ty = 
-  let ty = abstract_gen x ty 0
-  in PolymorphicType(x, ty)
+let abstract x ty =
+  let ty = abstract_gen x ty 0 in
+  PolymorphicType (x, ty)
 
-(* [fill_gen c s t] replaces the bound variable with
-   value [c] with the type [s] in the type [t] and decrements
-   the others bound variables.
-   It does down the type recursively and increments [c]
-   each time it enters a new PolymorphicType *)
 let rec fill_gen c s = function
-  | PolymorphicType(x, t) -> 
-      PolymorphicType(x, fill_gen (c+1) s t)
+  | PolymorphicType (x, t) -> PolymorphicType (x, fill_gen (c + 1) s t)
   | TyBoundVar x when x = c -> s
-  | TyFun(t1, t2) ->
+  | TyFun (t1, t2) ->
       let t1 = fill_gen c s t1 in
       let t2 = fill_gen c s t2 in
-      TyFun(t1, t2)
+      TyFun (t1, t2)
   | TyTuple l ->
       let l = List.map (fill_gen c s) l in
       TyTuple l
   | t -> t
 
-(* [fill t s] raises Not_Polymorphic if [t] is not a
-   PolymorphicType else replaces the bound variable
-    of [t] with [s] *)
 let fill t s =
   match t with
   | PolymorphicType (_, t) -> fill_gen 0 s t
@@ -75,27 +56,24 @@ let fill t s =
 (********** Pretty printing **********)
 let rec pretty_print_type_paren paren t =
   match t with
-  | TyFreeVar x -> !^ x
-  | TyBoundVar x -> !^ (Int.to_string x)
-  | _ -> let ty =
-    match t with
-    | TyFun (s,t) -> print_ty_fun s t
-    | PolymorphicType (x,t) -> print_poly_type x t
-    | TyTuple ts -> print_ty_tuple ts
-    | _ -> assert false
-    in
-    group @@
-    if paren then parens ty else ty
+  | TyFreeVar x -> !^x
+  | TyBoundVar x -> !^(Int.to_string x)
+  | _ ->
+      let ty =
+        match t with
+        | TyFun (s, t) -> print_ty_fun s t
+        | PolymorphicType (x, t) -> print_poly_type x t
+        | TyTuple ts -> print_ty_tuple ts
+        | _ -> assert false
+      in
+      group @@ if paren then parens ty else ty
 
 and print_ty_fun s t =
-  ((pretty_print_type_paren true s) ^^ blank 1 ^^ !^ "->")
-  ^//^
-  (pretty_print_type_paren true t)
+  (pretty_print_type_paren true s ^^ blank 1 ^^ !^"->")
+  ^//^ pretty_print_type_paren true t
 
 and print_poly_type x t =
-  (!^ "forall" ^^ space ^^ !^ x ^^ char '.')
-  ^//^
-  (pretty_print_type_paren true t)
+  (!^"forall" ^^ space ^^ !^x ^^ char '.') ^//^ pretty_print_type_paren true t
 
 and print_ty_tuple ts =
   separate_map (space ^^ star ^^ space) (pretty_print_type_paren true) ts
