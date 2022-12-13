@@ -1,6 +1,5 @@
 open Terms
 open Types
-open Atom
 
 module VarMap = Map.Make (Atom)
 
