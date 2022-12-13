@@ -1,5 +1,4 @@
 open Types
-open Atom
 open PPrint
 
 type term =

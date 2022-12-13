@@ -7,7 +7,7 @@ type term =
   | TypeApply of term * Types.ty
   | TypeAnnotation of term * Types.ty
 
-and variable = Atom.Atom.t
+and variable = Atom.t
 
 val pretty_print : term -> PPrint.document
 val get_term_with_parens : term -> PPrint.document

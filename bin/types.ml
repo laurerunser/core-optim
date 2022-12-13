@@ -1,5 +1,4 @@
 open PPrint
-open Atom
 
 exception Not_Polymorphic
 
