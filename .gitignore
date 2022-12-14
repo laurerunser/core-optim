@@ -32,4 +32,7 @@ _opam/
 docs/.DS_Store
 .DS_Store
 .idea
+*.pdf
+/docs/syntax/types copy.tex
+
 .vscode
