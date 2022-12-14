@@ -2,16 +2,18 @@ open Terms
 open Types
 module VarMap = Map.Make (Atom)
 
-let type_error term expected actual =
-  if Option.is_none actual then
-    failwith
-      (Printf.sprintf "Type error!\nTerm : %s\nReceived type: %s\n" (Terms.to_string term)
-         (Types.to_string expected))
-  else
-    failwith
-      (Printf.sprintf "Type error!\nTerm : %s\nExpected type: %s\nReceived type: %s\n"
-         (Terms.to_string term) (Types.to_string expected)
-         (Types.to_string (Option.get actual)))
+let type_error msg = failwith (Printf.sprintf "Type error!\n%s" msg)
+
+let type_check_error term expected actual =
+  type_error
+    (Printf.sprintf "Term : %s\nExpected type: %s\nReceived type: %s\n"
+       (Terms.to_string term) (Types.to_string expected)
+       (Types.to_string actual))
+
+let type_synth_error term actual expected =
+  type_error
+    (Printf.sprintf "Term : %s\nExpected a %s type\nReceived type: %s\n"
+       (Terms.to_string term) expected (Types.to_string actual))
 
 let rec synth (ctxt : ty VarMap.t) (t : term) =
   match t with
@@ -33,9 +35,7 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       | TyFun (ty1, ty2) ->
           let _ = check ctxt ty1 t2 in
           ty2
-      | _ ->
-          Printf.printf "Expected a function type\n";
-          type_error t ty None)
+      | _ -> type_synth_error t ty "function")
   | Let (v, t, body) ->
       (* find the type of the new binding *)
       let ty = synth ctxt t in
@@ -49,12 +49,13 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       let ty = synth ctxt t in
       (* abstract the type we got for `t` with `ty_var` as the bound variabl *)
       abstract ty_var ty
-  | TypeApply (t, ty) ->
+  | TypeApply (t, ty) -> (
       (* get the general type of `t` *)
       let for_all_ty = synth ctxt t in
-      fill for_all_ty ty (* replace the bound variable by `ty` *)
+      try fill for_all_ty ty (* replace the bound variable by `ty` *)
+      with Not_Polymorphic -> type_synth_error t ty "polymorphic")
   | TypeAnnotation (t, ty) -> check ctxt ty t
 
 and check (ctxt : ty VarMap.t) (ty : ty) (t : term) =
   let ty1 = synth ctxt t in
-  if ty1 = ty then ty else type_error t ty1 (Some ty)
+  if ty1 = ty then ty else type_check_error t ty1 ty
