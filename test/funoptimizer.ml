@@ -1,6 +1,7 @@
 open Atom
 open Terms
 open Types
+open Typechecker
 
 let () =
   let open Alcotest in
@@ -119,5 +120,15 @@ let () =
           test_case "Type abstraction" `Quick test_free_var_type_abstraction;
           test_case "TypleApply" `Quick test_free_var_type_apply;
           test_case "TypeAnnotation" `Quick test_free_var_type_annotation;
+        ] );
+      ( "test typechecking",
+        [
+          test_case "Var in the map" `Quick test_typecheck_var_in_map;
+          test_case "Identity function" `Quick test_typecheck_fun_id;
+          test_case "Poly function" `Quick test_typecheck_fun_poly;
+          test_case "Apply identity function" `Quick test_typecheck_fun_apply;
+          test_case "Let" `Quick test_typecheck_let;
+          test_case "TypeApply" `Quick test_typecheck_type_apply;
+          test_case "TypeAnnotation" `Quick test_typecheck_type_annotation;
         ] );
     ]
