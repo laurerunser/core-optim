@@ -3,10 +3,15 @@ open Types
 module VarMap = Map.Make (Atom)
 
 let type_error term expected actual =
-  failwith
-    (Printf.sprintf "term : %s\nxpected type : %s, received %s\n"
-       (Terms.to_string term) (Types.to_string expected)
-       (Types.to_string actual))
+  if Option.is_none actual then
+    failwith
+      (Printf.sprintf "Type error!\nTerm : %s\nReceived type: %s\n" (Terms.to_string term)
+         (Types.to_string expected))
+  else
+    failwith
+      (Printf.sprintf "Type error!\nTerm : %s\nExpected type: %s\nReceived type: %s\n"
+         (Terms.to_string term) (Types.to_string expected)
+         (Types.to_string (Option.get actual)))
 
 let rec synth (ctxt : ty VarMap.t) (t : term) =
   match t with
@@ -28,7 +33,9 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       | TyFun (ty1, ty2) ->
           let _ = check ctxt ty1 t2 in
           ty2
-      | _ -> failwith "Expected a function type\n")
+      | _ ->
+          Printf.printf "Expected a function type\n";
+          type_error t ty None)
   | Let (v, t, body) ->
       (* find the type of the new binding *)
       let ty = synth ctxt t in
@@ -50,4 +57,4 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
 
 and check (ctxt : ty VarMap.t) (ty : ty) (t : term) =
   let ty1 = synth ctxt t in
-  if ty1 = ty then ty else type_error t ty1 ty
+  if ty1 = ty then ty else type_error t ty1 (Some ty)

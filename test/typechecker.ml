@@ -17,6 +17,7 @@ let a = fresh "a"
 let b = fresh "b"
 let tx = fresh "X"
 let ts = fresh "S"
+let tt = fresh "T"
 
 (**************************)
 (* Var *)
@@ -36,11 +37,20 @@ let test_typecheck_var_in_map () =
 
 (**************************)
 (* Fun *)
+
+(* fun x -> x where `x` is of type `S` *)
 let test_typecheck_fun_id () =
   let tv = TyFreeVar ts in
   let f = fn x tv (fun x -> x) in
   let ty = TyFun (tv, tv) in
   test_typecheck ty (synth VarMap.empty f)
+
+  let test_typecheck_fun_id2 () =
+    let tv = (poly_ty ts (fun x -> x => TyTuple([TyFreeVar(tx); x; x; TyFreeVar(tt)]))) => TyFreeVar(tt) in
+    let f = fn x tv (fun x -> x) in
+    let expected_ty = tv in
+    let ctxt = VarMap.add x tv VarMap.empty in
+    test_typecheck expected_ty (synth ctxt (FunApply (f, Var(x))))  
 
 (**************************)
 (* FunApply *)
@@ -73,12 +83,14 @@ let test_typecheck_let () =
 
 (**************************)
 (* TypeAbstraction *)
+(* fun [X] = fun (a:X) -> a *)
 let test_typecheck_fun_poly () =
-  let poly_id = ty_fn x (fun t -> fn tx t (fun x -> x)) in
+  let poly_id = ty_fn tx (fun t -> fn a t (fun x -> x)) in
   test_typecheck (poly_ty x (fun x -> x => x)) (synth VarMap.empty poly_id)
 
 (**************************)
 (* TypeApply *)
+(* (fun [X] -> (a:X)) S *)
 let test_typecheck_type_apply () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
@@ -90,6 +102,12 @@ let test_typecheck_type_apply () =
 
 (**************************)
 (* TypeAnnotation *)
+(* (x : X) *)
+let test_typecheck_type_annotation_simple () =
+  let ty = TyFreeVar tx in 
+  let t = TypeAnnotation(Var(x), ty) in 
+  let ctxt = VarMap.add x ty VarMap.empty in 
+  test_typecheck ty (synth ctxt t)
 
 (* let x = (a:X) in (fun (b:S) -> x) *)
 let test_typecheck_type_annotation () =
