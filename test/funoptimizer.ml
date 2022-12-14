@@ -126,11 +126,14 @@ let () =
           test_case "Var in the map" `Quick test_typecheck_var_in_map;
           test_case "Identity function" `Quick test_typecheck_fun_id;
           test_case "Identity function 2" `Quick test_typecheck_fun_id2;
-          test_case "Poly function" `Quick test_typecheck_fun_poly;
           test_case "Apply identity function" `Quick test_typecheck_fun_apply;
           test_case "Let" `Quick test_typecheck_let;
+          test_case "Poly function" `Quick test_typecheck_type_abstract;
+          test_case "TypeAbstract with free variable" `Quick
+            test_typecheck_type_abstract_fv;
           test_case "TypeApply" `Quick test_typecheck_type_apply;
-          test_case "TypeAnnotation easy" `Quick test_typecheck_type_annotation_simple;
+          test_case "TypeAnnotation easy" `Quick
+            test_typecheck_type_annotation_simple;
           test_case "TypeAnnotation" `Quick test_typecheck_type_annotation;
         ] );
     ]
