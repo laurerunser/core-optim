@@ -2,6 +2,7 @@
 \ProvidesPackage{plong}[2022/12/08 Package of notations for the PLONG project]
 
 \RequirePackage{xifthen}
+\RequirePackage{mathpartir}
 
 \newcommand{\aTerm}[1][0]%
            {\ifthenelse{#1 = 0}{t}%
@@ -20,6 +21,14 @@
                {T_{\the\numexpr #1 - 2 \relax}}}}
 \newcommand{\aDomType}{S}
 \newcommand{\aCodType}{T}
+
+\newcommand{\domToCod} {\aDomType \to \aCodType}
+
+\newcommand{\aContext}{\Gamma}
+\newcommand{\ctxtSep}{\mathrel{,}}
+\newcommand{\ctxtExtend}[3]
+           {#1 \ctxtSep \hasType{#2}{#3}}
+
 
 \newcommand{\aTypeVar}[1][0]%
            {\ifthenelse{#1 = 0}{X}%
@@ -44,3 +53,16 @@
 \newcommand{\tforall}[2]%
            {\forall #1. #2}
 \newcommand{\tprod}{\mathrel{\times}}
+
+\newcommand{\judge}[3]%
+          {#1 \vdash #2 \in #3}
+\newcommand{\judgecheck}[3]%
+          {#1 \vdash #2 \ni #3}
+\newcommand{\judgequal}[3]%
+          {#1 (#2) = #3}
+\newcommand{\judgequiv}[3]%
+          {#1 \vdash #2 \equiv #3}
+
+\newcommand{\aRule}[3]%
+           {\inferrule [#3] {#1} {#2}}
+           % #3 is the name of the rule

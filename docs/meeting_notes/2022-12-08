@@ -1,0 +1,87 @@
+# 08 Dec 2022 - 13h30
+avec Pierre-Evariste Dagand
+On se revoit jeudi prochain à 13h30 en 3012.
+
+## Code review
+What we did:
+- [x] finish last week's PR: Alcotest wrapper and tests
+- [x] smart constructors for types, new tests for the constructors
+- [x] rewriting the old tests with the new constructors
+- [x] implement locally nameless type variables
+- [?] use @opaque for equality
+- [?] `fill` and `abstract` + tests
+    - there are some problems
+
+There are 3 problems with our code:
+
+1) We used `check string` for many tests but we shouldn't! It should only be used 
+to test the pretty printing. For the other tests, we must use a new function to
+check equlity directly on the AST.
+
+2) We have a few problems with `poly_ty` smart constructor and a few other: if there
+are 2 variables with the same names, confusion ensues.
+We are going to add an `atom` for each free variable that contains both the string
+identifier and a unique number that allows us to differenciate them.
+See code in `atom.ml`.
+
+Todo:
+- pretty_print: "%s__%d" to print both the string and the number
+- equality and comparaison: only look at the number of the variables
+- to create an atom, we will only use the function `fresh` that increments
+the global number. We will later hide the `.mli` files and this will be the only
+way to create new variables.
+
+3) We did the right thing an documented our work.
+Todo:
+- use OCamlDoc syntax instead
+- put the doc in `.mli` files instead.
+Use the command `dune build @doc` to build the documentation and check our syntax.
+
+
+## LaTeX review
+We wrote our typechecking system in LaTeX.
+
+A few things to change:
+- add a box (command `box`) with the general form of a judgment (`Gamma vdash t in/ni T`)
+- next to it, add a comment that says how to pronounce it ("The term t has type T in the context Gamma")
+
+We actually have 2 systems that rely on each other.
+Separate them into 2 visually distinct blocks, each with its little box+comment.
+
+Also use the new `plong.sty` to make the file prettier.
+
+Vocabulary:
+- judgment (a line with a vdash)
+- inference rule (several judgments separated by an horizontal line)
+- inference system (several rules)
+
+## Typechecker
+We are going to start writing the typechecker.
+
+We need to write 2 mutually recursive functions:
+```ocaml
+let synth (ctxt: ty VarMap.t) (t:term) = 
+| ...
+
+and check (ctxt: ty VarMap.t) (t:term) (ty:ty) = 
+| ...
+```
+that pattern-match on the terms to do the typechecking.
+
+The context is a Map that links variables to types -> this will use
+our atoms so that the identifiers are unique.
+
+For TypeAbstraction: forget about the `X` for now
+- just check the type T of t in the context (without adding the `X` in)
+- then generalise T with `abstract`
+
+For TyApply: substitute in the type with `fill`
+
+Todo:
+- write the typechecker for the lambda calcul part
+- for TypeAbstraction, try to find where there would be problems if we ignore the `X`.
+    - write a bunch of small unit tests so that we can talk about it next time
+
+## OCamlFormat
+We should run OCamlFormat automatically on our code before committing.
+Todo: find out if this can be added directly into VSCode or if we need an external program
