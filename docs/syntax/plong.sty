@@ -25,10 +25,10 @@
 \newcommand{\domToCod} {\aDomType \to \aCodType}
 
 \newcommand{\aContext}{\Gamma}
-\newcommand{\aCtxtExtended}[3]
-           {#1, \hasType #2 #3}
-\newcommand{\aCtxtPlusOne}[2]
-           {#1, #2}
+\newcommand{\ctxtSep}{\mathrel{,}}
+\newcommand{\ctxtExtend}[3]
+           {#1 \ctxtSep \hasType{#2}{#3}}
+
 
 \newcommand{\aTypeVar}[1][0]%
            {\ifthenelse{#1 = 0}{X}%
@@ -66,7 +66,3 @@
 \newcommand{\aRule}[3]%
            {\inferrule [#3] {#1} {#2}}
            % #3 is the name of the rule
-
-\newcommand{\aBigRule}[4]%
-           {\inferrule [#4] {#1 \\ #2} {#3}}
-           % #4 is the name of the rule
