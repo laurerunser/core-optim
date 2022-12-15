@@ -18,11 +18,11 @@ type term =
   | TypeAnnotation of term * ty
 [@@deriving show, eq]
 
-and variable = string (* variable *) [@@deriving show, eq]
+and variable = Atom.t (* variable *) [@@deriving show, eq]
 
 let rec pretty_print t =
   match t with
-  | Var x -> string x
+  | Var x -> string (Atom.pretty_print_atom x)
   | Fun (x, ty, body) -> print_abstraction x ty body
   | FunApply (f, x) -> print_fun_apply f x
   | Let (lhs, rhs, body) -> print_let_in lhs rhs body
@@ -52,7 +52,7 @@ and print_fun_apply f x =
 and print_let_in lhs rhs body =
   let rhs_parens = get_term_with_parens rhs in
   group @@ string "let"
-  ^^ surround 2 1 empty (string lhs) empty
+  ^^ surround 2 1 empty (string (Atom.pretty_print_atom lhs)) empty
   ^^ string "="
   ^^ surround 2 1 empty rhs_parens empty
   ^^ string "in"
@@ -62,7 +62,9 @@ and print_type_abstraction tyvar t =
   let t_parens = get_term_with_parens t in
   group
   @@ prefix 2 1
-       (string "fun" ^^ blank 1 ^^ brackets (string tyvar) ^^ blank 1 ^^ equals)
+       (string "fun" ^^ blank 1
+       ^^ brackets (string (Atom.pretty_print_atom tyvar))
+       ^^ blank 1 ^^ equals)
        t_parens
 
 and print_type_apply t ty =
@@ -78,8 +80,8 @@ let to_string t =
   ToBuffer.pretty 0.8 80 b (pretty_print t);
   Buffer.contents b
 
-module VarSet = Set.Make (String)
 
+module VarSet = Set.Make (Atom)
 let rec free_vars t =
   let open VarSet in
   match t with

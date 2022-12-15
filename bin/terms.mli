@@ -7,7 +7,7 @@ type term =
   | TypeApply of term * Types.ty
   | TypeAnnotation of term * Types.ty
 
-and variable = string
+and variable = Atom.t
 
 val pretty_print : term -> PPrint.document
 val get_term_with_parens : term -> PPrint.document
@@ -21,7 +21,7 @@ val to_string : term -> string
 
 module VarSet : sig
   type elt = variable
-  type t = Set.Make(String).t
+  type t
 
   val empty : t
   val is_empty : t -> bool

@@ -84,4 +84,15 @@ Todo:
 
 ## OCamlFormat
 We should run OCamlFormat automatically on our code before committing.
-Todo: find out if this can be added directly into VSCode or if we need an external program
+
+Steps:
+1) add a `.ocamlformat` file at the project root.
+2) fill it with
+```
+profile = default
+version = 0.24.1
+```
+To find your version of `ocamlformat`, run `ocamlformat --version`.
+
+3) add the file to `.gitignore`.
+4) in VS code, the shortcut to format a file can be `Ctrl-Shift-i` (linux) or `Opt-Shift-f` (mac)

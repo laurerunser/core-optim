@@ -14,7 +14,7 @@ type ty =
   | TyTuple of ty list
 [@@deriving show, eq]
 
-and tyvar = string (* type variable *) [@@deriving show, eq]
+and tyvar = Atom.t (* type variable *) [@@deriving show, eq]
 
 (********** Type manipulation **********)
 
@@ -56,7 +56,7 @@ let fill t s =
 (********** Pretty printing **********)
 let rec pretty_print_type_paren paren t =
   match t with
-  | TyFreeVar x -> !^x
+  | TyFreeVar x -> !^(Atom.pretty_print_atom x)
   | TyBoundVar x -> !^(Int.to_string x)
   | _ ->
       let ty =
@@ -73,7 +73,8 @@ and print_ty_fun s t =
   ^//^ pretty_print_type_paren true t
 
 and print_poly_type x t =
-  (!^"forall" ^^ space ^^ !^x ^^ char '.') ^//^ pretty_print_type_paren true t
+  (!^"forall" ^^ space ^^ !^(Atom.pretty_print_atom x) ^^ char '.')
+  ^//^ pretty_print_type_paren true t
 
 and print_ty_tuple ts =
   separate_map (space ^^ star ^^ space) (pretty_print_type_paren true) ts
