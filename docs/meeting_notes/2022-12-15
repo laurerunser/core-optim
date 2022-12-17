@@ -1,0 +1,87 @@
+# 15 Dec 2022 - 13h30
+avec Pierre-Evariste Dagand
+On se revoit la semaine du jeudi 12 janvier -> date et heure à préciser quand on aura nos dates et heures de soutenances des autres matières
+
+## Git problems
+- to integrate changed FROM master, 
+    - go into your working branch
+    - make a new branch from the working branch (so that if the rebase fails, we can save stuff)
+    - use `git rebase master` to integrate the commits from master
+- also use `git rebase -i` before doing a PR and reorder/squash commits so that they all pass the tests (up `fixup` and stuff)
+
+- commit the formatting separatly from the other changes
+- make sure the formatting extension works and redo a big commit to have a healthy codebase
+
+- `git worktree branch path`
+    - to have the notes at the same place than the code from another branch
+    - `path` must be outside of the git repo
+
+## Code review
+- discussion on `test_typecheck_type_abstract_fv`: we ignored the `X not in freevars(Gamma)` and didn't add `X` into `Gamma`. Why will it work?
+Actually in `types.ml`: 
+    - `PolyType` must have a `string` instead of an `atom`
+    - same thing for `TypeAbstraction`
+-> then we need to generate a fresh atom when dealing with them in the typechecking
+So we don't have to worry about `X` not being a free var: it will necessarily be free because it's a fresh atom.
+
+TODO: make the changes (`atom`->`string`) & repair the tests
+
+- typechecker tests
+TODO: see the doc in Alcotest to confirm that the test raises the expected exception.
+TODO: look at all the typechecking rules and make sure they work with at least only variables
+
+Then we'll do more complex tests.
+
+## Simplification
+
+```ocaml
+let rec simplify (t:term) = ...
+```
+
+Let's make a type that represents the call stack:
+```ocaml
+(* stack *)
+type s = 
+    | empty (* top of the stack *)
+    | F::s   (* frame and then the rest of the stack *)
+
+(* frame *)
+F ::= 
+    | "hole" v     (* applied function *)
+    | "hole" T     (* instantiated polymorphism *)
+```
+The `hole` is represented by the LaTeX symbol `\square`.
+
+For applied functions:
+- `v` is the argument of the function
+- we need to fill the `hole` with the function
+
+For instanciated polymorphism:
+- `T` is the argument of the type function
+- we need to fill the `hole` with the type function
+
+Later, this will be used to do optimizations: we will optimize a term (function or type function) and then fill the holes with the optimized result.
+
+TODO: implement the `plug` operation:
+```ocaml
+let plug (s: stack) (t: term) = ...
+```
+It builds a new term by plugging the inner-most hole of the stack `s` with the term `t`.
+Then, it goes back up the stack and fills all the holes (there is at most )
+There is a `plug` operation that takes 2 arguments (a stack and a term) and builds a new term from that:
+- it `plugs` the term in the whole that is at "the bottom" of the stack
+- then goes back up the stack and fills in each hole
+    - there is at most 1 hole per level of the stack so once you fill the one at the bottom,
+    you can easily plug the ones above
+
+TODO: implement typechecking on terms with holes:
+- `typecheck: (F:frame) (other args) -> bool`
+returns true if the frame is well typed.
+To do so, we need to decide what the type of a `hole` has to be so that the frame can be plugged with a term that has that type.
+
+- `typecheck: (s:stack) (other args) -> bool`
+uses the previous function to decide if an entire stack is well-typed.
+
+In the end, if `plug` is called on a well-typed stack and with the term that has the right type, then the term it builds must also be well-typed.
+
+See page 485 of the 2017 article (Compiling without continuations).
