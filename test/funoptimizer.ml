@@ -42,7 +42,7 @@ let () =
           test_case "poly type 1" `Quick test_poly_ty1;
           test_case "poly type 2" `Quick test_poly_ty2;
           test_case "poly type 3" `Quick test_poly_ty3;
-          test_case "poly type 3" `Quick test_poly_ty4;
+          test_case "poly type 4" `Quick test_poly_ty4;
         ] );
       ( "test fill",
         [
@@ -124,13 +124,20 @@ let () =
       ( "test typechecking",
         [
           test_case "Var in the map" `Quick test_typecheck_var_in_map;
+          test_case "Var not in the map" `Quick test_typecheck_fail_not_in_map;
           test_case "Identity function" `Quick test_typecheck_fun_id;
           test_case "Identity function 2" `Quick test_typecheck_fun_id2;
+          test_case "Fun simple" `Quick test_typecheck_fun_simple;
           test_case "Apply identity function" `Quick test_typecheck_fun_apply;
+          test_case "Apply identity function 2" `Quick test_typecheck_fun_apply2;
+          test_case "Apply identity function simple" `Quick
+            test_typecheck_fun_apply_simple;
+          test_case "Let simple" `Quick test_typecheck_let_simple;
           test_case "Let" `Quick test_typecheck_let;
+          test_case "Poly function simple" `Quick
+            test_typecheck_type_abstract_simple;
           test_case "Poly function" `Quick test_typecheck_type_abstract;
-          test_case "TypeAbstract with free variable" `Quick
-            test_typecheck_type_abstract_fv;
+          test_case "TypeApply simple" `Quick test_typecheck_type_apply_simple;
           test_case "TypeApply" `Quick test_typecheck_type_apply;
           test_case "TypeAnnotation easy" `Quick
             test_typecheck_type_annotation_simple;
