@@ -1,5 +1,6 @@
 open Terms
 open Types
+open Stack
 module VarMap = Map.Make (Atom)
 
 let type_error msg = failwith (Printf.sprintf "Type error!\n%s" msg)
@@ -14,6 +15,18 @@ let type_synth_error term actual expected =
   type_error
     (Printf.sprintf "Term : %s\nExpected a %s type\nReceived type: %s\n"
        (Terms.to_string term) expected (Types.to_string actual))
+
+let type_fun_frame_error frame actual expected =
+  type_error
+    (Printf.sprintf "Frame: %s\nExpected a %s->_ type\nReceived type: %s\n"
+       (Stack.to_string [ frame ])
+       (Types.to_string expected) (Types.to_string actual))
+
+let type_poly_frame_error frame actual =
+  type_error
+    (Printf.sprintf "Frame: %s\nExpected a polymorphic type\nReceived type: %s"
+       (Stack.to_string [ frame ])
+       (Types.to_string actual))
 
 let rec synth (ctxt : ty VarMap.t) (t : term) =
   match t with
@@ -59,3 +72,34 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
 and check (ctxt : ty VarMap.t) (ty : ty) (t : term) =
   let ty1 = synth ctxt t in
   if ty1 = ty then ty else type_check_error t ty1 ty
+
+let synth_frame (f : frame) (t : term) (ctxt : ty VarMap.t) =
+  match f with
+  | HoleFun arg -> (
+      try synth ctxt (FunApply (t, arg))
+      with Failure _ -> type_fun_frame_error f (synth ctxt t) (synth ctxt arg))
+  | HoleType arg -> (
+      try synth ctxt (TypeApply (t, arg))
+      with Failure _ -> type_poly_frame_error f (synth ctxt t))
+
+let rec synth_stack (s : stack) (t : term) (ctxt : ty VarMap.t) =
+  match s with
+  | [] -> synth ctxt t
+  | f :: s -> (
+      let ty = synth_stack s t ctxt in
+      match f with
+      | HoleFun arg -> (
+          (* get the type of the argument inside the frame *)
+          let arg_ty = synth ctxt arg in
+          (* the only way there are compatible is if the frame is a TyFun a->b, and the
+             argument is also of type a *)
+          match ty with
+          | TyFun (a, b) -> (
+              try
+                let _ = check ctxt a arg in
+                b
+              with Failure _ -> type_fun_frame_error f ty arg_ty)
+          | _ -> type_fun_frame_error f ty arg_ty)
+      | HoleType arg -> (
+          (* we only need `arg` to have a PolymorphicType *)
+          try fill ty arg with Not_Polymorphic -> type_poly_frame_error f ty))

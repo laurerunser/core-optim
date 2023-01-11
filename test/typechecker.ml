@@ -4,6 +4,7 @@ open Types
 open Atom
 open Typechecker
 open Syntax
+open Stack
 
 let check_ty = Alcotest.testable pp_ty equal_ty
 
@@ -18,6 +19,7 @@ let test_fail_typecheck msg ctxt term =
         let _ = synth ctxt term in
         ()))
 
+let toto = fresh "toto"
 let x = fresh "x"
 let y = fresh "y"
 let z = fresh "z"
@@ -26,6 +28,7 @@ let b = fresh "b"
 let tx = fresh "X"
 let ts = fresh "S"
 let tt = fresh "T"
+let pa = pretty_print_atom
 
 (**************************)
 (* Var *)
@@ -170,3 +173,119 @@ let test_typecheck_type_annotation () =
   let ctxt = VarMap.singleton a ty in
   let l = letin x (Var a ^ ty) (fun z -> fn b ty2 (fun _ -> z)) in
   test_typecheck ty_expected ctxt l
+
+(**********************************************************************)
+(* stack Typechecking *)
+
+let test_typechecking_stack msg expected stack term ctxt =
+  Alcotest.(check check_ty)
+    msg expected
+    (Typechecker.synth_stack stack term ctxt)
+
+let test_typechecking_frame msg expected frame term ctxt =
+  Alcotest.(check check_ty)
+    msg expected
+    (Typechecker.synth_frame frame term ctxt)
+
+let test_fail_typecheck_frame msg frame t ctxt =
+  Alcotest.(
+    check_raises "failure" (Failure msg) (fun () ->
+        let _ = synth_frame frame t ctxt in
+        ()))
+
+let test_fail_typecheck_stack msg stack t ctxt =
+  Alcotest.(
+    check_raises "failure" (Failure msg) (fun () ->
+        let _ = synth_stack stack t ctxt in
+        ()))
+
+let test_frame1_good () =
+  let frame = HoleFun (Var x) in
+  let f = fn x (TyFreeVar ts) (fun _ -> Var toto) in
+  let ctxt = VarMap.singleton x (TyFreeVar ts) in
+  let ctxt = VarMap.add toto (TyFreeVar tt) ctxt in
+  let expected_ty = TyFreeVar tt in
+  test_typechecking_frame "HoleFun frame" expected_ty frame f ctxt
+
+let test_frame1_bad () =
+  (* same test than the previous one, except the type of `x` in the ctxt *)
+  let frame = HoleFun (Var x) in
+  let f = fn x (TyFreeVar ts) (fun _ -> Var toto) in
+  let ctxt = VarMap.singleton x (TyFreeVar tx) in
+  let ctxt = VarMap.add toto (TyFreeVar tt) ctxt in
+  test_fail_typecheck_frame
+    (Printf.sprintf
+       "Type error!\n\
+        Frame: %s\n\
+        Expected a %s->_ type\n\
+        Received type: %s -> %s\n"
+       (Stack.to_string [ frame ])
+       (pa tx) (pa ts) (pa tt))
+    frame f ctxt
+
+let test_frame2_good () =
+  let frame = HoleType (TyFreeVar tx) in
+  let f = ty_fn ts (fun _ -> Var toto) in
+  let ctxt = VarMap.singleton toto (TyFreeVar ts) in
+  let expected_ty = TyFreeVar tx in
+  test_typechecking_frame "HoleType frame" expected_ty frame f ctxt
+
+let test_frame2_bad () =
+  let frame = HoleType (TyFreeVar tx) in
+  let f = Var toto in
+  let ctxt = VarMap.singleton toto (TyFreeVar ts) in
+  test_fail_typecheck_frame
+    (Printf.sprintf
+       "Type error!\nFrame: %s\nExpected a polymorphic type\nReceived type: %s"
+       (Stack.to_string [ frame ])
+       (pa ts))
+    frame f ctxt
+
+let test_stack1_good () =
+  let stack = [ HoleFun (Var x) ] in
+  let f = fn x (TyFreeVar ts) (fun _ -> Var toto) in
+  let ctxt = VarMap.singleton x (TyFreeVar ts) in
+  let ctxt = VarMap.add toto (TyFreeVar tt) ctxt in
+  let expected_ty = TyFreeVar tt in
+  test_typechecking_stack "stack with 1 HoleFun frame" expected_ty stack f ctxt
+
+let test_stack1_bad () =
+  (* same test than the previous one, except the type of `x` in the ctxt *)
+  let stack = [ HoleFun (Var x) ] in
+  let f = fn x (TyFreeVar ts) (fun _ -> Var toto) in
+  let ctxt = VarMap.singleton x (TyFreeVar tx) in
+  let ctxt = VarMap.add toto (TyFreeVar tt) ctxt in
+  test_fail_typecheck_stack
+    (Printf.sprintf
+       "Type error!\n\
+        Frame: %s\n\
+        Expected a %s->_ type\n\
+        Received type: %s -> %s\n"
+       (Stack.to_string stack) (pa tx) (pa ts) (pa tt))
+    stack f ctxt
+
+let test_stack2_good () =
+  let stack = [ HoleFun (Var y); HoleFun (Var x) ] in
+  let f =
+    fn x (TyFreeVar tx) (fun _ -> fn y (TyFreeVar ts) (fun _ -> Var toto))
+  in
+  let ctxt = VarMap.singleton toto (TyFreeVar toto) in
+  let ctxt = VarMap.add y (TyFreeVar ts) ctxt in
+  let ctxt = VarMap.add x (TyFreeVar tx) ctxt in
+  let expected_ty = TyFreeVar toto in
+  test_typechecking_stack "stack with 2 HoleFun frame" expected_ty stack f ctxt
+
+let test_stack2_bad () =
+  let stack = [ HoleFun (Var y); HoleFun (Var x) ] in
+  (* this one will fail because the return type of f is not a function,
+     which means it cannot plug the next hole *)
+  let f = fn x (TyFreeVar tx) (fun _ -> Var toto) in
+  let ctxt = VarMap.singleton toto (TyFreeVar toto) in
+  let ctxt = VarMap.add y (TyFreeVar ts) ctxt in
+  let ctxt = VarMap.add x (TyFreeVar tx) ctxt in
+  test_fail_typecheck_stack
+    (Printf.sprintf
+       "Type error!\nFrame: %s\nExpected a %s->_ type\nReceived type: %s\n"
+       (Stack.to_string [ List.hd stack ])
+       (pa ts) (pa toto))
+    stack f ctxt

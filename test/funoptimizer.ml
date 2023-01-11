@@ -2,6 +2,7 @@ open Atom
 open Terms
 open Types
 open Typechecker
+open Stack
 
 let () =
   let open Alcotest in
@@ -108,6 +109,16 @@ let () =
           test_case "TypeApply 1" `Quick test_print_type_apply1;
           test_case "TypeApply 2" `Quick test_print_type_apply2;
         ] );
+      ( "test print frame ",
+        [
+          test_case "Fun frame" `Quick test_print_fun_frame;
+          test_case "Ty Frame" `Quick test_print_ty_frame;
+        ] );
+      ( "test print stack",
+        [
+          test_case "Empty stack" `Quick test_print_empty_stack;
+          test_case "Big stack" `Quick test_print_big_stack;
+        ] );
       ( "test free_vars",
         [
           test_case "Var" `Quick test_free_vars_var;
@@ -142,5 +153,24 @@ let () =
           test_case "TypeAnnotation easy" `Quick
             test_typecheck_type_annotation_simple;
           test_case "TypeAnnotation" `Quick test_typecheck_type_annotation;
+        ] );
+      ( "test plug",
+        [
+          test_case "HoleFun 1" `Quick test_plug_fun1;
+          test_case "HoleFun 2" `Quick test_plug_fun2;
+          test_case "HoleType 1" `Quick test_plug_ty1;
+          test_case "HoleType 2" `Quick test_plug_ty2;
+          test_case "both HoleFun and HoleType" `Quick test_plug_mix;
+        ] );
+      ( "test stack and frame typechecking",
+        [
+          test_case "Frame 1 good" `Quick test_frame1_good;
+          test_case "Frame 1 bad" `Quick test_frame1_bad;
+          test_case "Frame 2 good" `Quick test_frame2_good;
+          test_case "Frame 2 bad" `Quick test_frame2_bad;
+          test_case "Stack 1 good" `Quick test_stack1_good;
+          test_case "Stack 1 bad" `Quick test_stack1_bad;
+          test_case "Stack 2 good" `Quick test_stack2_good;
+          test_case "Stack 2 bad" `Quick test_stack2_bad;
         ] );
     ]
