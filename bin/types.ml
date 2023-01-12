@@ -9,7 +9,7 @@ type ty =
   (* function type: TyFun(S, T) is S -> T *)
   | TyFun of ty * ty
   (* polymorphic type: PolymorphicType(X, T) is forAll X. T *)
-  | PolymorphicType of (tyvar[@equal fun _ _ -> true]) * ty
+  | PolymorphicType of (string[@equal fun _ _ -> true]) * ty
   (* tuple: T_0 * ... * T_k *)
   | TyTuple of ty list
 [@@deriving show, eq]
@@ -20,8 +20,7 @@ and tyvar = Atom.t (* type variable *) [@@deriving show, eq]
 
 let rec abstract_gen x ty c =
   match ty with
-  | PolymorphicType (y, t) when x <> y ->
-      PolymorphicType (y, abstract_gen x t (c + 1))
+  | PolymorphicType (y, t) -> PolymorphicType (y, abstract_gen x t (c + 1))
   | TyFreeVar v when v = x -> TyBoundVar c
   | TyFun (t1, t2) ->
       let t1 = abstract_gen x t1 c in
@@ -34,7 +33,7 @@ let rec abstract_gen x ty c =
 
 let abstract x ty =
   let ty = abstract_gen x ty 0 in
-  PolymorphicType (x, ty)
+  PolymorphicType (Atom.pretty_print_atom x, ty)
 
 let rec fill_gen c s = function
   | PolymorphicType (x, t) -> PolymorphicType (x, fill_gen (c + 1) s t)
@@ -73,8 +72,7 @@ and print_ty_fun s t =
   ^//^ pretty_print_type_paren true t
 
 and print_poly_type x t =
-  (!^"forall" ^^ space ^^ !^(Atom.pretty_print_atom x) ^^ char '.')
-  ^//^ pretty_print_type_paren true t
+  (!^"forall" ^^ space ^^ !^x ^^ char '.') ^//^ pretty_print_type_paren true t
 
 and print_ty_tuple ts =
   separate_map (space ^^ star ^^ space) (pretty_print_type_paren true) ts

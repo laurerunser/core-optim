@@ -4,7 +4,7 @@ type ty =
   | TyFreeVar of tyvar
   | TyBoundVar of int
   | TyFun of ty * ty
-  | PolymorphicType of tyvar * ty
+  | PolymorphicType of string * ty
   | TyTuple of ty list
 
 and tyvar = Atom.t
@@ -33,7 +33,7 @@ val fill : ty -> ty -> ty
 
 val pretty_print_type_paren : bool -> ty -> PPrint.document
 val print_ty_fun : ty -> ty -> PPrint.document
-val print_poly_type : tyvar -> ty -> PPrint.document
+val print_poly_type : string -> ty -> PPrint.document
 val print_ty_tuple : ty list -> PPrint.document
 val pretty_print_type : ty -> PPrint.document
 val to_string : ty -> string
