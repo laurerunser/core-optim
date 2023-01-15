@@ -25,7 +25,7 @@ The markdown source is in `communication/sujet/optimizer.md`.
 - discussion de la merge request
 - présentation du système de type
 
--8/12/22 - voir le fichier `2022-12-08`
+8/12/22 - voir le fichier `2022-12-08`
 - code review -> discussion sur l'égalité des variables
 - review du LaTex
 - présentation du typechecker
@@ -35,3 +35,6 @@ Pagani:
 - ok pour avancement projet
 - discussion sur type system
 - on se voit en janvier
+
+15/12/22 & 12/01/23
+- evaluation contexts and their typechecking

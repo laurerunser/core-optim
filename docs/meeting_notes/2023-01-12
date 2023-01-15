@@ -1,0 +1,23 @@
+# 12 Dec 2023 - 13h30
+
+avec Pierre-Evariste Dagand
+
+Nouvel horaire pour le 2nd semestre: jeudi 13h30
+
+## Code review
+
+1. It's called "evaluation contexts", not "trucs à trous".
+
+2. Make smaller commits! use cherry-pick and rebase to keep the history clean
+
+3. discussion on `TypeAbstraction`
+   The terms are NOT in De Brujin -> so we can't use that in TypeAbstraction to refer to the bound variable.
+   -> what we said last time about putting a string inside of TypeAbstraction won't work
+
+4. TODO: write typechecker for stacks in the LaTeX file
+
+5. TODO: fix frame typechecking
+
+6. TODO: add doc for stack + the .mli file in the branch `trucs-a-trou`
+
+7. TODO: fix the Poly test in the branch `fix-poly`
