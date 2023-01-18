@@ -29,4 +29,18 @@ $
 & | & \aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k} & \text{(tuples)}
 \end{array}
 $
+\newline
+\section{Frames and stacks}
+$
+\begin{array}{ccll}
+\aFrame & ::= & \\
+& | & \aFunFrame & \text{(applied function)} \\
+& | & \aPolyFrame & \text{(instantiated polymorphism)}
+\end{array}
+$
+\newline
+\newline
+$
+\aStack ::= \emptyStack \:|\: \nonEmptyStack \aFrame \aStack \quad \text{(stacks)}
+$
 \end{document}

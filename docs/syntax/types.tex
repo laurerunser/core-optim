@@ -6,8 +6,8 @@
 \usepackage{amsmath, amsthm, amssymb}
 
 \begin{document}
-
-The type synthesis judgment is written
+\section{Type synthesis for terms}
+The type synthesis judgment for terms is written
 \fbox{$\judge \aContext \aTerm \aType$}
 and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aContext$".
 \begin{mathpar}
@@ -42,9 +42,9 @@ and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aCo
         {\judge \aContext {\ttyann \aTerm \aType} \aType}
         {Type annotation}
 \end{mathpar}
-\newline
 
-The type checking judgment is written
+\section{Type checking for terms}
+The type checking judgment for terms is written
 \fbox{$\judgecheck \aContext \aType \aTerm$}
 and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aContext$".
 \begin{mathpar}
@@ -53,5 +53,38 @@ and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aCo
          {\judgecheck \aContext \aType \aTerm}
          {Type checking}
 
+\end{mathpar}
+
+\section{Type synthesis for frames}
+The type synthesis judgment for frames is written
+\fbox{$\frameJudge \aContext \aFrame \aTerm \aType$}
+and reads "We infer the type $\aType$ for the evaluation of the term $\aTerm$ in the frame $\aFrame$ in the context $\aContext$".
+\begin{mathpar}
+\aRule   {\judge \aContext {\tapp \aTerm {\aTerm[1]}} \aType}
+         {\frameJudge \aContext \aFunFrame \aTerm \aType}
+         {Applied function}
+
+\aRule   {\judge \aContext {\ttyapp \aTerm {\aType[1]}} \aType}
+         {\frameJudge \aContext \aPolyFrame \aTerm \aType}
+         {Instantiated polymorphism}
+\end{mathpar}
+
+\section{Type synthesis for stacks}
+The type synthesis judgment for stacks is written
+\fbox{$\frameJudge \aContext \aStack \aTerm \aType$}
+and reads "We infer the type $\aType$ for the evaluation of the term $\aTerm$ in the stack $\aStack$ in the context $\aContext$".
+\begin{mathpar}
+\aRule   {\judge \aContext \aTerm \aType}
+         {\frameJudge \aContext \emptyStack \aTerm \aType}
+         {Empty stack}
+
+\aRule   {\frameJudge \aContext \aStack \aTerm \domToCod\\
+          \judgecheck \aContext {\aType[1]} {\aTerm[1]}}
+         {\frameJudge \aContext {\nonEmptyStack \aFunFrame \aStack} \aTerm \aType}
+         {Applied function stack}
+
+\aRule   {\frameJudge \aContext \aStack \aTerm {\tforall \aTypeVar \aType}}
+         {\frameJudge \aContext {\nonEmptyStack \aPolyFrame \aStack} \aTerm {\ttyapp \aType {\aTypeVar \mapsto {\aType[1]}}}}
+         {Instantiated polymorphism stack}
 \end{mathpar}
 \end{document}
