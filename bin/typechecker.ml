@@ -71,7 +71,7 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
 
 and check (ctxt : ty VarMap.t) (ty : ty) (t : term) =
   let ty1 = synth ctxt t in
-  if ty1 = ty then ty else type_check_error t ty1 ty
+  if Types.equal_ty ty1 ty then ty else type_check_error t ty1 ty
 
 let synth_frame (f : frame) (t : term) (ctxt : ty VarMap.t) =
   match f with
