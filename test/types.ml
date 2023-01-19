@@ -19,43 +19,43 @@ let u = fresh "U"
 (* equal_ty *)
 let test_pp_equal_ty_poly1 () =
   test_equal_ty
-    (PolymorphicType (x, TyBoundVar 0))
-    (PolymorphicType (y, TyBoundVar 0))
+    (PolymorphicType ("X", TyBoundVar 0))
+    (PolymorphicType ("Y", TyBoundVar 0))
 
 let test_pp_equal_ty_poly2 () =
   test_equal_ty
-    (PolymorphicType (x, PolymorphicType (y, TyFun (TyBoundVar 0, TyBoundVar 1))))
-    (PolymorphicType (y, PolymorphicType (x, TyFun (TyBoundVar 0, TyBoundVar 1))))
+    (PolymorphicType
+       ("X", PolymorphicType ("Y", TyFun (TyBoundVar 0, TyBoundVar 1))))
+    (PolymorphicType
+       ("Y", PolymorphicType ("X", TyFun (TyBoundVar 0, TyBoundVar 1))))
 
 let test_pp_equal_ty_poly3 () =
   test_equal_ty
-    (PolymorphicType (x, PolymorphicType (y, TyFun (TyBoundVar 0, TyFreeVar tt))))
     (PolymorphicType
-       ( fresh "X",
-         PolymorphicType (fresh "Y", TyFun (TyBoundVar 0, TyFreeVar tt)) ))
+       ("X", PolymorphicType ("Y", TyFun (TyBoundVar 0, TyFreeVar tt))))
+    (PolymorphicType
+       ("X", PolymorphicType ("Y", TyFun (TyBoundVar 0, TyFreeVar tt))))
 
 (*****************************************************************************)
 (* smart constructors *)
 let test_poly_ty1 () =
   test_equal_ty
     (PolymorphicType
-       ( fresh "X",
-         PolymorphicType (fresh "Y", TyFun (TyBoundVar 1, TyBoundVar 0)) ))
+       ("X", PolymorphicType ("Y", TyFun (TyBoundVar 1, TyBoundVar 0))))
     (poly_ty (fresh "X") (fun x -> poly_ty (fresh "Y") (fun y -> x => y)))
 
 let test_poly_ty2 () =
   test_equal_ty
     (PolymorphicType
-       ( fresh "X",
+       ( "X",
          TyFun
            ( TyFreeVar s,
              PolymorphicType
-               ( fresh "Y",
+               ( "Y",
                  TyTuple
                    [
                      TyBoundVar 0;
-                     PolymorphicType
-                       (fresh "Z", TyFun (TyBoundVar 2, TyBoundVar 0));
+                     PolymorphicType ("Z", TyFun (TyBoundVar 2, TyBoundVar 0));
                    ] ) ) ))
     (poly_ty (fresh "X") (fun x ->
          TyFreeVar s
@@ -65,20 +65,19 @@ let test_poly_ty2 () =
 let test_poly_ty3 () =
   test_equal_ty (* "forall X. (0 -> (forall X. (0 -> 1)))" *)
     (PolymorphicType
-       ( fresh "X",
+       ( "X",
          TyFun
            ( TyBoundVar 0,
-             PolymorphicType (fresh "X", TyFun (TyBoundVar 0, TyBoundVar 1)) )
-       ))
+             PolymorphicType ("X", TyFun (TyBoundVar 0, TyBoundVar 1)) ) ))
     (poly_ty (fresh "X") (fun x -> x => poly_ty (fresh "X") (fun y -> y => x)))
 
 let test_poly_ty4 () =
   test_equal_ty (* "forall X. (0 -> (forall X. (0 -> 0)))" *)
     (PolymorphicType
-       ( x,
+       ( "X",
          TyFun
            ( TyBoundVar 0,
-             PolymorphicType (x, TyFun (TyBoundVar 0, TyBoundVar 0)) ) ))
+             PolymorphicType ("X", TyFun (TyBoundVar 0, TyBoundVar 0)) ) ))
     (poly_ty x (fun y -> y => poly_ty x (fun z -> z => y)))
 
 (*****************************************************************************)
@@ -90,42 +89,42 @@ let test_abstract expected v ty =
 
 let test_abstract_fn () =
   test_abstract
-    (PolymorphicType (fresh "X", TyBoundVar 0 => TyFreeVar tt))
+    (PolymorphicType ("X", TyBoundVar 0 => TyFreeVar tt))
     s
     (TyFreeVar s => TyFreeVar tt)
 
 let test_abstract_poly1 () =
   test_abstract
     (PolymorphicType
-       ( fresh "X",
+       ( "X",
          TyBoundVar 0
          => PolymorphicType
-              (fresh "Y", tuple [ TyFreeVar tt; TyBoundVar 0; TyBoundVar 1 ]) ))
+              ("Y", tuple [ TyFreeVar tt; TyBoundVar 0; TyBoundVar 1 ]) ))
     s
     (TyFreeVar s
-    => PolymorphicType
-         (fresh "X", tuple [ TyFreeVar tt; TyBoundVar 0; TyFreeVar s ]))
+    => PolymorphicType ("X", tuple [ TyFreeVar tt; TyBoundVar 0; TyFreeVar s ])
+    )
 
 let test_abstract_poly2 () =
   test_abstract
     (PolymorphicType
-       ( fresh "X",
+       ( "X",
          TyBoundVar 0
          => PolymorphicType
-              ( fresh "Y",
+              ( "Y",
                 tuple
                   [
-                    PolymorphicType (fresh "Z", TyBoundVar 0 => TyBoundVar 0);
+                    PolymorphicType ("Z", TyBoundVar 0 => TyBoundVar 0);
                     TyBoundVar 0;
                     TyBoundVar 1;
                   ] ) ))
     s
     (TyFreeVar s
     => PolymorphicType
-         ( fresh "X",
+         ( "X",
            tuple
              [
-               PolymorphicType (fresh "Y", TyBoundVar 0 => TyBoundVar 0);
+               PolymorphicType ("Y", TyBoundVar 0 => TyBoundVar 0);
                TyBoundVar 0;
                TyFreeVar s;
              ] ))
@@ -133,17 +132,16 @@ let test_abstract_poly2 () =
 let test_abstract_poly3 () =
   test_abstract
     (PolymorphicType
-       ( fresh "X",
+       ( "X",
          PolymorphicType
-           ( fresh "Y",
+           ( "Y",
              TyBoundVar 0
              => PolymorphicType
-                  ( fresh "Z",
+                  ( "Z",
                     tuple
                       [
                         PolymorphicType
-                          ( fresh "X",
-                            TyBoundVar 0 => TyBoundVar 2 => TyBoundVar 1 );
+                          ("X", TyBoundVar 0 => TyBoundVar 2 => TyBoundVar 1);
                         TyBoundVar 1;
                         TyBoundVar 0;
                       ] ) ) ))

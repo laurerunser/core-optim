@@ -10,20 +10,16 @@ let test_lt_atom a1 a2 =
 
 let test_atom_eq1 () =
   test_equal_atom
-    { indentifier = "a"; number = 1 }
-    { indentifier = "a"; number = 1 }
+    { identifier = "a"; number = 1 }
+    { identifier = "a"; number = 1 }
 
 let test_atom_eq2 () =
   test_equal_atom
-    { indentifier = "a"; number = 1 }
-    { indentifier = "b"; number = 1 }
+    { identifier = "a"; number = 1 }
+    { identifier = "b"; number = 1 }
 
 let test_atom_lt1 () =
-  test_lt_atom
-    { indentifier = "a"; number = 1 }
-    { indentifier = "a"; number = 2 }
+  test_lt_atom { identifier = "a"; number = 1 } { identifier = "a"; number = 2 }
 
 let test_atom_lt2 () =
-  test_lt_atom
-    { indentifier = "a"; number = 1 }
-    { indentifier = "b"; number = 2 }
+  test_lt_atom { identifier = "a"; number = 1 } { identifier = "b"; number = 2 }

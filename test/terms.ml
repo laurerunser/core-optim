@@ -39,11 +39,11 @@ let test_pp_equal_term () =
     (TypeAnnotation
        ( Var x,
          PolymorphicType
-           (tx, PolymorphicType (ty, TyFun (TyBoundVar 0, TyBoundVar 1))) ))
+           ("X", PolymorphicType ("Y", TyFun (TyBoundVar 0, TyBoundVar 1))) ))
     (TypeAnnotation
        ( Var x,
          PolymorphicType
-           (ty, PolymorphicType (tx, TyFun (TyBoundVar 0, TyBoundVar 1))) ))
+           ("Y", PolymorphicType ("X", TyFun (TyBoundVar 0, TyBoundVar 1))) ))
 
 (*****************************************************************************)
 (* smart constructors *)
