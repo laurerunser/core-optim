@@ -3,6 +3,8 @@ open Types
 open Stack
 module VarMap = Map.Make (Atom)
 
+exception Type_Error of ty
+
 let type_error msg = failwith (Printf.sprintf "Type error!\n%s" msg)
 
 let type_check_error term expected actual =
@@ -45,9 +47,11 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       let ty = synth ctxt t1 in
       (* verify that the argument is the right type *)
       match ty with
-      | TyFun (ty1, ty2) ->
-          let _ = check ctxt ty1 t2 in
-          ty2
+      | TyFun (ty1, ty2) -> (
+          try
+            let _ = check ctxt ty1 t2 in
+            ty2
+          with Type_Error ty -> type_check_error t2 ty ty1)
       | _ -> type_synth_error t ty "function")
   | Let (v, t, body) ->
       (* find the type of the new binding *)
@@ -67,39 +71,26 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       let for_all_ty = synth ctxt t in
       try fill for_all_ty ty (* replace the bound variable by `ty` *)
       with Not_Polymorphic -> type_synth_error t ty "polymorphic")
-  | TypeAnnotation (t, ty) -> check ctxt ty t
+  | TypeAnnotation (t, ty) -> (
+      try check ctxt ty t with Type_Error ty' -> type_check_error t ty' ty)
 
 and check (ctxt : ty VarMap.t) (ty : ty) (t : term) =
   let ty1 = synth ctxt t in
-  if Types.equal_ty ty1 ty then ty else type_check_error t ty1 ty
+  if Types.equal_ty ty1 ty then ty else raise (Type_Error ty1)
 
-let synth_frame (f : frame) (t : term) (ctxt : ty VarMap.t) =
-  match f with
-  | HoleFun arg -> (
-      try synth ctxt (FunApply (t, arg))
-      with Failure _ -> type_fun_frame_error f (synth ctxt t) (synth ctxt arg))
-  | HoleType arg -> (
-      try synth ctxt (TypeApply (t, arg))
-      with Failure _ -> type_poly_frame_error f (synth ctxt t))
-
-let rec synth_stack (s : stack) (t : term) (ctxt : ty VarMap.t) =
+let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
   match s with
-  | [] -> synth ctxt t
+  | [] -> ty
   | f :: s -> (
-      let ty = synth_stack s t ctxt in
       match f with
       | HoleFun arg -> (
-          (* get the type of the argument inside the frame *)
-          let arg_ty = synth ctxt arg in
-          (* the only way there are compatible is if the frame is a TyFun a->b, and the
-             argument is also of type a *)
           match ty with
           | TyFun (a, b) -> (
               try
                 let _ = check ctxt a arg in
-                b
-              with Failure _ -> type_fun_frame_error f ty arg_ty)
-          | _ -> type_fun_frame_error f ty arg_ty)
+                synth_stack s b ctxt
+              with Type_Error ty' -> type_fun_frame_error f ty ty')
+          | _ -> type_fun_frame_error f ty (synth ctxt arg))
       | HoleType arg -> (
-          (* we only need `arg` to have a PolymorphicType *)
-          try fill ty arg with Not_Polymorphic -> type_poly_frame_error f ty))
+          try synth_stack s (fill ty arg) ctxt
+          with Not_Polymorphic -> type_poly_frame_error f ty))

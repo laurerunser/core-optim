@@ -164,13 +164,13 @@ let () =
         ] );
       ( "test stack and frame typechecking",
         [
-          test_case "Frame 1 good" `Quick test_frame1_good;
-          test_case "Frame 1 bad" `Quick test_frame1_bad;
-          test_case "Frame 2 good" `Quick test_frame2_good;
-          test_case "Frame 2 bad" `Quick test_frame2_bad;
-          test_case "Stack 1 good" `Quick test_stack1_good;
-          test_case "Stack 1 bad" `Quick test_stack1_bad;
-          test_case "Stack 2 good" `Quick test_stack2_good;
-          test_case "Stack 2 bad" `Quick test_stack2_bad;
+          test_case "Stack Fun 1 good" `Quick test_stack_fun1_good;
+          test_case "Stack Fun 1 bad" `Quick test_stack_fun1_bad;
+          test_case "Stack Type 1 good" `Quick test_stack_poly1_good;
+          test_case "Stack Type 1 bad" `Quick test_stack_poly1_bad;
+          test_case "Stack Fun 2 good" `Quick test_stack_fun2_good;
+          test_case "Stack Fun 2 bad" `Quick test_stack_fun2_bad;
+          test_case "Stack Poly 2 good" `Quick test_stack_poly2_good;
+          test_case "Stack Both" `Quick test_stack_both;
         ] );
     ]

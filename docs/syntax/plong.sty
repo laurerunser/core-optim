@@ -47,6 +47,8 @@
            {#1 \: #2}
 \newcommand{\ttyapp}[2]%
            {#1 \: [ #2 ]}
+\newcommand{\ttysub}[2]%
+           {#1 \mapsto #2}
 \newcommand{\tlet}[3]%
            {\textbf{let } #1 = #2 \textbf{ in } #3}
 
@@ -75,4 +77,4 @@
 \newcommand{\nonEmptyStack}[2]%
           {#1 : #2}
 \newcommand{\frameJudge}[4]%
-          {#1 \vdash #2 \bullet #3 \in #4}
+          {#1 \, \vert \, #2 : #3 \vdash #4}

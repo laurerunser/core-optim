@@ -64,7 +64,7 @@ let test_plug_fun2 () =
     fn (fresh "z1") (TyFreeVar tx) (fun _ ->
         fn (fresh "z2") (TyFreeVar tx) (fun _ -> Var toto))
   in
-  test_equal_plug_term (f $ arg2 $ arg1) stack f
+  test_equal_plug_term (f $ arg1 $ arg2) stack f
 
 let test_plug_ty1 () =
   let arg = TyFreeVar tx in
@@ -78,7 +78,7 @@ let test_plug_ty2 () =
   let t =
     ty_fn (fresh "Z1") (fun _ -> ty_fn (fresh "Z2") (fun _ -> Var toto))
   in
-  test_equal_plug_term (t $! arg2 $! arg1) stack t
+  test_equal_plug_term (t $! arg1 $! arg2) stack t
 
 let test_plug_mix () =
   let arg1, arg2 = (Var x, TyFreeVar tx) in
@@ -86,4 +86,4 @@ let test_plug_mix () =
   let f =
     fn y (TyFreeVar ty) (fun _ -> ty_fn (fresh "Z") (fun _ -> Var toto))
   in
-  test_equal_plug_term (f $! arg2 $ arg1) stack f
+  test_equal_plug_term (f $ arg1 $! arg2) stack f

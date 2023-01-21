@@ -6,17 +6,20 @@ type frame =
   | HoleFun of term (* applied function: f(term) -> where f is not given *)
   | HoleType of
       ty (* instantiated polymorphism: T[ty] -> where T is not given *)
+[@@deriving show]
 
-and stack = frame list
+and stack = frame list [@@deriving show]
 
 let rec plug (s : stack) (t : term) =
   match s with
   | [] -> t
-  | f :: s -> (
-      let filled_term = plug s t in
-      match f with
-      | HoleFun arg -> FunApply (filled_term, arg)
-      | HoleType arg -> TypeApply (filled_term, arg))
+  | f :: s ->
+      let filled_term =
+        match f with
+        | HoleFun arg -> FunApply (t, arg)
+        | HoleType arg -> TypeApply (t, arg)
+      in
+      plug s filled_term
 
 let pretty_print_frame f =
   match f with
