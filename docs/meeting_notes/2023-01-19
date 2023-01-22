@@ -1,0 +1,50 @@
+# 19 Dec 2023 - 13h30
+
+avec Pierre-Evariste Dagand
+
+On voit Michel Pagani mercredi prochain à 15h
+
+## Stacks and frames review
+
+- typecheker for the evaluation contexts -> rules are not good
+  -> the stack goes the other way around!
+  - the first element of the stack is at the bottom of the execution pile
+
+Rules for plug:
+
+- `plug [] t = t`
+- `plug ([s] u) t = plug s (t u)`
+- `plug ([s] S) t = plug s (t[S])`
+
+Typechecking: `typecheck ctxt stack input_ty` and returns `output_ty`
+
+LaTeX: see the picture of the board.
+Write the new jugement `Gamma | s : A :- C` reads: "the stack needs an input of type A and produces a term of type C"
+
+No need to typecheck frames separately, do the stacks directly
+
+## Beta-reduction
+
+`(fun x -> b) e` becomes `b[e/x]`
+
+Problem: formally correct, but can lead to bad performances
+-> if `e` is `42!` then we have to compute `42!` everytime it is used in `b`
+
+Solution: stricter syntax
+
+1. We need to change the terms:
+
+- add atom = variables or booleans (instead of just variables)
+- add `if then else` + typecheck
+  - add an evaluation context for `if then else` too + typecheck them
+- and change application to be `t a` where `a` is an atom (instead of any kind of term)
+
+That way, we can't write `(fun x -> b) 42!` anymore, we have to do `let a = 42! in (fun x -> b) a`
+We will add the `let` constructions later.
+
+2. Implement beta-reduction:
+
+- DFS down the applications
+  - when you find a function under an application -> do the reduction
+
+If this is too much work to do in 1 week, drop the `if then else` constructions.
