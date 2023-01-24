@@ -1,13 +1,15 @@
 type term =
-  | Var of variable
+  | Atom of full_atom
   | Fun of variable * Types.ty * term
   | FunApply of term * term
   | Let of variable * term * term
+  | IfThenElse of term * term * term
   | TypeAbstraction of Types.tyvar * term
   | TypeApply of term * Types.ty
   | TypeAnnotation of term * Types.ty
 
 and variable = Atom.t
+and full_atom = Var of variable | Bool of bool
 
 val pretty_print : term -> PPrint.document
 val get_term_with_parens : term -> PPrint.document
@@ -17,6 +19,7 @@ val print_let_in : variable -> term -> term -> PPrint.document
 val print_type_abstraction : Types.tyvar -> term -> PPrint.document
 val print_type_apply : term -> Types.ty -> PPrint.document
 val print_type_annotation : term -> Types.ty -> PPrint.document
+val print_full_atom : full_atom -> PPrint.document
 val to_string : term -> string
 
 module VarSet : sig
@@ -72,5 +75,6 @@ val free_vars : term -> VarSet.t
 
 val pp_term : Format.formatter -> term -> unit
 val pp_variable : Format.formatter -> variable -> unit
+val pp_full_atom : Format.formatter -> full_atom -> unit
 val equal_term : term -> term -> bool
 val equal_variable : variable -> variable -> bool

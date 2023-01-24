@@ -1,6 +1,7 @@
 exception Not_Polymorphic
 
 type ty =
+  | TyBool
   | TyFreeVar of tyvar
   | TyBoundVar of int
   | TyFun of ty * ty

@@ -3,6 +3,8 @@ open PPrint
 exception Not_Polymorphic
 
 type ty =
+  (* boolean *)
+  | TyBool
   (* type variable *)
   | TyFreeVar of tyvar
   | TyBoundVar of int
@@ -55,6 +57,7 @@ let fill t s =
 (********** Pretty printing **********)
 let rec pretty_print_type_paren paren t =
   match t with
+  | TyBool -> string "bool"
   | TyFreeVar x -> !^(Atom.pretty_print_atom x)
   | TyBoundVar x -> !^(Int.to_string x)
   | _ ->

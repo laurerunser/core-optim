@@ -32,7 +32,8 @@ let type_poly_frame_error frame actual =
 
 let rec synth (ctxt : ty VarMap.t) (t : term) =
   match t with
-  | Var v -> (
+  | Atom (Bool _) -> TyBool
+  | Atom (Var v) -> (
       try VarMap.find v ctxt
       with _ ->
         failwith
@@ -60,6 +61,16 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       let ctxt = VarMap.add v ty ctxt in
       (* find and return the type of the body *)
       synth ctxt body
+  | IfThenElse (e1, e2, e3) -> (
+      let _ =
+        (* check that the condition is a boolean (either true or false) *)
+        try check ctxt TyBool e1
+        with Type_Error actual_ty -> type_check_error e1 TyBool actual_ty
+      in
+      (* check that both branches have the same type *)
+      let ty = synth ctxt e2 in
+      try check ctxt ty e3
+      with Type_Error actual_ty -> type_check_error e3 ty actual_ty)
   | TypeAbstraction (ty_var, t) ->
       (* ignore the X not in freevars *)
       (* also leave the context as it was -> no need to add the X *)

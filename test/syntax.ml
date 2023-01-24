@@ -2,9 +2,9 @@ open Libfun.Terms
 open Libfun.Types
 
 (* smart constructors for the terms *)
-let fn v t f = Fun (v, t, f (Var v))
+let fn v t f = Fun (v, t, f (Atom (Var v)))
 let ( $ ) f s = FunApply (f, s)
-let letin v t f = Let (v, t, f (Var v))
+let letin v t f = Let (v, t, f (Atom (Var v)))
 let ty_fn v f = TypeAbstraction (v, f (TyFreeVar v))
 let ( $! ) t ty = TypeApply (t, ty)
 let ( ^ ) t ty = TypeAnnotation (t, ty)

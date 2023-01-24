@@ -145,6 +145,10 @@ let () =
             test_typecheck_fun_apply_simple;
           test_case "Let simple" `Quick test_typecheck_let_simple;
           test_case "Let" `Quick test_typecheck_let;
+          test_case "If true" `Quick test_typecheck_if1;
+          test_case "If false" `Quick test_typecheck_if2;
+          test_case "If condition not bool" `Quick test_typecheck_if_bad1;
+          test_case "If branches not the same" `Quick test_typecheck_if_bad2;
           test_case "Poly function simple" `Quick
             test_typecheck_type_abstract_simple;
           test_case "Poly function" `Quick test_typecheck_type_abstract;
