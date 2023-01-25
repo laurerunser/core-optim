@@ -176,5 +176,7 @@ let () =
           test_case "Stack Fun 2 bad" `Quick test_stack_fun2_bad;
           test_case "Stack Poly 2 good" `Quick test_stack_poly2_good;
           test_case "Stack Both" `Quick test_stack_both;
+          test_case "Stack If good" `Quick test_stack_if_good;
+          test_case "Stack If bad" `Quick test_stack_if_bad;
         ] );
     ]

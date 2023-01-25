@@ -30,6 +30,21 @@ let type_poly_frame_error frame actual =
        (Stack.to_string [ frame ])
        (Types.to_string actual))
 
+let type_if_branches_error branch expected actual =
+  type_error
+    (Printf.sprintf
+       "Branches do not have the same type\n\
+        Branch: %s\n\
+        Received type: %s\n\
+        Expected %s" (Terms.to_string branch) (Types.to_string actual)
+       (Types.to_string expected))
+
+let type_ite_frame_error frame actual =
+  type_error
+    (Printf.sprintf "Frame: %s\nExpected a bool type\nReceived type: %s"
+       (Stack.to_string [ frame ])
+       (Types.to_string actual))
+
 let rec synth (ctxt : ty VarMap.t) (t : term) =
   match t with
   | Atom (Bool _) -> TyBool
@@ -70,7 +85,7 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       (* check that both branches have the same type *)
       let ty = synth ctxt e2 in
       try check ctxt ty e3
-      with Type_Error actual_ty -> type_check_error e3 ty actual_ty)
+      with Type_Error actual_ty -> type_if_branches_error e3 ty actual_ty)
   | TypeAbstraction (ty_var, t) ->
       (* ignore the X not in freevars *)
       (* also leave the context as it was -> no need to add the X *)
@@ -104,4 +119,11 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
           | _ -> type_fun_frame_error f ty (synth ctxt (Atom arg)))
       | HoleType arg -> (
           try synth_stack s (fill ty arg) ctxt
-          with Not_Polymorphic -> type_poly_frame_error f ty))
+          with Not_Polymorphic -> type_poly_frame_error f ty)
+      | HoleIf (e1, e2) ->
+          if ty <> TyBool then type_ite_frame_error f ty
+          else
+            let ty1 = synth ctxt e1 in
+            let ty2 = synth ctxt e2 in
+            if Types.equal_ty ty1 ty2 then ty1
+            else type_if_branches_error e2 ty1 ty2)

@@ -5,7 +5,11 @@
    For example: `(((t u1) u2) u3)`
    is represented by the stack `[HoleFun u1, HoleFun u2, HoleFun u3]` *)
 
-type frame = HoleFun of Terms.full_atom | HoleType of Types.ty
+type frame =
+  | HoleFun of Terms.full_atom
+  | HoleType of Types.ty
+  | HoleIf of Terms.term * Terms.term
+
 and stack = frame list
 
 val pp_frame : Format.formatter -> frame -> unit

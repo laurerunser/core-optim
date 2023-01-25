@@ -163,8 +163,11 @@ let test_typecheck_if_bad2 () =
   let ctxt = VarMap.add y ty2 ctxt in
   let msg =
     Printf.sprintf
-      "Type error!\nTerm : %s\nExpected type: bool\nReceived type: %s\n" (pa y)
-      (pa ts)
+      "Type error!\n\
+       Branches do not have the same type\n\
+       Branch: %s\n\
+       Received type: %s\n\
+       Expected bool" (pa y) (pa ts)
   in
   test_fail_typecheck msg ctxt t
 
@@ -308,3 +311,25 @@ let test_stack_both () =
   let ctxt = VarMap.singleton x (TyFreeVar tt) in
   let expected_ty = TyFreeVar toto in
   test_typechecking_stack expected_ty stack ty ctxt
+
+let test_stack_if_good () =
+  let ty = TyFreeVar tx in
+  let stack = [ HoleIf (Atom (Var x), Atom (Var y)) ] in
+  let ctxt = VarMap.singleton x ty in
+  let ctxt = VarMap.add y ty ctxt in
+  test_typechecking_stack ty stack TyBool ctxt
+
+let test_stack_if_bad () =
+  let ty = TyFreeVar tx in
+  let ty2 = TyFreeVar ts in
+  let stack = [ HoleIf (Atom (Var x), Atom (Var y)) ] in
+  let ctxt = VarMap.singleton x ty in
+  let ctxt = VarMap.add y ty2 ctxt in
+  test_fail_typecheck_stack
+    (Printf.sprintf
+       "Type error!\n\
+        Branches do not have the same type\n\
+        Branch: %s\n\
+        Received type: %s\n\
+        Expected %s" (pa y) (pa ts) (pa tx))
+    stack TyBool ctxt
