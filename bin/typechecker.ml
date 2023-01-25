@@ -50,9 +50,9 @@ let rec synth (ctxt : ty VarMap.t) (t : term) =
       match ty with
       | TyFun (ty1, ty2) -> (
           try
-            let _ = check ctxt ty1 t2 in
+            let _ = check ctxt ty1 (Atom t2) in
             ty2
-          with Type_Error ty -> type_check_error t2 ty ty1)
+          with Type_Error ty -> type_check_error (Atom t2) ty ty1)
       | _ -> type_synth_error t ty "function")
   | Let (v, t, body) ->
       (* find the type of the new binding *)
@@ -98,10 +98,10 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
           match ty with
           | TyFun (a, b) -> (
               try
-                let _ = check ctxt a arg in
+                let _ = check ctxt a (Atom arg) in
                 synth_stack s b ctxt
               with Type_Error ty' -> type_fun_frame_error f ty ty')
-          | _ -> type_fun_frame_error f ty (synth ctxt arg))
+          | _ -> type_fun_frame_error f ty (synth ctxt (Atom arg)))
       | HoleType arg -> (
           try synth_stack s (fill ty arg) ctxt
           with Not_Polymorphic -> type_poly_frame_error f ty))

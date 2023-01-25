@@ -49,10 +49,10 @@ let test_pp_equal_term () =
 (* smart constructors *)
 let id_x = fresh "x"
 let id_t = fresh "X"
-let id = fn id_x (TyFreeVar id_t) (fun x -> x)
+let id = fn id_x (TyFreeVar id_t) (fun x -> Atom x)
 let poly_id_x = fresh "x"
 let poly_id_t = fresh "X"
-let poly_id = ty_fn poly_id_t (fun t -> fn poly_id_x t (fun x -> x))
+let poly_id = ty_fn poly_id_t (fun t -> fn poly_id_x t (fun x -> Atom x))
 
 let test_fn_id () =
   test_equal_term id (Fun (id_x, TyFreeVar id_t, Atom (Var id_x)))
@@ -65,29 +65,29 @@ let test_fn_poly_id () =
 
 let test_fn2 () =
   test_equal_term
-    (Fun
-       ( x,
-         TyFreeVar tt,
-         Fun (y, TyFreeVar tt, FunApply (Atom (Var y), Atom (Var x))) ))
-    (fn x (TyFreeVar tt) (fun x -> fn y (TyFreeVar tt) (fun y -> y $ x)))
+    (Fun (x, TyFreeVar tt, Fun (y, TyFreeVar tt, FunApply (Atom (Var y), Var x))))
+    (fn x (TyFreeVar tt) (fun x -> fn y (TyFreeVar tt) (fun y -> Atom y $ x)))
 
 let test_fn3 () =
   (* "fun (y: X) = (y (fun (x: X) = (y x)))" *)
   let x1 = fresh "x" in
   let x2 = fresh "x" in
+  let y = fresh "y" in
   test_equal_term
     (Fun
        ( x2,
          TyFreeVar tt,
-         FunApply
-           ( Atom (Var x2),
-             Fun (x1, TyFreeVar tt, FunApply (Atom (Var x2), Atom (Var x1))) )
-       ))
-    (fn x2 (TyFreeVar tt) (fun x -> x $ fn x1 (TyFreeVar tt) (fun z -> x $ z)))
+         Let
+           ( y,
+             Fun (x1, TyFreeVar tt, FunApply (Atom (Var x2), Var x1)),
+             FunApply (Atom (Var x2), Var y) ) ))
+    (fn x2 (TyFreeVar tt) (fun x ->
+         (letin y (fn x1 (TyFreeVar tt) (fun z -> Atom x $ z))) (fun y ->
+             Atom x $ y)))
 
 let test_letin () =
   test_equal_term
-    (Let (x, Atom (Var a), FunApply (id, Atom (Var x))))
+    (Let (x, Atom (Var a), FunApply (id, Var x)))
     (letin x (Atom (Var a)) (fun y -> id $ y))
 
 (*****************************************************************************)
@@ -146,16 +146,18 @@ let test_print_fun4 () =
     t
 
 let test_print_fun_apply1 () =
-  let t = Atom (Var f) $ Atom (Var x) in
+  let t = Atom (Var f) $ Var x in
   test_pretty_print (Format.sprintf "%s %s" (pa f) (pa x)) t
 
 let test_print_fun_apply2 () =
   let t =
-    Atom (Var a) $ Atom (Var b) $ fn x (fv tt) (fun x -> x $ Atom (Var a))
+    letin y
+      (fn x (fv tt) (fun x -> Atom x $ Var a))
+      (fun y -> Atom (Var a) $ Var b $ y)
   in
   test_pretty_print
-    (Format.sprintf "(%s %s) (fun (%s: %s) = (%s %s))" (pa a) (pa b) (pa x)
-       (pa tt) (pa x) (pa a))
+    (Format.sprintf "let %s = (fun (%s: %s) = (%s %s)) in (%s %s) %s" (pa y)
+       (pa x) (pa tt) (pa x) (pa a) (pa a) (pa b) (pa y))
     t
 
 let test_print_let1 () =
@@ -163,9 +165,7 @@ let test_print_let1 () =
   test_pretty_print (Format.sprintf "let %s = %s in %s" (pa x) (pa a) (pa b)) t
 
 let test_print_let2 () =
-  let t =
-    letin x (Atom (Var f) $ Atom (Var a)) (fun _ -> Atom (Var g) $ Atom (Var b))
-  in
+  let t = letin x (Atom (Var f) $ Var a) (fun _ -> Atom (Var g) $ Var b) in
   test_pretty_print
     (Format.sprintf "let %s = (%s %s) in %s %s" (pa x) (pa f) (pa a) (pa g)
        (pa b))
@@ -177,19 +177,18 @@ let test_print_let3 () =
   let f4 = fresh "f4" in
   let toto = fresh "toto" in
   let t =
-    letin x (Atom (Var f) $ Atom (Var a)) (fun _ ->
-        Atom (Var g)
-        $ letin x (Atom (Var f2) $ Atom (Var b)) (fun _ ->
-              letin y (Atom (Var f3) $ Atom (Var c)) (fun _ ->
-                  Atom (Var f4) $ Atom (Var toto))))
+    letin y
+      (letin x (Atom (Var f2) $ Var b) (fun _ ->
+           letin y (Atom (Var f3) $ Var c) (fun _ -> Atom (Var f4) $ Var toto)))
+      (fun y -> letin x (Atom (Var f) $ Var a) (fun _ -> Atom (Var g) $ y))
   in
   test_pretty_print
     (Format.sprintf
-       "let %s = (%s %s) in\n\
-        %s\n\
+       "let %s =\n\
        \  let %s = (%s %s) in\n\
-       \  let %s = (%s %s) in %s %s" (pa x) (pa f) (pa a) (pa g) (pa x) (pa f2)
-       (pa b) (pa y) (pa f3) (pa c) (pa f4) (pa toto))
+       \  let %s = (%s %s) in %s %s\n\
+        in let %s = (%s %s) in %s %s" (pa y) (pa x) (pa f2) (pa b) (pa y)
+       (pa f3) (pa c) (pa f4) (pa toto) (pa x) (pa f) (pa a) (pa g) (pa y))
     t
 
 let test_print_type_abstraction1 () =
@@ -214,15 +213,17 @@ let test_print_type_apply2 () =
   let t4 = fresh "T4" in
   let t =
     fn x (fv tt) (fun _ ->
-        Atom (Var g)
-        $ letin x (Atom (Var h) $ Atom (Var b)) (fun _ -> Atom (Var a)))
+        letin y
+          (letin x (Atom (Var h) $ Var b) (fun _ -> Atom (Var a)))
+          (fun y -> Atom (Var g) $ y))
     $! poly_ty tx (fun _ -> tuple [ fv t1; fv t3 => fv t4 ] => fv t2)
   in
   test_pretty_print
     (Format.sprintf
-       "(fun (%s: %s) = (%s let %s = (%s %s) in %s))[forall %s.\n\
-       \  ((%s * (%s -> %s)) -> %s)]" (pa x) (pa tt) (pa g) (pa x) (pa h) (pa b)
-       (pa a) (pa tx) (pa t1) (pa t3) (pa t4) (pa t2))
+       "(fun (%s: %s) =\n\
+       \  let %s = let %s = (%s %s) in %s in %s %s)[forall %s.\n\
+       \  ((%s * (%s -> %s)) -> %s)]" (pa x) (pa tt) (pa y) (pa x) (pa h) (pa b)
+       (pa a) (pa g) (pa y) (pa tx) (pa t1) (pa t3) (pa t4) (pa t2))
     t
 
 (*****************************************************************************)
@@ -256,7 +257,7 @@ let test_free_vars_fun1 () =
 let test_free_vars_fun2 () =
   let ty = fresh "ty" in
   let t =
-    fn (fresh "b") (fv ty) (fun x -> fn (fresh "a") (fv ty) (fun _ -> x))
+    fn (fresh "b") (fv ty) (fun x -> fn (fresh "a") (fv ty) (fun _ -> Atom x))
   in
   test_free_vars [] t
 
@@ -265,7 +266,9 @@ let test_free_vars_funApply1 () =
   let a = fresh "a" in
   let b = fresh "b" in
   let t =
-    fn a (fv ty) (fun _ -> Atom (Var b)) $ fn b (fv ty) (fun _ -> Atom (Var a))
+    letin (fresh "x")
+      (fn b (fv ty) (fun _ -> Atom (Var a)))
+      (fun x -> fn a (fv ty) (fun _ -> Atom (Var b)) $ x)
   in
   test_free_vars [ a; b ] t
 
@@ -276,11 +279,19 @@ let test_free_vars_funApply2 () =
   let v = fresh "v" in
   let ty = fresh "ty" in
   let t =
-    Atom (Var y) $ Atom (Var v)
-    $ fn x (fv ty) (fun x -> x)
-    $ (Atom (Var z) $ Atom (Var x) $ (Atom (Var y) $ Atom (Var x)))
-    $ (fn z (fv ty) (fun _ -> Atom (Var x))
-      $ fn (fresh "u") (fv ty) (fun x -> x))
+    letin (fresh "x")
+      (fn x (fv ty) (fun x -> Atom x))
+      (fun x1 ->
+        letin (fresh "x")
+          (letin (fresh "x") (Atom (Var y) $ Var x) (fun x4 ->
+               Atom (Var z) $ Var x $ x4))
+          (fun x2 ->
+            letin (fresh "x")
+              (fn z (fv ty) (fun _ ->
+                   letin (fresh "x")
+                     (fn (fresh "u") (fv ty) (fun x -> Atom x))
+                     (fun x5 -> Atom (Var x) $ x5)))
+              (fun x3 -> Atom (Var y) $ Var v $ x1 $ x2 $ x3)))
   in
   test_free_vars [ z; x; y; v ] t
 
@@ -290,8 +301,10 @@ let test_free_vars_Let1 () =
   let e = fresh "e" in
   let t =
     letin (fresh "a")
-      (fn (fresh "b") (fv (fresh "ty")) (fun _ -> Atom (Var a))
-      $ letin (fresh "c") (Atom (Var d)) (fun x -> x))
+      (letin (fresh "x")
+         (letin (fresh "c") (Atom (Var d)) (fun x -> Atom x))
+         (fun x1 ->
+           fn (fresh "b") (fv (fresh "ty")) (fun _ -> Atom (Var a)) $ x1))
       (fun _ -> Atom (Var e))
   in
   test_free_vars [ a; d; e ] t
@@ -303,7 +316,7 @@ let test_free_vars_Let2 () =
     letin (fresh "x") (Atom (Var a)) (fun x ->
         letin (fresh "y")
           (fn (fresh "z") (fv (fresh "ty")) (fun _ -> Atom (Var b) $ x) $ x)
-          (fun y -> y $ x))
+          (fun y -> Atom y $ x))
   in
   test_free_vars [ a; b ] t
 
@@ -313,9 +326,10 @@ let test_free_var_type_abstraction () =
   let t =
     ty_fn (fresh "ty") (fun x ->
         letin (fresh "a")
-          (fn (fresh "b") x (fun _ -> Atom (Var e))
-          $ letin (fresh "c") (Atom (Var d)) (fun y -> y))
-          (fun z -> z))
+          (letin (fresh "x")
+             (letin (fresh "c") (Atom (Var d)) (fun y -> Atom y))
+             (fun x1 -> fn (fresh "b") x (fun _ -> Atom (Var e)) $ x1))
+          (fun z -> Atom z))
   in
   test_free_vars [ d; e ] t
 
@@ -326,8 +340,9 @@ let test_free_var_type_apply () =
   let ty = fresh "ty" in
   let t =
     letin (fresh "a")
-      (fn (fresh "b") (fv ty) (fun _ -> Atom (Var a))
-      $ letin (fresh "c") (Atom (Var d)) (fun c -> c))
+      (letin (fresh "x")
+         (letin (fresh "c") (Atom (Var d)) (fun c -> Atom c))
+         (fun x1 -> fn (fresh "b") (fv ty) (fun _ -> Atom (Var a)) $ x1))
       (fun _ -> Atom (Var e))
     $! fv ty
   in
@@ -340,8 +355,9 @@ let test_free_var_type_annotation () =
   let ty = fresh "ty" in
   let t =
     letin (fresh "a")
-      (fn (fresh "b") (fv ty) (fun _ -> Atom (Var a))
-      $ letin (fresh "c") (Atom (Var d)) (fun x -> x))
+      (letin (fresh "x")
+         (letin (fresh "c") (Atom (Var d)) (fun x -> Atom x))
+         (fun x1 -> fn (fresh "b") (fv ty) (fun _ -> Atom (Var a)) $ x1))
       (fun _ -> Atom (Var e))
     ^ fv ty
   in

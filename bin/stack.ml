@@ -3,7 +3,7 @@ open Types
 open PPrint
 
 type frame =
-  | HoleFun of term (* applied function: f(term) -> where f is not given *)
+  | HoleFun of full_atom (* applied function: f(term) -> where f is not given *)
   | HoleType of
       ty (* instantiated polymorphism: T[ty] -> where T is not given *)
 [@@deriving show]
@@ -25,7 +25,7 @@ let pretty_print_frame f =
   match f with
   | HoleFun arg ->
       let f = string "_" in
-      let x = get_term_with_parens arg in
+      let x = print_full_atom arg in
       group @@ prefix 2 1 f x
   | HoleType arg ->
       let t = string "_" in

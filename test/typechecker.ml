@@ -54,7 +54,7 @@ let test_typecheck_fail_not_in_map () =
 (* fun x -> x where `x` is of type `S` *)
 let test_typecheck_fun_id () =
   let tv = TyFreeVar ts in
-  let f = fn x tv (fun x -> x) in
+  let f = fn x tv (fun x -> Atom x) in
   let ty = tv => tv in
   test_typecheck ty VarMap.empty f
 
@@ -63,9 +63,9 @@ let test_typecheck_fun_id2 () =
     poly_ty tx (fun x -> x => tuple [ TyFreeVar ts; x; x; TyFreeVar tt ])
     => TyFreeVar tt
   in
-  let f = fn x tv (fun x -> x) in
+  let f = fn x tv (fun x -> Atom x) in
   let ctxt = VarMap.singleton a tv in
-  test_typecheck tv ctxt (f $ Atom (Var a))
+  test_typecheck tv ctxt (f $ Var a)
 
 let test_typecheck_fun_simple () =
   let tv = TyFreeVar ts in
@@ -79,30 +79,30 @@ let test_typecheck_fun_simple () =
 (* FunApply *)
 let test_typecheck_fun_apply () =
   let tv = TyFreeVar ts in
-  let f = fn x tv (fun x -> x) in
+  let f = fn x tv (fun x -> Atom x) in
   let ctxt = VarMap.singleton a tv in
-  test_typecheck tv ctxt (f $ Atom (Var a))
+  test_typecheck tv ctxt (f $ Var a)
 
 (* This test fails (as it should) because the function is supposed to be
    of type `ts` but we give it `x` of type `tx` *)
 let test_typecheck_fun_apply2 () =
   let tv = TyFreeVar ts in
   let tvx = TyFreeVar tx in
-  let f = fn x tv (fun x -> x) in
+  let f = fn x tv (fun x -> Atom x) in
   let ctxt = VarMap.singleton a tvx in
   test_fail_typecheck
     (Format.sprintf
        "Type error!\nTerm : %s\nExpected type: %s\nReceived type: %s\n"
        (Terms.to_string (Atom (Var a)))
        (Types.to_string tvx) (Types.to_string tv))
-    ctxt (f $ Atom (Var a))
+    ctxt (f $ Var a)
 
 let test_typecheck_fun_apply_simple () =
   let tv = TyFreeVar ts in
   let tu = TyFreeVar tt in
   let f = fn x tv (fun _ -> Atom (Var y)) in
   let ctxt = VarMap.add y tu (VarMap.singleton a tv) in
-  test_typecheck tu ctxt (f $ Atom (Var a))
+  test_typecheck tu ctxt (f $ Var a)
 
 (**************************)
 (* Let *)
@@ -119,7 +119,7 @@ let test_typecheck_let () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
   let ty_expected = ty2 => ty in
-  let l = letin x (Atom (Var a)) (fun z -> fn b ty2 (fun _ -> z)) in
+  let l = letin x (Atom (Var a)) (fun z -> fn b ty2 (fun _ -> Atom z)) in
   let ctxt = VarMap.singleton a ty in
   test_typecheck ty_expected ctxt l
 
@@ -179,7 +179,7 @@ let test_typecheck_type_abstract_simple () =
 
 (* fun [X] = fun (a:X) -> a *)
 let test_typecheck_type_abstract () =
-  let poly_id = ty_fn tx (fun t -> fn x t (fun z -> z)) in
+  let poly_id = ty_fn tx (fun t -> fn x t (fun z -> Atom z)) in
   let ty = poly_ty tt (fun x -> x => x) in
   test_typecheck ty VarMap.empty poly_id
 
@@ -217,7 +217,7 @@ let test_typecheck_type_annotation () =
   let ty2 = TyFreeVar ts in
   let ty_expected = ty2 => ty in
   let ctxt = VarMap.singleton a ty in
-  let l = letin x (Atom (Var a) ^ ty) (fun z -> fn b ty2 (fun _ -> z)) in
+  let l = letin x (Atom (Var a) ^ ty) (fun z -> fn b ty2 (fun _ -> Atom z)) in
   test_typecheck ty_expected ctxt l
 
 (**********************************************************************)
@@ -237,7 +237,7 @@ let test_fail_typecheck_stack msg stack t ctxt =
         ()))
 
 let test_stack_fun1_good () =
-  let stack = [ HoleFun (Atom (Var x)) ] in
+  let stack = [ HoleFun (Var x) ] in
   let ty = TyFreeVar ts => TyFreeVar tt in
   let ctxt = VarMap.singleton x (TyFreeVar ts) in
   let expected_ty = TyFreeVar tt in
@@ -245,7 +245,7 @@ let test_stack_fun1_good () =
 
 let test_stack_fun1_bad () =
   (* same test than the previous one, except the type of `x` in the ctxt *)
-  let stack = [ HoleFun (Atom (Var x)) ] in
+  let stack = [ HoleFun (Var x) ] in
   let ty = TyFreeVar ts => TyFreeVar tt in
   let ctxt = VarMap.singleton x (TyFreeVar tx) in
   test_fail_typecheck_stack
@@ -273,7 +273,7 @@ let test_stack_poly1_bad () =
     stack ty VarMap.empty
 
 let test_stack_fun2_good () =
-  let stack = [ HoleFun (Atom (Var y)); HoleFun (Atom (Var x)) ] in
+  let stack = [ HoleFun (Var y); HoleFun (Var x) ] in
   let ty = TyFreeVar tx => (TyFreeVar ts => TyFreeVar toto) in
   let ctxt = VarMap.singleton y (TyFreeVar tx) in
   let ctxt = VarMap.add x (TyFreeVar ts) ctxt in
@@ -281,7 +281,7 @@ let test_stack_fun2_good () =
   test_typechecking_stack expected_ty stack ty ctxt
 
 let test_stack_fun2_bad () =
-  let stack = [ HoleFun (Atom (Var y)); HoleFun (Atom (Var x)) ] in
+  let stack = [ HoleFun (Var y); HoleFun (Var x) ] in
   (* this one will fail because the return type of f is not a function,
      which means it cannot plug the next hole *)
   let ty = TyFreeVar tx => TyFreeVar toto in
@@ -303,7 +303,7 @@ let test_stack_poly2_good () =
   test_typechecking_stack expected_ty stack ty VarMap.empty
 
 let test_stack_both () =
-  let stack = [ HoleFun (Atom (Var x)); HoleType (TyFreeVar tx) ] in
+  let stack = [ HoleFun (Var x); HoleType (TyFreeVar tx) ] in
   let ty = TyFreeVar tt => poly_ty (fresh "X") (fun _ -> TyFreeVar toto) in
   let ctxt = VarMap.singleton x (TyFreeVar tt) in
   let expected_ty = TyFreeVar toto in

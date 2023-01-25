@@ -1,7 +1,7 @@
 type term =
   | Atom of full_atom
   | Fun of variable * Types.ty * term
-  | FunApply of term * term
+  | FunApply of term * full_atom
   | Let of variable * term * term
   | IfThenElse of term * term * term
   | TypeAbstraction of Types.tyvar * term
@@ -14,7 +14,7 @@ and full_atom = Var of variable | Bool of bool
 val pretty_print : term -> PPrint.document
 val get_term_with_parens : term -> PPrint.document
 val print_abstraction : variable -> Types.ty -> term -> PPrint.document
-val print_fun_apply : term -> term -> PPrint.document
+val print_fun_apply : term -> full_atom -> PPrint.document
 val print_let_in : variable -> term -> term -> PPrint.document
 val print_type_abstraction : Types.tyvar -> term -> PPrint.document
 val print_type_apply : term -> Types.ty -> PPrint.document

@@ -7,7 +7,7 @@ type term =
   (* abstraction: Fun(x,T,t) is fun (x:T) = t*)
   | Fun of variable * ty * term
   (* function application: FunApply(t,u) is t u *)
-  | FunApply of term * term
+  | FunApply of term * full_atom
   (* let binding: Let(x,t,u) is let x = t in u *)
   | Let of variable * term * term
   (* condition: IfThenElse(e1, e2, e3) is If e1 Then e2 Else e3 *)
@@ -53,7 +53,7 @@ and print_abstraction x ty body =
 
 and print_fun_apply f x =
   let f_parens = get_term_with_parens f in
-  let x_parens = get_term_with_parens x in
+  let x_parens = print_full_atom x in
   group @@ prefix 2 1 f_parens x_parens
 
 and print_let_in lhs rhs body =
@@ -110,7 +110,9 @@ let rec free_vars t =
       | Var x -> singleton x
       | _ -> empty (* boolean value, not a free var *))
   | Fun (x, _, t) -> diff (free_vars t) (singleton x)
-  | FunApply (t, u) -> union (free_vars t) (free_vars u)
+  | FunApply (t, u) ->
+      union (free_vars t) (free_vars (Atom u))
+      (* u is either a boolean value or a variable defined outside of the function *)
   | Let (x, t, u) -> union (free_vars t) (diff (free_vars u) (singleton x))
   | IfThenElse (e1, e2, e3) ->
       union (free_vars e1) (union (free_vars e2) (free_vars e3))
