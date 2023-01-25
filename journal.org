@@ -38,3 +38,11 @@ Pagani:
 
 15/12/22 & 12/01/23
 - evaluation contexts and their typechecking
+
+25/01/23
+Pagani:
+- ok code: syntax, types, beta-reduction, evaluation contexts 
+- question about flat boolean vs system F booleans
+- question about non-lazy beta-reduction 
+- goal for rapport "mi-parcours" : they will add some let optimisation, and they will complete syntax with booleans and conditionals 
+
