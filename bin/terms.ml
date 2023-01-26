@@ -115,3 +115,30 @@ let rec free_vars t =
       union (free_vars e1) (union (free_vars e2) (free_vars e3))
   | TypeAbstraction (_, t) | TypeApply (t, _) | TypeAnnotation (t, _) ->
       free_vars t
+
+let rec substitution v s = function
+  | Base (Var x) when x = v -> Base s
+  | Fun (x, ty, t) when x <> v -> Fun (x, ty, substitution v s t)
+  | FunApply (t, Var x) when x = v -> FunApply (substitution v s t, s)
+  | FunApply (t, a) -> FunApply (substitution v s t, a)
+  | Let (x, t, u) ->
+      Let (x, substitution v s t, if x <> v then substitution v s u else u)
+  | IfThenElse (e1, e2, e3) ->
+      IfThenElse (substitution v s e1, substitution v s e2, substitution v s e3)
+  | TypeAbstraction (ty, t) -> TypeAbstraction (ty, substitution v s t)
+  | TypeApply (t, ty) -> TypeApply (substitution v s t, ty)
+  | TypeAnnotation (t, ty) -> TypeAnnotation (substitution v s t, ty)
+  | t -> t
+
+let rec beta_reduce t =
+  match t with
+  | Base _ -> t
+  | Fun (x, ty, t) -> Fun (x, ty, beta_reduce t)
+  | FunApply (Fun (x, _, t), a) -> substitution x a (beta_reduce t)
+  | FunApply (t, a) -> FunApply (beta_reduce t, a)
+  | Let (x, t, u) -> Let (x, beta_reduce t, beta_reduce u)
+  | IfThenElse (e1, e2, e3) ->
+      IfThenElse (beta_reduce e1, beta_reduce e2, beta_reduce e3)
+  | TypeAbstraction (ty, t) -> TypeAbstraction (ty, beta_reduce t)
+  | TypeApply (t, ty) -> TypeApply (beta_reduce t, ty)
+  | TypeAnnotation (t, ty) -> TypeAnnotation (beta_reduce t, ty)
