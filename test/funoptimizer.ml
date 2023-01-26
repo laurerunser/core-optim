@@ -2,6 +2,7 @@ open Atom
 open Terms
 open Types
 open Typechecker
+open Stack
 
 let () =
   let open Alcotest in
@@ -42,7 +43,7 @@ let () =
           test_case "poly type 1" `Quick test_poly_ty1;
           test_case "poly type 2" `Quick test_poly_ty2;
           test_case "poly type 3" `Quick test_poly_ty3;
-          test_case "poly type 3" `Quick test_poly_ty4;
+          test_case "poly type 4" `Quick test_poly_ty4;
         ] );
       ( "test fill",
         [
@@ -108,6 +109,16 @@ let () =
           test_case "TypeApply 1" `Quick test_print_type_apply1;
           test_case "TypeApply 2" `Quick test_print_type_apply2;
         ] );
+      ( "test print frame ",
+        [
+          test_case "Fun frame" `Quick test_print_fun_frame;
+          test_case "Ty Frame" `Quick test_print_ty_frame;
+        ] );
+      ( "test print stack",
+        [
+          test_case "Empty stack" `Quick test_print_empty_stack;
+          test_case "Big stack" `Quick test_print_big_stack;
+        ] );
       ( "test free_vars",
         [
           test_case "Var" `Quick test_free_vars_var;
@@ -124,16 +135,42 @@ let () =
       ( "test typechecking",
         [
           test_case "Var in the map" `Quick test_typecheck_var_in_map;
+          test_case "Var not in the map" `Quick test_typecheck_fail_not_in_map;
           test_case "Identity function" `Quick test_typecheck_fun_id;
           test_case "Identity function 2" `Quick test_typecheck_fun_id2;
+          test_case "Fun simple" `Quick test_typecheck_fun_simple;
           test_case "Apply identity function" `Quick test_typecheck_fun_apply;
+          test_case "Apply identity function 2" `Quick test_typecheck_fun_apply2;
+          test_case "Apply identity function simple" `Quick
+            test_typecheck_fun_apply_simple;
+          test_case "Let simple" `Quick test_typecheck_let_simple;
           test_case "Let" `Quick test_typecheck_let;
+          test_case "Poly function simple" `Quick
+            test_typecheck_type_abstract_simple;
           test_case "Poly function" `Quick test_typecheck_type_abstract;
-          test_case "TypeAbstract with free variable" `Quick
-            test_typecheck_type_abstract_fv;
+          test_case "TypeApply simple" `Quick test_typecheck_type_apply_simple;
           test_case "TypeApply" `Quick test_typecheck_type_apply;
           test_case "TypeAnnotation easy" `Quick
             test_typecheck_type_annotation_simple;
           test_case "TypeAnnotation" `Quick test_typecheck_type_annotation;
+        ] );
+      ( "test plug",
+        [
+          test_case "HoleFun 1" `Quick test_plug_fun1;
+          test_case "HoleFun 2" `Quick test_plug_fun2;
+          test_case "HoleType 1" `Quick test_plug_ty1;
+          test_case "HoleType 2" `Quick test_plug_ty2;
+          test_case "both HoleFun and HoleType" `Quick test_plug_mix;
+        ] );
+      ( "test stack and frame typechecking",
+        [
+          test_case "Stack Fun 1 good" `Quick test_stack_fun1_good;
+          test_case "Stack Fun 1 bad" `Quick test_stack_fun1_bad;
+          test_case "Stack Type 1 good" `Quick test_stack_poly1_good;
+          test_case "Stack Type 1 bad" `Quick test_stack_poly1_bad;
+          test_case "Stack Fun 2 good" `Quick test_stack_fun2_good;
+          test_case "Stack Fun 2 bad" `Quick test_stack_fun2_bad;
+          test_case "Stack Poly 2 good" `Quick test_stack_poly2_good;
+          test_case "Stack Both" `Quick test_stack_both;
         ] );
     ]

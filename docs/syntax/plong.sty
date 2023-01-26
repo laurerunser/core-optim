@@ -47,6 +47,8 @@
            {#1 \: #2}
 \newcommand{\ttyapp}[2]%
            {#1 \: [ #2 ]}
+\newcommand{\ttysub}[2]%
+           {#1 \mapsto #2}
 \newcommand{\tlet}[3]%
            {\textbf{let } #1 = #2 \textbf{ in } #3}
 
@@ -66,3 +68,13 @@
 \newcommand{\aRule}[3]%
            {\inferrule [#3] {#1} {#2}}
            % #3 is the name of the rule
+
+\newcommand{\aFrame}{F}
+\newcommand{\aFunFrame}{\square \: {\aTerm[1]}}
+\newcommand{\aPolyFrame}{\square \: {\aType[1]}}
+\newcommand{\aStack}{s}
+\newcommand{\emptyStack}{\varepsilon}
+\newcommand{\nonEmptyStack}[2]%
+          {#1 : #2}
+\newcommand{\frameJudge}[4]%
+          {#1 \, \vert \, #2 : #3 \vdash #4}
