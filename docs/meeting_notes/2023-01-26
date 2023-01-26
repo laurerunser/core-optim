@@ -1,0 +1,96 @@
+# 26 Janvier 2023 - 13h30
+
+avec Pierre-Evariste Dagand
+
+## Informations
+
+On a vu Michele Pagani, il nous a félicitées sur notre travail.
+Pour le rapport de mi-parcours, on a assez de matière, mais ce serait
+bien de pouvoir ajouter une optimisation sur les `let` si possible.
+
+On revoit Michele Pagani soit après le rendu du rapport, soit avant si on veut
+le faire relire.
+
+## Questions
+
+1. why are we doing the beta-reduction INSIDE of the fun ?
+   In OCaml, lazy evaluation and it doesn't go down inside
+   -> see ## Beta-reduction
+
+2. should we use polymorphic booleans? We added basic "flat" booleans for
+   simplicity but it could be a good idea?
+   System F booleans are `ForallX. X -> X -> X` which has 2 normal forms (`Forall xy. x` and `Forall xy. y`)
+   that correspond to `true` and `false`
+   -> Yes, but no. Simplicity is good!
+
+## Code review
+
+- rebase `trucs-a-trou` to squash `Add stack and frame`
+  and the 2 commits that fix the tests just above it.
+
+- in `bool`, rename `full_atom` -> `base` (and `Atom` -> `Base`)
+  for clarity
+
+## Beta-reduction
+
+- call it `simplify` instead of `beta-reduce` because we're doing symbolic manipulations on a term
+  to make it more optimized, not beta-reduction to compute a value (it becomes confusing for people
+  who know what they're talking about)
+
+- not tail-rec => use the evaluation contexts (see below)
+
+- instead of pushing substitutions all the time, maybe we should keep them
+  in a substitution instead and do them all at the same time at the end
+  (so that we only go down the term once) -> use a `Map` (called `p` in the code below)
+  - for variables, do the substitution when you find the `Atom` in the match
+  - for type variables ??
+
+Function signature:
+`simplify (t: term) (acc: stack) (p: env) = term`
+
+The invariant will be `acc[p(t)] = simplify t acc p`
+ie "plugging the term `t` in which you applied the substitution `p` in the evaluation context `acc`
+returns the same term as `simplify t acc p`"
+
+- `E` is the usual notation in maths for the evaluation context (call it `acc` in the code)
+- `p` is the substitution (use the letter `rho` in LaTeX)
+  - in the code, it should be divided into `p_var` and `p_ty` to keep variables and type variables
+    in distinct environments
+
+```ocaml
+match t, E with
+(* plug the base values *)
+| Bool b, HoleIf(e1, e2)::E' -> if b then plug E' e1 else plug E' e2
+| Bool _ as b, E -> plug E b
+| Var x, E -> plug E p(x)
+
+(* abstractions when we can simplify *)
+| Fun(x, ty, body), HoleFun(b) :: E' -> simplify t E' (p + binding x -> b)
+| TypeAbstraction(ty, t), HoleTy(X)::E' -> simplify t E' (p + binding ty -> E)
+
+(* abstractions when we can't simplify, RENAME the bound var to avoid problems *)
+| Fun(x, ty, body), E -> plug E Fun(xFRAIS, ty, simplify body [] (p + binding x -> xFRAIS))
+| TypeAbstraction(ty, t), E -> plug E TypeAbstraction(tyFRAIS, simplify t [] (p + binding ty -> tyFRAIS))
+
+(* applications: add a new frame to the context *)
+| FunApply (f, arg), E -> simplify f (HoleFun(arg)::E) p
+| TypeApply(t, ty), E -> simplify f (HoleType(ty)::E) p
+
+| IfThenElse(t1, t2, t3), E ->
+   let t2' = simplify t2 [] p in
+   let t3' = simplify t3 [] p in
+   simplify t1 (HoleIf(t2', t3')) p
+
+| Let(x, t1, t2), E ->
+   let t1' = simplify t1 [] p in
+   let t2' = simplify t2 [] (p + binding x -> xFRAIS)
+   plug Let(xFRAIS, t1', t2') E
+
+(* just throw the annotation to the trash *)
+| TypeAnnotation(t, ty), E -> simplify t E p
+```
+
+- make tests with reductions in various places
+- identify the invariants of the function
+  what do we need to prove to prove the function (think in term of fv and bv of t in `acc[p(t)] = simplify t acc p`)
+  -> we'll do the formal proof next time!
