@@ -362,3 +362,193 @@ let test_free_var_type_annotation () =
     ^ fv ty
   in
   test_free_vars [ a; d; e ] t
+
+(*****************************************************************************)
+(* substitution *)
+let test_substitution expected var atom term =
+  let check_term = Alcotest.testable pp_term equal_term in
+  Alcotest.(check check_term)
+    (Format.asprintf "Term: %a\nSubstitution: %a\\%a" pp_term term pp var
+       pp_base atom)
+    expected
+    (substitution var atom term)
+
+let test_substitution_bool () =
+  let t = Base (Bool true) in
+  test_substitution t x (Bool false) t
+
+let test_substitution_var1 () =
+  let t = Base (Var x) in
+  let expected = Base (Bool false) in
+  test_substitution expected x (Bool false) t
+
+let test_substitution_var2 () =
+  let t = Base (Var x) in
+  test_substitution t y (Bool false) t
+
+let test_substitution_fun1 () =
+  let t = fn x (TyFreeVar tx) (fun _ -> Base (Var y)) in
+  let expected = fn x (TyFreeVar tx) (fun _ -> Base (Bool true)) in
+  test_substitution expected y (Bool true) t
+
+let test_substitution_fun2 () =
+  let t = fn x (TyFreeVar tx) (fun x -> Base x) in
+  test_substitution t x (Bool true) t
+
+let test_substitution_funapply_bool1 () =
+  let t = Base (Var x) $ Bool true in
+  test_substitution t y (Var z) t
+
+let test_substitution_funapply_bool2 () =
+  let t = Base (Var x) $ Bool true in
+  let expected = Base (Var z) $ Bool true in
+  test_substitution expected x (Var z) t
+
+let test_substitution_funapply_var1 () =
+  let t = Base (Var x) $ Var y in
+  test_substitution t z (Bool true) t
+
+let test_substitution_funapply_var2 () =
+  let t = Base (Var x) $ Var y in
+  let expected = Base (Var x) $ Bool true in
+  test_substitution expected y (Bool true) t
+
+let test_substitution_funapply_var3 () =
+  let t = Base (Var x) $ Var y in
+  let expected = Base (Bool true) $ Var y in
+  test_substitution expected x (Bool true) t
+
+let test_substitution_funapply_var4 () =
+  let t = Base (Var x) $ Var x in
+  let expected = Base (Bool true) $ Bool true in
+  test_substitution expected x (Bool true) t
+
+let test_substitution_let1 () =
+  let t = letin x (Base (Var x)) (fun _ -> Base (Var x)) in
+  let expected = letin x (Base (Var z)) (fun _ -> Base (Var x)) in
+  test_substitution expected x (Var z) t
+
+let test_substitution_let2 () =
+  let t = letin x (Base (Var y)) (fun _ -> Base (Var y)) in
+  let expected = letin x (Base (Var z)) (fun _ -> Base (Var z)) in
+  test_substitution expected y (Var z) t
+
+let test_substitution_typeabstraction () =
+  let t = ty_fn tx (fun _ -> Base (Var x)) in
+  let expected = ty_fn tx (fun _ -> Base (Var y)) in
+  test_substitution expected x (Var y) t
+
+let test_substitution_typeapply () =
+  let t = Base (Var x) $! TyFreeVar tx in
+  let expected = Base (Var y) $! TyFreeVar tx in
+  test_substitution expected x (Var y) t
+
+let test_substitution_typeannotation () =
+  let t = Base (Var x) ^ TyFreeVar tx in
+  let expected = Base (Var y) ^ TyFreeVar tx in
+  test_substitution expected x (Var y) t
+
+(*****************************************************************************)
+(* beta_reduce *)
+let test_beta_reduce expected term =
+  let check_term = Alcotest.testable pp_term equal_term in
+  Alcotest.(check check_term)
+    (Format.asprintf "Term: %a" pp_term term)
+    expected (beta_reduce term)
+
+let test_beta_reduce_atom_var () =
+  let t = Base (Var x) in
+  test_beta_reduce t t
+
+let test_beta_reduce_atom_bool () =
+  let t = Base (Bool true) in
+  test_beta_reduce t t
+
+let test_beta_reduce_fun1 () =
+  let t = fn x (TyFreeVar tx) (fun _ -> Base (Bool true)) in
+  test_beta_reduce t t
+
+let test_beta_reduce_fun2 () =
+  let t =
+    fn x (TyFreeVar tx) (fun _ ->
+        fn y (TyFreeVar ty) (fun y -> Base y) $ Bool true)
+  in
+  let expected = fn x (TyFreeVar tx) (fun _ -> Base (Bool true)) in
+  test_beta_reduce expected t
+
+let test_beta_reduce_funapply1 () =
+  let t = fn x (TyFreeVar tx) (fun x -> Base x) $ Var y in
+  let expected = Base (Var y) in
+  test_beta_reduce expected t
+
+let test_beta_reduce_funapply2 () =
+  let t = fn x (TyFreeVar tx) (fun x -> Base x) $ Bool true in
+  let expected = Base (Bool true) in
+  test_beta_reduce expected t
+
+let test_beta_reduce_funapply3 () =
+  let t =
+    fn x (TyFreeVar tx) (fun _ -> fn y (TyFreeVar ts) (fun y -> Base y) $ Var y)
+    $ Bool true
+  in
+  let expected = Base (Var y) in
+  test_beta_reduce expected t
+
+let test_beta_reduce_let1 () =
+  let t = letin x (Base (Var x)) (fun x -> Base x) in
+  test_beta_reduce t t
+
+let test_beta_reduce_let2 () =
+  let t =
+    letin x (fn y (TyFreeVar ts) (fun y -> Base y) $ Var y) (fun x -> Base x)
+  in
+  let expected = letin x (Base (Var y)) (fun x -> Base x) in
+  test_beta_reduce expected t
+
+let test_beta_reduce_let3 () =
+  let t =
+    letin x
+      (fn y (TyFreeVar ts) (fun y -> Base y) $ Var y)
+      (fun _ -> fn z (TyFreeVar tt) (fun x -> Base x) $ Bool true)
+  in
+  let expected = letin x (Base (Var y)) (fun _ -> Base (Bool true)) in
+  test_beta_reduce expected t
+
+let test_beta_reduce_typeabstract () =
+  let t =
+    ty_fn tx (fun _ ->
+        letin x
+          (fn y (TyFreeVar ts) (fun y -> Base y) $ Var y)
+          (fun _ -> fn z (TyFreeVar tt) (fun x -> Base x) $ Bool true))
+  in
+  let expected =
+    ty_fn tx (fun _ -> letin x (Base (Var y)) (fun _ -> Base (Bool true)))
+  in
+  test_beta_reduce expected t
+
+let test_beta_reduce_typeapply () =
+  let t =
+    ty_fn tx (fun _ ->
+        letin x
+          (fn y (TyFreeVar ts) (fun y -> Base y) $ Var y)
+          (fun _ -> fn z (TyFreeVar tt) (fun x -> Base x) $ Bool true))
+    $! TyFreeVar tt
+  in
+  let expected =
+    TypeApply
+      ( ty_fn tx (fun _ -> letin x (Base (Var y)) (fun _ -> Base (Bool true))),
+        TyFreeVar tt )
+  in
+  test_beta_reduce expected t
+
+let test_beta_reduce_annotation () =
+  let t =
+    letin x
+      (fn y (TyFreeVar ts) (fun y -> Base y) $ Var y)
+      (fun _ -> fn z (TyFreeVar tt) (fun x -> Base x) $ Bool true)
+    ^ TyFreeVar tx
+  in
+  let expected =
+    letin x (Base (Var y)) (fun _ -> Base (Bool true)) ^ TyFreeVar tx
+  in
+  test_beta_reduce expected t

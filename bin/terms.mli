@@ -25,6 +25,8 @@ module VarSet : Set.S with type elt = Atom.t
 
 val free_vars : term -> VarSet.t
 (** [free_vars t] returns the free variables of t *)
+val substitution : Atom.t -> base -> term -> term
+val beta_reduce : term -> term
 
 val pp_term : Format.formatter -> term -> unit
 val pp_base : Format.formatter -> base -> unit

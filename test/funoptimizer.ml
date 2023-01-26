@@ -179,4 +179,45 @@ let () =
           test_case "Stack If good" `Quick test_stack_if_good;
           test_case "Stack If bad" `Quick test_stack_if_bad;
         ] );
+      ( "test substitution",
+        [
+          test_case "Atom bool" `Quick test_substitution_bool;
+          test_case "Atom var 1" `Quick test_substitution_var1;
+          test_case "Atom var 2" `Quick test_substitution_var2;
+          test_case "Fun diff var" `Quick test_substitution_fun1;
+          test_case "Fun equal var" `Quick test_substitution_fun2;
+          test_case "FunApply with bool 1" `Quick
+            test_substitution_funapply_bool1;
+          test_case "FunApply with bool 2" `Quick
+            test_substitution_funapply_bool2;
+          test_case "FunApply with var 1" `Quick test_substitution_funapply_var1;
+          test_case "FunApply with var 2" `Quick test_substitution_funapply_var2;
+          test_case "FunApply with var 3" `Quick test_substitution_funapply_var3;
+          test_case "FunApply with var 4" `Quick test_substitution_funapply_var4;
+          test_case "Let equal var" `Quick test_substitution_let1;
+          test_case "Let diff var" `Quick test_substitution_let2;
+          test_case "TypeAbstract" `Quick test_substitution_typeabstraction;
+          test_case "TypeApply" `Quick test_substitution_typeapply;
+          test_case "TypeAnnotation" `Quick test_substitution_typeannotation;
+        ] );
+      ( "test beta reduction",
+        [
+          test_case "Atom variable" `Quick test_beta_reduce_atom_var;
+          test_case "Atom bool" `Quick test_beta_reduce_atom_bool;
+          test_case "Fun simple" `Quick test_beta_reduce_fun1;
+          test_case "Fun with apply" `Quick test_beta_reduce_fun2;
+          test_case "FunApply simple var" `Quick test_beta_reduce_funapply1;
+          test_case "FunApply simple bool" `Quick test_beta_reduce_funapply2;
+          test_case "FunApply with apply" `Quick test_beta_reduce_funapply3;
+          test_case "Let simple" `Quick test_beta_reduce_let1;
+          test_case "Let simple with in def" `Quick test_beta_reduce_let2;
+          test_case "Let simple with in def and exp" `Quick
+            test_beta_reduce_let3;
+          test_case "TypeAbstract with apply in letin" `Quick
+            test_beta_reduce_typeabstract;
+          test_case "TypeApply with apply in letin" `Quick
+            test_beta_reduce_typeapply;
+          test_case "TypeAnnotation with apply in letin" `Quick
+            test_beta_reduce_annotation;
+        ] );
     ]
