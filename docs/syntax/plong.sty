@@ -14,11 +14,19 @@
              {\ifthenelse{#1 = 1}{y}%
                {\ifthenelse{#1 = 2}{z}%
                  {x_{\the\numexpr #1 - 3 \relax}}}}}
+\newcommand{\true}
+           {\textbf{true}}
+
+\newcommand{\false}
+           {\textbf{false}}
 
 \newcommand{\aType}[1][0]%
            {\ifthenelse{#1 = 0}{T}%
              {\ifthenelse{#1 = 1}{S}%
                {T_{\the\numexpr #1 - 2 \relax}}}}
+\newcommand{\tyBool}
+           {\textbf{bool}}
+
 \newcommand{\aDomType}{S}
 \newcommand{\aCodType}{T}
 
@@ -52,6 +60,9 @@
 \newcommand{\tlet}[3]%
            {\textbf{let } #1 = #2 \textbf{ in } #3}
 
+\newcommand{\ite}[3]%
+           {\textbf{if } #1 \textbf{ then } #2 \textbf{ else } #3}
+
 \newcommand{\tforall}[2]%
            {\forall #1. #2}
 \newcommand{\tprod}{\mathrel{\times}}
@@ -72,6 +83,7 @@
 \newcommand{\aFrame}{F}
 \newcommand{\aFunFrame}{\square \: {\aTerm[1]}}
 \newcommand{\aPolyFrame}{\square \: {\aType[1]}}
+\newcommand{\aIteFrame}{\textbf{if } \square \: \textbf{then } t \textbf{ else } u}
 \newcommand{\aStack}{s}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%

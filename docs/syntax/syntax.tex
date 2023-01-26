@@ -10,6 +10,8 @@ $
 \begin{array}{ccll}
 \aTerm, \aTerm[1] & ::= & & \\
 & | & \aVar & \text{(variable)} \\
+& | & \true & \text{(true)} \\
+& | & \false & \text{(false)} \\
 & | & \tfun \aVar \aType \aTerm & \text{(abstraction)} \\
 & | & \tapp \aTerm {\aTerm[1]} & \text{(function application)} \\
 & | & \tlet \aVar \aTerm {\aTerm[1]} & \text{(let binding)} \\
@@ -24,6 +26,7 @@ $
 \begin{array}{ccll}
 \aType, \aType[1] & ::= & & \\
 & | & \aTypeVar & \text{(type variable)} \\
+& | & \tyBool & \text{(bool type)} \\
 & | & \aDomType \to \aCodType & \text{(function type)} \\
 & | & \tforall \aTypeVar \aType & \text{(polymorphic type)} \\
 & | & \aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k} & \text{(tuples)}
@@ -35,7 +38,8 @@ $
 \begin{array}{ccll}
 \aFrame & ::= & \\
 & | & \aFunFrame & \text{(applied function)} \\
-& | & \aPolyFrame & \text{(instantiated polymorphism)}
+& | & \aPolyFrame & \text{(instantiated polymorphism)} \\
+& | & \aIteFrame & \text{(if then else)}
 \end{array}
 $
 \newline
