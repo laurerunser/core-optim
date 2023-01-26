@@ -6,7 +6,7 @@
    is represented by the stack `[HoleFun u1, HoleFun u2, HoleFun u3]` *)
 
 type frame =
-  | HoleFun of Terms.full_atom
+  | HoleFun of Terms.base
   | HoleType of Types.ty
   | HoleIf of Terms.term * Terms.term
 

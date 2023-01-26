@@ -36,13 +36,13 @@ let test_typecheck_var_in_map () =
   let toto = fresh "toto" in
   let ty = TyFreeVar ts in
   let ctxt = VarMap.singleton toto ty in
-  test_typecheck ty ctxt (Atom (Var toto))
+  test_typecheck ty ctxt (Base (Var toto))
 
 (* This test fails (as it should) because the variable `toto` is
    not in the VarMap *)
 let test_typecheck_fail_not_in_map () =
   let toto = fresh "toto" in
-  let term = Atom (Var toto) in
+  let term = Base (Var toto) in
   test_fail_typecheck
     (Format.sprintf "The variable %s was not in the type map\n"
        (Atom.pretty_print_atom toto))
@@ -54,7 +54,7 @@ let test_typecheck_fail_not_in_map () =
 (* fun x -> x where `x` is of type `S` *)
 let test_typecheck_fun_id () =
   let tv = TyFreeVar ts in
-  let f = fn x tv (fun x -> Atom x) in
+  let f = fn x tv (fun x -> Base x) in
   let ty = tv => tv in
   test_typecheck ty VarMap.empty f
 
@@ -63,14 +63,14 @@ let test_typecheck_fun_id2 () =
     poly_ty tx (fun x -> x => tuple [ TyFreeVar ts; x; x; TyFreeVar tt ])
     => TyFreeVar tt
   in
-  let f = fn x tv (fun x -> Atom x) in
+  let f = fn x tv (fun x -> Base x) in
   let ctxt = VarMap.singleton a tv in
   test_typecheck tv ctxt (f $ Var a)
 
 let test_typecheck_fun_simple () =
   let tv = TyFreeVar ts in
   let tu = TyFreeVar tt in
-  let f = fn x tv (fun _ -> Atom (Var y)) in
+  let f = fn x tv (fun _ -> Base (Var y)) in
   let ty = tv => tu in
   let ctxt = VarMap.singleton y tu in
   test_typecheck ty ctxt f
@@ -79,7 +79,7 @@ let test_typecheck_fun_simple () =
 (* FunApply *)
 let test_typecheck_fun_apply () =
   let tv = TyFreeVar ts in
-  let f = fn x tv (fun x -> Atom x) in
+  let f = fn x tv (fun x -> Base x) in
   let ctxt = VarMap.singleton a tv in
   test_typecheck tv ctxt (f $ Var a)
 
@@ -88,19 +88,19 @@ let test_typecheck_fun_apply () =
 let test_typecheck_fun_apply2 () =
   let tv = TyFreeVar ts in
   let tvx = TyFreeVar tx in
-  let f = fn x tv (fun x -> Atom x) in
+  let f = fn x tv (fun x -> Base x) in
   let ctxt = VarMap.singleton a tvx in
   test_fail_typecheck
     (Format.sprintf
        "Type error!\nTerm : %s\nExpected type: %s\nReceived type: %s\n"
-       (Terms.to_string (Atom (Var a)))
+       (Terms.to_string (Base (Var a)))
        (Types.to_string tvx) (Types.to_string tv))
     ctxt (f $ Var a)
 
 let test_typecheck_fun_apply_simple () =
   let tv = TyFreeVar ts in
   let tu = TyFreeVar tt in
-  let f = fn x tv (fun _ -> Atom (Var y)) in
+  let f = fn x tv (fun _ -> Base (Var y)) in
   let ctxt = VarMap.add y tu (VarMap.singleton a tv) in
   test_typecheck tu ctxt (f $ Var a)
 
@@ -110,7 +110,7 @@ let test_typecheck_fun_apply_simple () =
 let test_typecheck_let_simple () =
   let tv = TyFreeVar ts in
   let tu = TyFreeVar tt in
-  let l = letin x (Atom (Var a)) (fun _ -> Atom (Var y)) in
+  let l = letin x (Base (Var a)) (fun _ -> Base (Var y)) in
   let ctxt = VarMap.add y tv (VarMap.singleton a tu) in
   test_typecheck tv ctxt l
 
@@ -119,7 +119,7 @@ let test_typecheck_let () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
   let ty_expected = ty2 => ty in
-  let l = letin x (Atom (Var a)) (fun z -> fn b ty2 (fun _ -> Atom z)) in
+  let l = letin x (Base (Var a)) (fun z -> fn b ty2 (fun _ -> Base z)) in
   let ctxt = VarMap.singleton a ty in
   test_typecheck ty_expected ctxt l
 
@@ -127,14 +127,14 @@ let test_typecheck_let () =
 (* IfThenElse *)
 let test_typecheck_if1 () =
   let ty2 = TyFreeVar ts in
-  let t = IfThenElse (Atom (Bool true), Atom (Var x), Atom (Var y)) in
+  let t = IfThenElse (Base (Bool true), Base (Var x), Base (Var y)) in
   let ctxt = VarMap.singleton x ty2 in
   let ctxt = VarMap.add y ty2 ctxt in
   test_typecheck ty2 ctxt t
 
 let test_typecheck_if2 () =
   let ty2 = TyFreeVar ts in
-  let t = IfThenElse (Atom (Bool false), Atom (Var x), Atom (Var y)) in
+  let t = IfThenElse (Base (Bool false), Base (Var x), Base (Var y)) in
   let ctxt = VarMap.singleton x ty2 in
   let ctxt = VarMap.add y ty2 ctxt in
   test_typecheck ty2 ctxt t
@@ -143,7 +143,7 @@ let test_typecheck_if_bad1 () =
   (* fails because the condition in the If is NOT a boolean *)
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
-  let t = IfThenElse (Atom (Var a), Atom (Var x), Atom (Var y)) in
+  let t = IfThenElse (Base (Var a), Base (Var x), Base (Var y)) in
   let ctxt = VarMap.singleton x ty2 in
   let ctxt = VarMap.add y ty2 ctxt in
   let ctxt = VarMap.add a ty ctxt in
@@ -158,7 +158,7 @@ let test_typecheck_if_bad2 () =
   (* fails because both branches do NOT have the same type *)
   let ty = TyBool in
   let ty2 = TyFreeVar ts in
-  let t = IfThenElse (Atom (Bool false), Atom (Var x), Atom (Var y)) in
+  let t = IfThenElse (Base (Bool false), Base (Var x), Base (Var y)) in
   let ctxt = VarMap.singleton x ty in
   let ctxt = VarMap.add y ty2 ctxt in
   let msg =
@@ -175,14 +175,14 @@ let test_typecheck_if_bad2 () =
 (* TypeAbstraction *)
 let test_typecheck_type_abstract_simple () =
   let tv = TyFreeVar tt in
-  let t = ty_fn tx (fun _ -> Atom (Var a)) in
+  let t = ty_fn tx (fun _ -> Base (Var a)) in
   let ty = poly_ty tx (fun _ -> tv) in
   let ctxt = VarMap.singleton a tv in
   test_typecheck ty ctxt t
 
 (* fun [X] = fun (a:X) -> a *)
 let test_typecheck_type_abstract () =
-  let poly_id = ty_fn tx (fun t -> fn x t (fun z -> Atom z)) in
+  let poly_id = ty_fn tx (fun t -> fn x t (fun z -> Base z)) in
   let ty = poly_ty tt (fun x -> x => x) in
   test_typecheck ty VarMap.empty poly_id
 
@@ -191,7 +191,7 @@ let test_typecheck_type_abstract () =
 let test_typecheck_type_apply_simple () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
-  let ty_fun = ty_fn tx (fun _ -> Atom (Var a)) in
+  let ty_fun = ty_fn tx (fun _ -> Base (Var a)) in
   let term = ty_fun $! ty2 in
   let ctxt = VarMap.singleton a ty in
   test_typecheck ty2 ctxt term
@@ -200,7 +200,7 @@ let test_typecheck_type_apply_simple () =
 let test_typecheck_type_apply () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
-  let ty_fun = ty_fn tx (fun x -> Atom (Var a) ^ x) in
+  let ty_fun = ty_fn tx (fun x -> Base (Var a) ^ x) in
   let term = ty_fun $! ty2 in
   let ctxt = VarMap.singleton a ty in
   test_typecheck ty2 ctxt term
@@ -210,7 +210,7 @@ let test_typecheck_type_apply () =
 (* (x : X) *)
 let test_typecheck_type_annotation_simple () =
   let ty = TyFreeVar tx in
-  let t = Atom (Var x) ^ ty in
+  let t = Base (Var x) ^ ty in
   let ctxt = VarMap.singleton x ty in
   test_typecheck ty ctxt t
 
@@ -220,7 +220,7 @@ let test_typecheck_type_annotation () =
   let ty2 = TyFreeVar ts in
   let ty_expected = ty2 => ty in
   let ctxt = VarMap.singleton a ty in
-  let l = letin x (Atom (Var a) ^ ty) (fun z -> fn b ty2 (fun _ -> Atom z)) in
+  let l = letin x (Base (Var a) ^ ty) (fun z -> fn b ty2 (fun _ -> Base z)) in
   test_typecheck ty_expected ctxt l
 
 (**********************************************************************)
@@ -314,7 +314,7 @@ let test_stack_both () =
 
 let test_stack_if_good () =
   let ty = TyFreeVar tx in
-  let stack = [ HoleIf (Atom (Var x), Atom (Var y)) ] in
+  let stack = [ HoleIf (Base (Var x), Base (Var y)) ] in
   let ctxt = VarMap.singleton x ty in
   let ctxt = VarMap.add y ty ctxt in
   test_typechecking_stack ty stack TyBool ctxt
@@ -322,7 +322,7 @@ let test_stack_if_good () =
 let test_stack_if_bad () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
-  let stack = [ HoleIf (Atom (Var x), Atom (Var y)) ] in
+  let stack = [ HoleIf (Base (Var x), Base (Var y)) ] in
   let ctxt = VarMap.singleton x ty in
   let ctxt = VarMap.add y ty2 ctxt in
   test_fail_typecheck_stack
