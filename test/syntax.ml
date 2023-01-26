@@ -5,6 +5,7 @@ open Libfun.Types
 let fn v t f = Fun (v, t, f (Var v))
 let ( $ ) f s = FunApply (f, s)
 let letin v t f = Let (v, t, f (Var v))
+let ite t1 t2 t3 = IfThenElse (t1, t2, t3)
 let ty_fn v f = TypeAbstraction (v, f (TyFreeVar v))
 let ( $! ) t ty = TypeApply (t, ty)
 let ( ^ ) t ty = TypeAnnotation (t, ty)

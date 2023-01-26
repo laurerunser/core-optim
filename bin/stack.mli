@@ -22,3 +22,20 @@ val plug : stack -> Terms.term -> Terms.term
    and propagates the results to the rest of the stack.
    It returns the new term.
    For example, with `s = [HoleFun u1, HoleFun u2]`, it returns the term `((t u1) u2)` *)
+
+module VarMap : sig
+  include Map.S with type key = Atom.t and type 'a t = 'a Map.Make(Atom).t
+end
+
+val simplify :
+  Terms.term -> stack -> Terms.base VarMap.t -> Types.ty VarMap.t -> Terms.term
+(* [simplify t acc p_var p_ty] simplifies the term [t] with the evaluation context [acc].
+   It also appplies the substitutions [p_var] on variables and [p_ty] on type variables.
+   The simplifications:
+   - beta-reduction :
+        - `(fun x.t) a` becomes `t[x\a]`
+        - `(fun [X].t) Y` becomes `t[X\Y]`
+    - if branches simplification :
+        - `if true then a else b` becomes `a`
+        - `if false then a else b` becomes `b`
+*)
