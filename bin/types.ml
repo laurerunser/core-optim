@@ -86,3 +86,14 @@ let to_string t =
   let b = Buffer.create 16 in
   ToBuffer.pretty 0.8 80 b (pretty_print_type t);
   Buffer.contents b
+
+module VarMap = Map.Make (Atom)
+
+let rec sub_ty ty map =
+  match ty with
+  | TyBool -> TyBool
+  | TyFreeVar x -> ( try VarMap.find x map with Not_found -> TyFreeVar x)
+  | TyBoundVar _ -> ty
+  | TyFun (ty1, ty2) -> TyFun (sub_ty ty1 map, sub_ty ty2 map)
+  | PolymorphicType (s, ty) -> PolymorphicType (s, sub_ty ty map)
+  | TyTuple l -> TyTuple (List.map (fun x -> sub_ty x map) l)

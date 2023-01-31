@@ -94,7 +94,7 @@ let test_plug_mix () =
 (*****************************************************************************)
 (* Simplification *)
 let test_simplification expected term =
-  let check_term = Alcotest.testable pp_term equal_term in
+  let check_term = Alcotest.testable pp_term alpha_eq in
   Alcotest.(check check_term)
     (Format.asprintf "Term: %a" pp_term term)
     expected

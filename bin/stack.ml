@@ -51,19 +51,6 @@ let to_string s =
 
 module VarMap = Map.Make (Atom)
 
-let sub_var x map =
-  let x' = try VarMap.find x map with Not_found -> Var x in
-  Base x'
-
-let rec sub_ty ty map =
-  match ty with
-  | TyBool -> TyBool
-  | TyFreeVar x -> ( try VarMap.find x map with Not_found -> TyFreeVar x)
-  | TyBoundVar _ as ty -> ty
-  | TyFun (ty1, ty2) -> TyFun (sub_ty ty1 map, sub_ty ty2 map)
-  | PolymorphicType (s, ty) -> PolymorphicType (s, sub_ty ty map)
-  | TyTuple l -> TyTuple (List.map (fun x -> sub_ty x map) l)
-
 let rec simplify (t : term) (acc : stack) (p_var : base VarMap.t)
     (p_ty : ty VarMap.t) =
   match (t, acc) with
