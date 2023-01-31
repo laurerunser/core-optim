@@ -29,3 +29,8 @@ val free_vars : term -> VarSet.t
 val pp_term : Format.formatter -> term -> unit
 val pp_base : Format.formatter -> base -> unit
 val equal_term : term -> term -> bool
+
+module VarMap = Types.VarMap
+
+val sub_var : Atom.t -> base VarMap.t -> term
+val alpha_eq : term -> term -> bool

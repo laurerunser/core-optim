@@ -8,15 +8,15 @@ type term =
   (* base value *)
   | Base of base
   (* abstraction: Fun(x,T,t) is fun (x:T) = t*)
-  | Fun of (Atom.t[@equal fun _ _ -> true]) * ty * term
+  | Fun of Atom.t * ty * term
   (* function application: FunApply(t,u) is t u *)
   | FunApply of term * base
   (* let binding: Let(x,t,u) is let x = t in u *)
-  | Let of (Atom.t[@equal fun _ _ -> true]) * term * term
+  | Let of Atom.t * term * term
   (* condition: IfThenElse(e1, e2, e3) is If e1 Then e2 Else e3 *)
   | IfThenElse of term * term * term
   (* type abstraction: TypeAbstraction(X,t) is fun[X]=t *)
-  | TypeAbstraction of (Atom.t[@equal fun _ _ -> true]) * term
+  | TypeAbstraction of Atom.t * term
   (* type application: TypeApply(t,T) is t[T] *)
   | TypeApply of term * ty
   (* type annotation: TypeAnnotation(t,T) is (t:T) *)
@@ -115,3 +115,36 @@ let rec free_vars t =
       union (free_vars e1) (union (free_vars e2) (free_vars e3))
   | TypeAbstraction (_, t) | TypeApply (t, _) | TypeAnnotation (t, _) ->
       free_vars t
+
+module VarMap = Types.VarMap
+
+let sub_var x map =
+  let x' = try VarMap.find x map with Not_found -> Var x in
+  Base x'
+
+let alpha_eq t1 t2 =
+  let rec alpha_eq_aux p_var p_ty t1 t2 =
+    let alpha_eq_same = alpha_eq_aux p_var p_ty in
+    match (t1, t2) with
+    | Base (Bool x), Base (Bool y) -> x = y
+    | Base (Var x), Base (Var y) -> sub_var x p_var = Base (Var y)
+    | Fun (x1, ty1, t1), Fun (x2, ty2, t2) when sub_ty ty1 p_ty = ty2 ->
+        let p_var = VarMap.add x1 (Var x2) p_var in
+        alpha_eq_aux p_var p_ty t1 t2
+    | FunApply (t1, b1), FunApply (t2, b2) ->
+        alpha_eq_same t1 t2 && alpha_eq_same (Base b1) (Base b2)
+    | Let (x1, t1, u1), Let (x2, t2, u2) when alpha_eq_same t1 t2 ->
+        let p_var = VarMap.add x1 (Var x2) p_var in
+        alpha_eq_aux p_var p_ty u1 u2
+    | IfThenElse (i1, t1, e1), IfThenElse (i2, t2, e2) ->
+        alpha_eq_same i1 i2 && alpha_eq_same t1 t2 && alpha_eq_same e1 e2
+    | TypeAbstraction (ty1, t1), TypeAbstraction (ty2, t2) ->
+        let p_ty = VarMap.add ty1 (TyFreeVar ty2) p_ty in
+        alpha_eq_aux p_var p_ty t1 t2
+    | TypeApply (t1, ty1), TypeApply (t2, ty2) ->
+        sub_ty ty1 p_ty = ty2 && alpha_eq_same t1 t2
+    | TypeAnnotation (t1, ty1), TypeAnnotation (t2, ty2) ->
+        sub_ty ty1 p_ty = ty2 && alpha_eq_same t1 t2
+    | _ -> false
+  in
+  alpha_eq_aux VarMap.empty VarMap.empty t1 t2
