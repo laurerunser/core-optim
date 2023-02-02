@@ -1,0 +1,109 @@
+# 02 février 2023 - 13h30
+
+avec Pierre-Evariste Dagand
+
+## Code review
+
+- somethings need to be renamed in the `bool` branch for clarity -> see discussion on Gitlab
+
+- in the `.mli` files, don't generate module signatures automatically
+  -> use `module VarMap = ... with type t = base`
+  This will make prettier signatures, instead of copy/pasting all the functions
+
+- for `alpha-equivalence` -> use 2 maps (one for variables, one for type variables) instead of 4
+
+## Let's make simplifications better
+
+Our current problem: sometimes we simplify things before putting them on the stack, sometimes we do it after
+Why it's a problem: we want something easy to understand + we don't want to do work that won't get used
+-> for example, with the `if` branches: we are simplifying both, then putting them on the stack
+but if we then simplify the `if`, only 1 of the 2 simplifications will be used, since the other
+branch with be discarded
+What we want to do: standardize it + add invariants so that we can write a proof about it later
+
+Solution: the terms must contain their closures
+In the end, `simplify` will produce a closed term
+
+### A new type so that terms contain their closures
+
+```ocaml
+type 'a scoped =
+    {
+      (* the term *)
+      scope: 'a;
+
+      (* the variables that can appear in the next map
+         ie the bound variables we saw earlier *)
+      vars_terms : VarSet.t ;
+
+      (* the variables that should be substituted in the term *)
+      p_term: base VarMap.t;
+
+      (* same thing but for type variables *)
+      vars_ty : VarSet.t;
+      p_ty : ty VarMap.t;
+    }
+```
+
+Now we can write a function to check that scoped terms are well-formed:
+
+```ocaml
+let well_scoped (t: 'a scoped) (freevars_term : `a -> VarSet.t) (freevars_ty : `a -> VarSet.t) = bool
+```
+
+- `freevars_term` and `freevars_ty` are functions that return the free variables of the term inside of `t`.
+- `well_scoped` must:
+  - make sure that `vars_term` and `vars_ty` are disjoint
+  - check that `freevars_term t.scope` is included in `t.vars_term`
+  - check that `freevars_ty t.scope` is included in `t.vars_ty`
+
+And we need a function to push the substitutions inside of the terms (so that `plug` can still work correctly):
+
+```ocaml
+let discharge (t: well_scoped term) : term
+```
+
+Use `assert` statements to make sure that:
+
+- the term in `t` is closed in regards to the variables in `p_var`
+- the term in `t` is closed in regards to the type variables in `p_ty`
+  The term in `t` won't be closed in regards to `vars_term` and `vars_ty` because those are the bound variables
+  from the functions we are currently under
+
+### Now let's update `simplify`
+
+We need to answer 2 questions:
+
+- are the elements in the stack scoped?
+  - yes, and we will apply the substitutions at the last possible time, when using `plug`
+- is the output term scoped?
+  -> the result should be completely closed (because it is a well-typed program)
+  -> but the temp results will be `well_scoped` (and not completely closed)
+
+```ocaml
+(* takes a closed term, returns a closed term *)
+let rec simplify (t: term) =
+    simp0 {var_ty = empty; vars_terms = empty;
+            p_ty = empty; p_vars = empty;
+            scoped = t} []
+
+(* takes a scoped term, return a closed term *)
+and simp0 (t : term scoped) (s: stack) =
+    (* takes a scoped term, returns a scoped term *)
+    let rec go = match
+    | ... (* adapt what we've already done with the beta-reduction *)
+
+    in
+    let t' = go t acc in
+    (* verify that the term is closed before returning it *)
+    assert (FV_terms(t') included in t.vars_term);
+    assert (FV_ty(t') include in t.var_ty);
+    t'
+```
+
+### Updates to `stack`
+
+We need to change the definition in stack.
+The constructors should now contain `base scoped`, `ty scoped` and `term scoped` elements.
+
+We will need to update the typechecker and `plug` to match this new definition.

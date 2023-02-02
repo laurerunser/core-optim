@@ -49,3 +49,6 @@ Pagani:
 19/01/23 & 26/01/23
 - add booleans and IfThenElse to the syntax 
 - beta-reduction and simplifications
+
+02/02/23
+- modifications to beta-reduction and evaluation contexts to make them more coherent
