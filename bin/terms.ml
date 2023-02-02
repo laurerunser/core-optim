@@ -1,6 +1,12 @@
 open Types
 open PPrint
 
+type variable = Atom.t (* variable *) [@@deriving show, eq]
+
+(* a basic value: either a variable name or a boolean *)
+type base = Var of variable | Bool of bool [@@deriving show, eq]
+(* don't confuse this with Atom.t which is the module that defines variables names *)
+
 type term =
   (* variable *)
   | Base of base
@@ -20,11 +26,10 @@ type term =
   | TypeAnnotation of term * ty
 [@@deriving show, eq]
 
-and variable = Atom.t (* variable *) [@@deriving show, eq]
-
-(* a basic value: either a variable name or a boolean *)
-and base = Var of variable | Bool of bool [@@deriving show, eq]
-(* don't confuse this with Atom.t which is the module that defines variables names *)
+let print_base x =
+  match x with
+  | Bool b -> if b then string "true" else string "false"
+  | Var n -> string (Atom.pretty_print_atom n)
 
 let rec pretty_print t =
   match t with
@@ -89,11 +94,6 @@ and print_type_apply t ty =
 and print_type_annotation x t =
   let x_parens = get_term_with_parens x in
   group @@ parens (x_parens ^^ string ":" ^^ break 1 ^^ pretty_print_type t)
-
-and print_base x =
-  match x with
-  | Bool b -> if b then string "true" else string "false"
-  | Var n -> string (Atom.pretty_print_atom n)
 
 let to_string t =
   let b = Buffer.create 16 in

@@ -1,3 +1,6 @@
+type variable = Atom.t
+type base = Var of variable | Bool of bool
+
 type term =
   | Base of base
   | Fun of variable * Types.ty * term
@@ -7,9 +10,6 @@ type term =
   | TypeAbstraction of Types.tyvar * term
   | TypeApply of term * Types.ty
   | TypeAnnotation of term * Types.ty
-
-and variable = Atom.t
-and base = Var of variable | Bool of bool
 
 val pretty_print : term -> PPrint.document
 val get_term_with_parens : term -> PPrint.document

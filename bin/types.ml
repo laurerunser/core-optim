@@ -2,6 +2,8 @@ open PPrint
 
 exception Not_Polymorphic
 
+type tyvar = Atom.t (* type variable *) [@@deriving show, eq]
+
 type ty =
   (* boolean *)
   | TyBool
@@ -15,8 +17,6 @@ type ty =
   (* tuple: T_0 * ... * T_k *)
   | TyTuple of ty list
 [@@deriving show, eq]
-
-and tyvar = Atom.t (* type variable *) [@@deriving show, eq]
 
 (********** Type manipulation **********)
 

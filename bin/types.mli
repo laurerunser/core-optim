@@ -1,5 +1,7 @@
 exception Not_Polymorphic
 
+type tyvar = Atom.t
+
 type ty =
   | TyBool
   | TyFreeVar of tyvar
@@ -7,8 +9,6 @@ type ty =
   | TyFun of ty * ty
   | PolymorphicType of string * ty
   | TyTuple of ty list
-
-and tyvar = Atom.t
 
 val abstract_gen : tyvar -> ty -> int -> ty
 (** [abstract_gen x ty c] replaces the free variable
