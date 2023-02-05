@@ -97,7 +97,7 @@ let to_string t =
   ToBuffer.pretty 0.8 80 b (pretty_print t);
   Buffer.contents b
 
-module VarSet = Set.Make (Atom)
+module VarSet = Types.VarSet
 
 let rec free_vars t =
   let open VarSet in
@@ -116,18 +116,31 @@ let rec free_vars t =
   | TypeAbstraction (_, t) | TypeApply (t, _) | TypeAnnotation (t, _) ->
       free_vars t
 
+let rec free_ty_vars_of_term t =
+  let open VarSet in
+  match t with
+  | Base _ -> empty
+  | FunApply (a, _) -> free_ty_vars_of_term a
+  | Let (_, a, b) -> union (free_ty_vars_of_term a) (free_ty_vars_of_term b)
+  | IfThenElse (c, e1, e2) ->
+      union
+        (union (free_ty_vars_of_term c) (free_ty_vars_of_term e1))
+        (free_ty_vars_of_term e2)
+  | TypeAbstraction (tyvar, t) ->
+      diff (free_ty_vars_of_term t) (singleton tyvar)
+  | Fun (_, ty, t) | TypeApply (t, ty) | TypeAnnotation (t, ty) ->
+      union (Types.free_ty_vars ty) (free_ty_vars_of_term t)
+
 module VarMap = Types.VarMap
 
-let sub_var x map =
-  let x' = try VarMap.find x map with Not_found -> Var x in
-  Base x'
+let sub_var x map = try VarMap.find x map with Not_found -> Var x
 
 let alpha_eq t1 t2 =
   let rec alpha_eq_aux p_var p_ty t1 t2 =
     let alpha_eq_same = alpha_eq_aux p_var p_ty in
     match (t1, t2) with
     | Base (Bool x), Base (Bool y) -> x = y
-    | Base (Var x), Base (Var y) -> sub_var x p_var = Base (Var y)
+    | Base (Var x), Base (Var y) -> sub_var x p_var = Var y
     | Fun (x1, ty1, t1), Fun (x2, ty2, t2) when sub_ty ty1 p_ty = ty2 ->
         let p_var = VarMap.add x1 (Var x2) p_var in
         alpha_eq_aux p_var p_ty t1 t2
