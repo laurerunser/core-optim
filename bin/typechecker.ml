@@ -1,7 +1,6 @@
 open Terms
 open Types
 open Stack
-module VarMap = Map.Make (Atom)
 
 exception Type_Error of ty
 
@@ -113,17 +112,17 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
           match ty with
           | TyFun (a, b) -> (
               try
-                let _ = check ctxt a (Base arg) in
+                let _ = check ctxt a (Base arg.scope) in
                 synth_stack s b ctxt
               with Type_Error ty' -> type_fun_frame_error f ty ty')
-          | _ -> type_fun_frame_error f ty (synth ctxt (Base arg)))
+          | _ -> type_fun_frame_error f ty (synth ctxt (Base arg.scope)))
       | HoleType arg -> (
-          try synth_stack s (fill ty arg) ctxt
+          try synth_stack s (fill ty arg.scope) ctxt
           with Not_Polymorphic -> type_poly_frame_error f ty)
       | HoleIf (e1, e2) ->
           if ty <> TyBool then type_ite_frame_error f ty
           else
-            let ty1 = synth ctxt e1 in
-            let ty2 = synth ctxt e2 in
+            let ty1 = synth ctxt e1.scope in
+            let ty2 = synth ctxt e2.scope in
             if Types.equal_ty ty1 ty2 then ty1
-            else type_if_branches_error e2 ty1 ty2)
+            else type_if_branches_error e2.scope ty1 ty2)

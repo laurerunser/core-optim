@@ -5,37 +5,58 @@
    For example: `(((t u1) u2) u3)`
    is represented by the stack `[HoleFun u1, HoleFun u2, HoleFun u3]` *)
 
+module VarSet = Terms.VarSet
+module VarMap = Terms.VarMap
+
+type 'a scoped = {
+  scope : 'a;
+  vars_term : VarSet.t;
+  p_term : Terms.base VarMap.t;
+  vars_ty : VarSet.t;
+  p_ty : Types.ty VarMap.t;
+}
+
 type frame =
-  | HoleFun of Terms.base
-  | HoleType of Types.ty
-  | HoleIf of Terms.term * Terms.term
+  | HoleFun of Terms.base scoped
+  | HoleType of Types.ty scoped
+  | HoleIf of Terms.term scoped * Terms.term scoped
 
 and stack = frame list
 
-val pp_frame : Format.formatter -> frame -> unit
-val pp_stack : Format.formatter -> stack -> unit
-val to_string : frame list -> string
-(* pretty printing functions *)
+val empty_scope : 'a -> 'a scoped
+(* [empty_scope t] returns t with a scope where all the maps and sets are empty *)
 
-val plug : stack -> Terms.term -> Terms.term
+val inherit_scope : 'a -> 'b scoped -> 'a scoped
+(* [empty_scope t old] returns the scope of old with the term t *)
+
+val scope_with_new_var :
+  Terms.term -> Terms.term scoped -> Atom.t -> Terms.base -> Terms.term scoped
+
+val scope_with_new_ty :
+  Terms.term -> Terms.term scoped -> Atom.t -> Types.ty -> Terms.term scoped
+
+val well_scoped : 'a scoped -> ('a -> VarSet.t) -> ('a -> VarSet.t) -> bool
+(* [well_scoped t fv_term fv_ty] checks if the scoped term t is well constructed *)
+
+val discharge_term : Terms.term scoped -> Terms.term
+(* [discharge_term t] applies the substitutions t.p_term and t.p_ty to t.scope.
+   [t] must be a well_scoped term *)
+
+val discharge_base : Terms.base scoped -> Terms.base
+(* [discharge_base b] applies the substitution t.p_term to t.scope*)
+
+val discharge_ty : Types.ty scoped -> Types.ty
+(* [discharge_ty t] applies the substitution t_py to t.scope *)
+
+val plug : stack -> Terms.term scoped -> Terms.term
 (* [plug s t] plugs the first hole in the stack s with the term t
    and propagates the results to the rest of the stack.
    It returns the new term.
    For example, with `s = [HoleFun u1, HoleFun u2]`, it returns the term `((t u1) u2)` *)
 
-module VarMap : sig
-  include Map.S with type key = Atom.t and type 'a t = 'a Map.Make(Atom).t
-end
-
-val simplify :
-  Terms.term -> stack -> Terms.base VarMap.t -> Types.ty VarMap.t -> Terms.term
-(* [simplify t acc p_var p_ty] simplifies the term [t] with the evaluation context [acc].
-   It also appplies the substitutions [p_var] on variables and [p_ty] on type variables.
-   The simplifications:
-   - beta-reduction :
-        - `(fun x.t) a` becomes `t[x\a]`
-        - `(fun [X].t) Y` becomes `t[X\Y]`
-    - if branches simplification :
-        - `if true then a else b` becomes `a`
-        - `if false then a else b` becomes `b`
-*)
+val pp_frame : Format.formatter -> frame -> unit
+val pp_stack : Format.formatter -> stack -> unit
+val pretty_print_frame : frame -> PPrint.document
+val pretty_print : frame list -> PPrint.document
+val to_string : frame list -> string
+(* pretty printing functions *)

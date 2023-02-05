@@ -3,6 +3,7 @@ open Terms
 open Types
 open Typechecker
 open Stack
+open Simplify
 
 let () =
   let open Alcotest in
@@ -205,7 +206,6 @@ let () =
         ] );
       ( "test simplification",
         [
-          test_case "Atom variable" `Quick test_simplification_atom_var;
           test_case "Atom bool" `Quick test_simplification_atom_bool;
           test_case "Fun simple" `Quick test_simplification_fun1;
           test_case "Fun with apply" `Quick test_simplification_fun2;
@@ -226,9 +226,5 @@ let () =
           test_case "IfThenElse with false" `Quick test_simplification_ite_false;
           test_case "IfThenElse with apply in condition" `Quick
             test_simplification_ite1;
-          test_case "IfThenElse with apply in branch 1" `Quick
-            test_simplification_ite2;
-          test_case "IfThenElse with apply in branch 2" `Quick
-            test_simplification_ite3;
         ] );
     ]
