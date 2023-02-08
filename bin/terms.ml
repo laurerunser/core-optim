@@ -1,25 +1,22 @@
 open Types
 open PPrint
 
-type variable = Atom.t (* variable *) [@@deriving show, eq]
-
 (* a basic value: either a variable name or a boolean *)
-type base = Var of variable | Bool of bool [@@deriving show, eq]
-(* don't confuse this with Atom.t which is the module that defines variables names *)
+type base = Var of Atom.t | Bool of bool [@@deriving show, eq]
 
 type term =
-  (* variable *)
+  (* base value *)
   | Base of base
   (* abstraction: Fun(x,T,t) is fun (x:T) = t*)
-  | Fun of variable * ty * term
+  | Fun of Atom.t * ty * term
   (* function application: FunApply(t,u) is t u *)
   | FunApply of term * base
   (* let binding: Let(x,t,u) is let x = t in u *)
-  | Let of variable * term * term
+  | Let of Atom.t * term * term
   (* condition: IfThenElse(e1, e2, e3) is If e1 Then e2 Else e3 *)
   | IfThenElse of term * term * term
   (* type abstraction: TypeAbstraction(X,t) is fun[X]=t *)
-  | TypeAbstraction of tyvar * term
+  | TypeAbstraction of Atom.t * term
   (* type application: TypeApply(t,T) is t[T] *)
   | TypeApply of term * ty
   (* type annotation: TypeAnnotation(t,T) is (t:T) *)
