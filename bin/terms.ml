@@ -1,31 +1,40 @@
 open Types
 open PPrint
 
+(* a basic value: either a variable name or a boolean *)
+type base = Var of Atom.t | Bool of bool [@@deriving show, eq]
+
 type term =
-  (* variable *)
-  | Var of variable
+  (* base value *)
+  | Base of base
   (* abstraction: Fun(x,T,t) is fun (x:T) = t*)
-  | Fun of variable * ty * term
+  | Fun of Atom.t * ty * term
   (* function application: FunApply(t,u) is t u *)
-  | FunApply of term * term
+  | FunApply of term * base
   (* let binding: Let(x,t,u) is let x = t in u *)
-  | Let of variable * term * term
+  | Let of Atom.t * term * term
+  (* condition: IfThenElse(e1, e2, e3) is If e1 Then e2 Else e3 *)
+  | IfThenElse of term * term * term
   (* type abstraction: TypeAbstraction(X,t) is fun[X]=t *)
-  | TypeAbstraction of tyvar * term
+  | TypeAbstraction of Atom.t * term
   (* type application: TypeApply(t,T) is t[T] *)
   | TypeApply of term * ty
   (* type annotation: TypeAnnotation(t,T) is (t:T) *)
   | TypeAnnotation of term * ty
 [@@deriving show, eq]
 
-and variable = Atom.t (* variable *) [@@deriving show, eq]
+let print_base x =
+  match x with
+  | Bool b -> if b then string "true" else string "false"
+  | Var n -> string (Atom.pretty_print_atom n)
 
 let rec pretty_print t =
   match t with
-  | Var x -> string (Atom.pretty_print_atom x)
+  | Base x -> print_base x
   | Fun (x, ty, body) -> print_abstraction x ty body
   | FunApply (f, x) -> print_fun_apply f x
   | Let (lhs, rhs, body) -> print_let_in lhs rhs body
+  | IfThenElse (e1, e2, e3) -> print_if e1 e2 e3
   | TypeAbstraction (tyvar, t) -> print_type_abstraction tyvar t
   | TypeApply (t, ty) -> print_type_apply t ty
   | TypeAnnotation (x, t) -> print_type_annotation x t
@@ -40,13 +49,13 @@ and print_abstraction x ty body =
   group
   @@ prefix 2 1
        (string "fun" ^^ blank 1
-       ^^ pretty_print (TypeAnnotation (Var x, ty))
+       ^^ pretty_print (TypeAnnotation (Base (Var x), ty))
        ^^ blank 1 ^^ equals)
        body_parens
 
 and print_fun_apply f x =
   let f_parens = get_term_with_parens f in
-  let x_parens = get_term_with_parens x in
+  let x_parens = print_base x in
   group @@ prefix 2 1 f_parens x_parens
 
 and print_let_in lhs rhs body =
@@ -57,6 +66,14 @@ and print_let_in lhs rhs body =
   ^^ surround 2 1 empty rhs_parens empty
   ^^ string "in"
   ^^ prefix 0 1 empty (pretty_print body)
+
+and print_if e1 e2 e3 =
+  group @@ string "if"
+  ^^ surround 2 1 empty (pretty_print e1) empty
+  ^^ string "then"
+  ^^ surround 2 1 empty (pretty_print e2) empty
+  ^^ string "else"
+  ^^ surround 0 1 empty (pretty_print e3) empty
 
 and print_type_abstraction tyvar t =
   let t_parens = get_term_with_parens t in
@@ -85,9 +102,16 @@ module VarSet = Set.Make (Atom)
 let rec free_vars t =
   let open VarSet in
   match t with
-  | Var x -> singleton x
+  | Base x -> (
+      match x with
+      | Var x -> singleton x
+      | _ -> empty (* boolean value, not a free var *))
   | Fun (x, _, t) -> diff (free_vars t) (singleton x)
-  | FunApply (t, u) -> union (free_vars t) (free_vars u)
+  | FunApply (t, u) ->
+      union (free_vars t) (free_vars (Base u))
+      (* u is either a boolean value or a variable defined outside of the function *)
   | Let (x, t, u) -> union (free_vars t) (diff (free_vars u) (singleton x))
+  | IfThenElse (e1, e2, e3) ->
+      union (free_vars e1) (union (free_vars e2) (free_vars e3))
   | TypeAbstraction (_, t) | TypeApply (t, _) | TypeAnnotation (t, _) ->
       free_vars t

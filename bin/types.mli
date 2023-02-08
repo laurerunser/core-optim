@@ -1,21 +1,20 @@
 exception Not_Polymorphic
 
 type ty =
-  | TyFreeVar of tyvar
+  | TyBool
+  | TyFreeVar of Atom.t
   | TyBoundVar of int
   | TyFun of ty * ty
   | PolymorphicType of string * ty
   | TyTuple of ty list
 
-and tyvar = Atom.t
-
-val abstract_gen : tyvar -> ty -> int -> ty
+val abstract_gen : Atom.t -> ty -> int -> ty
 (** [abstract_gen x ty c] replaces the free variable
    [x] with the bound variable [c] in the type [ty]. 
    It goes down the type recursively and increments [c]
    each time it enters a new PolyMorphicType binding. *)
 
-val abstract : tyvar -> ty -> ty
+val abstract : Atom.t -> ty -> ty
 (** [abstract X ty] returns a new type `forall X. ty` where
    the free variable [X] is replaced with a bound variable. *)
 
@@ -38,6 +37,4 @@ val print_ty_tuple : ty list -> PPrint.document
 val pretty_print_type : ty -> PPrint.document
 val to_string : ty -> string
 val pp_ty : Format.formatter -> ty -> unit
-val pp_tyvar : Format.formatter -> tyvar -> unit
 val equal_ty : ty -> ty -> bool
-val equal_tyvar : tyvar -> tyvar -> bool

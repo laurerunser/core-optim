@@ -54,7 +54,7 @@ let test_equal_plug_term expected stack term =
 let test_plug_fun1 () =
   let arg = Var x in
   let stack = [ HoleFun arg ] in
-  let f = fn y (TyFreeVar ty) (fun _ -> Var toto) in
+  let f = fn y (TyFreeVar ty) (fun _ -> Base (Var toto)) in
   test_equal_plug_term (f $ arg) stack f
 
 let test_plug_fun2 () =
@@ -62,21 +62,21 @@ let test_plug_fun2 () =
   let stack = [ HoleFun arg1; HoleFun arg2 ] in
   let f =
     fn (fresh "z1") (TyFreeVar tx) (fun _ ->
-        fn (fresh "z2") (TyFreeVar tx) (fun _ -> Var toto))
+        fn (fresh "z2") (TyFreeVar tx) (fun _ -> Base (Var toto)))
   in
   test_equal_plug_term (f $ arg1 $ arg2) stack f
 
 let test_plug_ty1 () =
   let arg = TyFreeVar tx in
   let stack = [ HoleType arg ] in
-  let t = ty_fn ty (fun _ -> Var toto) in
+  let t = ty_fn ty (fun _ -> Base (Var toto)) in
   test_equal_plug_term (t $! arg) stack t
 
 let test_plug_ty2 () =
   let arg1, arg2 = (TyFreeVar ty, TyFreeVar tx) in
   let stack = [ HoleType arg1; HoleType arg2 ] in
   let t =
-    ty_fn (fresh "Z1") (fun _ -> ty_fn (fresh "Z2") (fun _ -> Var toto))
+    ty_fn (fresh "Z1") (fun _ -> ty_fn (fresh "Z2") (fun _ -> Base (Var toto)))
   in
   test_equal_plug_term (t $! arg1 $! arg2) stack t
 
@@ -84,6 +84,6 @@ let test_plug_mix () =
   let arg1, arg2 = (Var x, TyFreeVar tx) in
   let stack = [ HoleFun arg1; HoleType arg2 ] in
   let f =
-    fn y (TyFreeVar ty) (fun _ -> ty_fn (fresh "Z") (fun _ -> Var toto))
+    fn y (TyFreeVar ty) (fun _ -> ty_fn (fresh "Z") (fun _ -> Base (Var toto)))
   in
   test_equal_plug_term (f $ arg1 $! arg2) stack f

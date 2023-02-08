@@ -3,9 +3,10 @@ open Types
 open PPrint
 
 type frame =
-  | HoleFun of term (* applied function: f(term) -> where f is not given *)
+  | HoleFun of base (* applied function: f(term) -> where f is not given *)
   | HoleType of
       ty (* instantiated polymorphism: T[ty] -> where T is not given *)
+  | HoleIf of term * term (* for conditions: _ then e1 else e2 *)
 [@@deriving show]
 
 and stack = frame list [@@deriving show]
@@ -18,6 +19,7 @@ let rec plug (s : stack) (t : term) =
         match f with
         | HoleFun arg -> FunApply (t, arg)
         | HoleType arg -> TypeApply (t, arg)
+        | HoleIf (e1, e2) -> IfThenElse (t, e1, e2)
       in
       plug s filled_term
 
@@ -25,11 +27,17 @@ let pretty_print_frame f =
   match f with
   | HoleFun arg ->
       let f = string "_" in
-      let x = get_term_with_parens arg in
+      let x = print_base arg in
       group @@ prefix 2 1 f x
   | HoleType arg ->
       let t = string "_" in
       group @@ t ^^ lbracket ^^ pretty_print_type arg ^^ rbracket
+  | HoleIf (e1, e2) ->
+      let t = string " _ " in
+      group @@ string "if" ^^ t ^^ string "then"
+      ^^ surround 2 1 empty (pretty_print e1) empty
+      ^^ string "else"
+      ^^ surround 0 1 empty (pretty_print e2) empty
 
 let rec pretty_print s =
   match s with

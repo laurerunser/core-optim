@@ -2,7 +2,11 @@ open PPrint
 
 exception Not_Polymorphic
 
+type tyvar = Atom.t (* type variable *) [@@deriving show, eq]
+
 type ty =
+  (* boolean *)
+  | TyBool
   (* type variable *)
   | TyFreeVar of tyvar
   | TyBoundVar of int
@@ -13,8 +17,6 @@ type ty =
   (* tuple: T_0 * ... * T_k *)
   | TyTuple of ty list
 [@@deriving show, eq]
-
-and tyvar = Atom.t (* type variable *) [@@deriving show, eq]
 
 (********** Type manipulation **********)
 
@@ -55,6 +57,7 @@ let fill t s =
 (********** Pretty printing **********)
 let rec pretty_print_type_paren paren t =
   match t with
+  | TyBool -> string "bool"
   | TyFreeVar x -> !^(Atom.pretty_print_atom x)
   | TyBoundVar x -> !^(Int.to_string x)
   | _ ->
