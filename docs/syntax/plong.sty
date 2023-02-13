@@ -7,7 +7,8 @@
 \newcommand{\aTerm}[1][0]%
            {\ifthenelse{#1 = 0}{t}%
              {\ifthenelse{#1 = 1}{u}%
-               {t_{\the\numexpr #1 - 2 \relax}}}}
+               {\ifthenelse{#1 = 2}{v}%
+                 {t_{\the\numexpr #1 - 3 \relax}}}}}
 
 \newcommand{\aVar}[1][0]%
            {\ifthenelse{#1 = 0}{x}%
@@ -44,7 +45,7 @@
                {\ifthenelse{#1 = 2}{Z}%
                  {x_{\the\numexpr #1 - 3 \relax}}}}}
 
-\newcommand{\hasType}[2]{#1 \::\: #2}
+\newcommand{\hasType}[2]{#1 : #2}
 
 \newcommand{\ttyann}[2]{(\hasType{#1}{#2})}
 \newcommand{\tfun}[3]%
@@ -80,10 +81,22 @@
            {\inferrule [#3] {#1} {#2}}
            % #3 is the name of the rule
 
+\newcommand{\env}[1][0]%
+           {\ifthenelse{#1 = 0}{\rho}%
+               {\rho_{\the\numexpr #1 - 1 \relax}}}
+\newcommand{\envid}
+            {\textsf {id}}
+\newcommand{\envextend}[3]
+            {#1, #2 \backslash #3}
+\newcommand{\scoped}[2]
+           {#1 \{ #2 \} }
+\newcommand{\subs}[2]
+           {#1 \lbrack #2 \rbrack }
+
 \newcommand{\aFrame}{F}
-\newcommand{\aFunFrame}{\square \: {\aTerm[1]}}
-\newcommand{\aPolyFrame}{\square \: {\aType[1]}}
-\newcommand{\aIteFrame}{\textbf{if } \square \: \textbf{then } t \textbf{ else } u}
+\newcommand{\aFunFrame}{\square \: \scoped {\aTerm[1]} \env }
+\newcommand{\aPolyFrame}{\square \: \scoped {\aType[1]} \env }
+\newcommand{\aIteFrame}{\textbf{if } \square \: \textbf{then } \scoped \aTerm \env \textbf{ else } \scoped {\aTerm[1]} \env }
 \newcommand{\aStack}{s}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%
