@@ -16,12 +16,12 @@ $
 & | & \tfun \aVar \aType \aTerm & \text{(abstraction)} \\
 & | & \tapp \aTerm {\aTerm[1]} & \text{(function application)} \\
 & | & \tlet \aVar \aTerm {\aTerm[1]} & \text{(let binding)} \\
+& | & \ite \aTerm {\aTerm[1]} {\aTerm[2]} & \text{(conditionnal)}\\
 & | & \ttyfun \aTypeVar \aTerm & \text{(type abstraction)} \\
 & | & \ttyapp \aTerm \aType & \text{(type application)} \\
 & | & \ttyann \aTerm \aType & \text{(type annotation)}
 \end{array}
 $
-\newline
 \section{Types}
 $
 \begin{array}{ccll}
@@ -33,7 +33,51 @@ $
 & | & \aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k} & \text{(tuples)}
 \end{array}
 $
-\newline
+\section{Scoped terms}
+\subsection{Terms environnement}
+$
+\begin{array}{ccll}
+\env & ::= & \\
+& | & \envid & \text{(identity)}\\
+& | & \envextend \rho \aVar \aTerm & \text{(variable)} \\
+& | & \envextend \rho \aTypeVar \aType & \text{(type variable)}
+\end{array}
+$\\
+A scoped term is written $\scoped \aTerm \env$
+\subsection{Substitution}
+\subsubsection{Type substitution}
+$
+\subs \aTypeVar \envid = \aTypeVar \\
+\subs \aTypeVar {\envextend \env \aVar \aTerm} = \subs \aTypeVar \rho \\
+\subs \aTypeVar {\envextend \env {\aTypeVar[1]} \aType} =
+\begin{cases}
+  \aType & \text{if } \aTypeVar = \aTypeVar[1] \\
+  \subs \aTypeVar \env & \text{otherwise} \\
+\end{cases} \\
+\subs \tyBool \env = \tyBool \\
+\subs {(\aDomType \to \aCodType)} \env = \subs \aDomType \env \to \subs \aCodType \env \\
+\subs {(\tforall \aTypeVar \aType)} \env = \tforall {\aTypeVar[1]} {\subs \aType {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\tforall \aTypeVar \aType) \text{ and } \aTypeVar[1] \notin FV(\env) \\
+\subs {(\aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k})} \env = \subs {\aType[2]} \env \tprod \subs {\aType[3]} \env \tprod \ldots \subs {\tprod \aType_{k}} \env
+$
+\subsubsection{Term substitution}
+$
+\subs \aVar \envid = \aVar \\
+\subs \aVar {\envextend \env {\aVar[1]} \aTerm} =
+\begin{cases}
+  \aTerm & \text{if } \aVar = \aVar[1] \\
+  \subs \aVar \env & \text{otherwise}
+\end{cases} \\
+\subs \aVar {\envextend \env \aTypeVar \aType} = \subs \aVar \env \\
+\subs \true \env = \true \\
+\subs \false \env = \false \\
+\subs {(\tfun \aVar \aType \aTerm)} \env = \tfun {\aVar[1]} {\subs \aType \env} {\subs \aTerm {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tfun \aVar \aType \aTerm) \text{ and } \aVar[1] \notin FV(\env) \\
+\subs {(\tapp \aTerm {\aTerm[1]})} \env = \tapp {\subs \aTerm \env} {\subs {\aTerm[1]} \env} \\
+\subs {(\tlet \aVar \aTerm \aTerm[1])} \env = \tlet {\aVar[1]} {\subs \aTerm \env} {\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tlet \aVar \aTerm \aTerm[1]) \text{ and } \aVar[1] \notin FV(\env) \\
+\subs {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env = \ite {\subs \aTerm \env} {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env} \\
+\subs {(\ttyfun \aTypeVar \aTerm)} \env = \ttyfun {\aTypeVar[1]} {\subs \aTerm {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm) \text{ and } \aTypeVar[1] \notin FV(\env) \\
+\subs {(\ttyapp \aTerm \aType)} \env = \ttyapp {\subs \aTerm \env} {\subs \aType \env} \\
+\subs {\ttyann \aTerm \aType} \env = \ttyann {\subs \aTerm \env} {\subs \aType \env}
+$
 \section{Frames and stacks}
 $
 \begin{array}{ccll}
