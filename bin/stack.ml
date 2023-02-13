@@ -68,8 +68,12 @@ let scope_with_new_var (t : term) (old : term scoped) (old_var : Atom.t)
     (new_var : base) =
   {
     scope = t;
-    vars_term = old.vars_term;
+    (* add the variable to the set of authorized variables.
+       We add the old variable name, because the new one will only be
+       replaced at the end. *)
+    vars_term = VarSet.add old_var old.vars_term;
     vars_ty = old.vars_ty;
+    (* add the binding to the substitution *)
     p_term = VarMap.add old_var new_var old.p_term;
     p_ty = old.p_ty;
   }
@@ -78,7 +82,7 @@ let scope_with_new_ty (t : term) (old : term scoped) (old_ty : Atom.t)
     (new_ty : ty) =
   {
     scope = t;
-    vars_term = old.vars_term;
+    vars_term = VarSet.add old_ty old.vars_term;
     vars_ty = old.vars_ty;
     p_term = old.p_term;
     p_ty = VarMap.add old_ty new_ty old.p_ty;
