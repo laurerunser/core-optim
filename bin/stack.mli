@@ -48,7 +48,7 @@ val discharge_base : Terms.base scoped -> Terms.base
 val discharge_ty : Types.ty scoped -> Types.ty
 (* [discharge_ty t] applies the substitution t_py to t.scope *)
 
-val plug : stack -> Terms.term scoped -> Terms.term
+val plug : stack -> Terms.term -> Terms.term
 (* [plug s t] plugs the first hole in the stack s with the term t
    and propagates the results to the rest of the stack.
    It returns the new term.

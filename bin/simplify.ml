@@ -14,30 +14,29 @@ and simplify_aux (t : term scoped) (acc : stack) =
     match (t.scope, acc) with
     (* simplify if branches with booleans *)
     | Base (Bool b), HoleIf (e1, e2) :: acc ->
-        if b then
-          let e1' = simplify_aux e1 [] in
-          plug acc (inherit_scope e1' e1)
-        else
-          let e2' = simplify_aux e2 [] in
-          plug acc (inherit_scope e2' e2)
+        if b then go e1 acc else go e2 acc
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun b :: acc ->
-        go (scope_with_new_var body t x b.scope) acc
+        go (scope_with_new_var body t x (discharge_base b)) acc
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
-        go (scope_with_new_ty body t alpha ty2.scope) acc
+        go (scope_with_new_ty body t alpha (discharge_ty ty2)) acc
     (* replace base values, renaming variables if they appear in the substitutions *)
-    | Base _, acc -> plug acc t
+    | Base _, acc ->
+        let t = discharge_term t in
+        plug acc t
     (* abstractions but can't simplify in the context *)
     | Fun (x, ty, body), acc ->
         let x' = Atom.fresh x.identifier in
         let body_scoped = scope_with_new_var body t x (Var x') in
         let new_body = go body_scoped [] in
-        plug acc (inherit_scope (Fun (x', ty, new_body)) t)
+        let t = Fun (x', ty, new_body) in
+        plug acc t
     | TypeAbstraction (alpha, body), acc ->
         let alpha' = Atom.fresh alpha.identifier in
         let body_scoped = scope_with_new_ty body t alpha (TyFreeVar alpha') in
         let new_body = go body_scoped [] in
-        plug acc (inherit_scope (TypeAbstraction (alpha', new_body)) t)
+        let t = TypeAbstraction (alpha', new_body) in
+        plug acc t
     (* cases that create a context that we can simplify in *)
     | FunApply (f, arg), acc ->
         let f = inherit_scope f t in
@@ -57,7 +56,8 @@ and simplify_aux (t : term scoped) (acc : stack) =
         let x' = Atom.fresh x.identifier in
         let t1 = go (inherit_scope t1 t) [] in
         let body = go (scope_with_new_var body t x (Var x')) [] in
-        plug acc (inherit_scope (Let (x', t1, body)) t)
+        let t = Let (x', t1, body) in
+        plug acc t
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc -> go (inherit_scope body t) acc
   in
