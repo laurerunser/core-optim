@@ -47,8 +47,7 @@ let test_equal_plug_term expected stack term =
   let check_term = Alcotest.testable pp_term equal_term in
   Alcotest.(check check_term)
     (Format.asprintf "%a" pp_term expected)
-    expected
-    (plug stack (empty_scope term))
+    expected (plug stack term)
 
 let test_plug_fun1 () =
   let arg = Var x in

@@ -82,8 +82,8 @@ let scope_with_new_ty (t : term) (old : term scoped) (old_ty : Atom.t)
     (new_ty : ty) =
   {
     scope = t;
-    vars_term = VarSet.add old_ty old.vars_term;
-    vars_ty = old.vars_ty;
+    vars_term = old.vars_term;
+    vars_ty = VarSet.add old_ty old.vars_ty;
     p_term = old.p_term;
     p_ty = VarMap.add old_ty new_ty old.p_ty;
   }
@@ -122,21 +122,17 @@ let discharge_base (t : base scoped) =
 
 let discharge_ty (t : ty scoped) = sub_ty t.scope t.p_ty
 
-let plug (s : stack) (t : term scoped) =
-  let rec plug_term s t =
-    match s with
-    | [] -> t
-    | f :: s ->
-        let filled_term =
-          match f with
-          | HoleFun arg -> FunApply (t, discharge_base arg)
-          | HoleType arg -> TypeApply (t, discharge_ty arg)
-          | HoleIf (e1, e2) ->
-              IfThenElse (t, discharge_term e1, discharge_term e2)
-        in
-        plug_term s filled_term
-  in
-  plug_term s (discharge_term t)
+let rec plug (s : stack) (t : term) =
+  match s with
+  | [] -> t
+  | f :: s ->
+      let filled_term =
+        match f with
+        | HoleFun arg -> FunApply (t, discharge_base arg)
+        | HoleType arg -> TypeApply (t, discharge_ty arg)
+        | HoleIf (e1, e2) -> IfThenElse (t, discharge_term e1, discharge_term e2)
+      in
+      plug s filled_term
 
 let pretty_print_frame f =
   match f with
