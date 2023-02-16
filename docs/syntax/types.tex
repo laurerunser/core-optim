@@ -79,16 +79,16 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {Empty stack}
 
 \aRule   {\frameJudge \aContext \aStack \aType \aType[2] \\
-          \judgecheck \aContext {\aType[1]} \aTerm[1]}
+          \judgecheck \aContext {\aType[1]} \subs {\aTerm[1]} \env}
          {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod \aType[2]}
          {Applied function stack}
 
-\aRule   {\frameJudge \aContext \aStack {\ttyapp \aType {\ttysub \aTypeVar \aType[1]}} \aType[2]}
+\aRule   {\frameJudge \aContext \aStack {\ttyapp \aType {\ttysub \aTypeVar {\subs {\aType[1]} \env}}} \aType[2]}
          {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} \aType[2]}
          {Instantiated polymorphism stack}
 
-\aRule  {\judge \aContext {\aTerm} {\aType[2]} \\
-          \judgecheck \aContext {\aType[2]} {\aTerm[1]} \\
+\aRule  {\judge \aContext {\aTerm} {\subs {\aType[2]} \env} \\
+          \judgecheck \aContext {\aType[2]} {\subs {\aTerm[1]} \env} \\
           \frameJudge \aContext \aStack {\aType[2]} \aType}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}
