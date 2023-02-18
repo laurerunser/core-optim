@@ -71,7 +71,7 @@ and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aCo
 
 \section{Type synthesis for stacks}
 The type synthesis judgment for stacks is written
-\fbox{$\frameJudge \aContext \aStack \aType \aType[1]$}
+\fbox{$\frameJudge \aContext \aStack {\aType[1]} \aType$}
 and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term of type $\aType[1]$ has type $\aType$".
 \begin{mathpar}
 \aRule   { }
@@ -79,7 +79,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {Empty stack}
 
 \aRule   {\frameJudge \aContext \aStack \aType \aType[2] \\
-          \judgecheck \aContext {\aType[1]} \subs {\aTerm[1]} \env}
+          \judgecheck \aContext {\aType[1]} \subs \aBase \env}
          {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod \aType[2]}
          {Applied function stack}
 
@@ -87,8 +87,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} \aType[2]}
          {Instantiated polymorphism stack}
 
-\aRule  {\judge \aContext {\aTerm} {\subs {\aType[2]} \env} \\
-          \judgecheck \aContext {\aType[2]} {\subs {\aTerm[1]} \env} \\
+\aRule  {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
+          \judgecheck \aContext {\aType[2]} {\subs {\aTerm[2]} \env} \\
           \frameJudge \aContext \aStack {\aType[2]} \aType}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}
