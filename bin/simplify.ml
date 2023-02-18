@@ -14,21 +14,23 @@ and simplify_aux (t : term scoped) (acc : stack) =
     assert (well_scoped_term t);
     assert (well_scoped_stack acc);
     match (t.scope, acc) with
-    (* simplify if branches with booleans *)
-    | Base (Bool b), HoleIf (e1, e2) :: acc ->
-        if b then go e1 acc else go e2 acc
+    (* replace base values, renaming variables if they appear in the substitutions *)
+    | Base _, acc -> (
+        let t = discharge_term t in
+        match (t, acc) with
+        (* simplify if branches with booleans *)
+        | Base (Bool b), HoleIf (e1, e2) :: acc ->
+            if b then go e1 acc else go e2 acc
+        | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun b :: acc ->
         go (scope_with_new_var body t x (discharge_base b)) acc
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
         go (scope_with_new_ty body t alpha (discharge_ty ty2)) acc
-    (* replace base values, renaming variables if they appear in the substitutions *)
-    | Base _, acc ->
-        let t = discharge_term t in
-        plug acc t
     (* abstractions but can't simplify in the context *)
     | Fun (x, ty, body), acc ->
         let x' = Atom.fresh x.identifier in
+        let ty = discharge_ty (inherit_scope ty t) in
         let body_scoped = scope_with_new_var body t x (Var x') in
         let new_body = go body_scoped [] in
         let t = Fun (x', ty, new_body) in
