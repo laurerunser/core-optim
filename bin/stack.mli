@@ -35,9 +35,10 @@ val scope_with_new_var :
 val scope_with_new_ty :
   Terms.term -> Terms.term scoped -> Atom.t -> Types.ty -> Terms.term scoped
 
-val well_scoped : 'a scoped -> ('a -> VarSet.t) -> ('a -> VarSet.t) -> bool
-(* [well_scoped t fv_term fv_ty] checks if the scoped term t is well constructed *)
+val well_scoped_term : Terms.term scoped -> bool
+(* [well_scoped_term t] checks if the scoped term t is well constructed *)
 
+val well_scoped_stack : stack -> bool
 val discharge_term : Terms.term scoped -> Terms.term
 (* [discharge_term t] applies the substitutions t.p_term and t.p_ty to t.scope.
    [t] must be a well_scoped term *)

@@ -11,6 +11,8 @@ let rec simplify (t : term) =
 
 and simplify_aux (t : term scoped) (acc : stack) =
   let rec go t acc =
+    assert (well_scoped_term t);
+    assert (well_scoped_stack acc);
     match (t.scope, acc) with
     (* simplify if branches with booleans *)
     | Base (Bool b), HoleIf (e1, e2) :: acc ->
@@ -61,11 +63,13 @@ and simplify_aux (t : term scoped) (acc : stack) =
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc -> go (inherit_scope body t) acc
   in
-  assert (well_scoped t free_vars free_ty_vars_of_term);
+  assert (well_scoped_term t);
   let t' = go t acc in
   (* check that the term is closed *)
-  let free_variables = Terms.free_vars t' in
-  let free_ty_variables = Terms.free_ty_vars_of_term t' in
-  assert (VarSet.subset free_variables t.vars_term);
-  assert (VarSet.subset free_ty_variables t.vars_ty);
+  assert (
+    let free_variables = Terms.free_vars t' in
+    VarSet.subset free_variables t.vars_term);
+  assert (
+    let free_ty_variables = Terms.free_ty_vars_of_term t' in
+    VarSet.subset free_ty_variables t.vars_ty);
   t'
