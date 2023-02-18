@@ -4,6 +4,10 @@
 \RequirePackage{xifthen}
 \RequirePackage{mathpartir}
 
+\newcommand{\aBase}[1][0]%
+           {\ifthenelse{#1 = 0}{b}%
+            {b_{\the\numexpr #1 - 1 \relax}}}
+
 \newcommand{\aTerm}[1][0]%
            {\ifthenelse{#1 = 0}{t}%
              {\ifthenelse{#1 = 1}{u}%
@@ -95,7 +99,7 @@
 
 \newcommand{\aFrame}{F}
 \newcommand{\aFunFrame}
-            {\square \: \scoped {\aTerm[1]} \env }
+            {\square \: \scoped \aBase \env }
 \newcommand{\aPolyFrame}
             {\square \: \scoped {\aType[1]} \env }
 \newcommand{\aIteFrame}
