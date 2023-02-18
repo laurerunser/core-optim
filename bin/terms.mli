@@ -23,6 +23,8 @@ val to_string : term -> string
 
 module VarSet = Types.VarSet
 
+val free_vars_base : base -> VarSet.t
+
 val free_vars : term -> VarSet.t
 (** [free_vars t] returns the free variables of t *)
 
