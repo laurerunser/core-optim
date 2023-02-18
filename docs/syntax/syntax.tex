@@ -8,17 +8,23 @@
 \section{Terms}
 $
 \begin{array}{ccll}
-\aTerm, \aTerm[1] & ::= & & \\
-& | & \aVar & \text{(variable)} \\
-& | & \true & \text{(true)} \\
-& | & \false & \text{(false)} \\
+\aTerm, \aTerm[1], \aTerm[2] & ::= & & \\
+& | & \aBase & \text{(base)} \\
 & | & \tfun \aVar \aType \aTerm & \text{(abstraction)} \\
-& | & \tapp \aTerm {\aTerm[1]} & \text{(function application)} \\
+& | & \tapp \aTerm \aBase & \text{(function application)} \\
 & | & \tlet \aVar \aTerm {\aTerm[1]} & \text{(let binding)} \\
 & | & \ite \aTerm {\aTerm[1]} {\aTerm[2]} & \text{(conditionnal)}\\
 & | & \ttyfun \aTypeVar \aTerm & \text{(type abstraction)} \\
 & | & \ttyapp \aTerm \aType & \text{(type application)} \\
 & | & \ttyann \aTerm \aType & \text{(type annotation)}
+\end{array}
+$\\
+$
+\begin{array}{ccll}
+\aBase & ::= & & \\
+& | & \aVar & \text{(variable)} \\
+& | & \true & \text{(true)} \\
+& | & \false & \text{(false)} \\
 \end{array}
 $
 \section{Types}
@@ -38,7 +44,7 @@ $
 \begin{array}{ccll}
 \env & ::= & \\
 & | & \envid & \text{(identity)}\\
-& | & \envextend \rho \aVar \aTerm & \text{(variable)} \\
+& | & \envextend \rho \aVar \aBase & \text{(variable)} \\
 & | & \envextend \rho \aTypeVar \aType & \text{(type variable)}
 \end{array}
 $\\
@@ -47,7 +53,7 @@ A scoped term is written $\scoped \aTerm \env$ and a scoped type is written $\sc
 \subsubsection{Type substitution}
 $
 \subs \aTypeVar \envid = \aTypeVar \\
-\subs \aTypeVar {\envextend \env \aVar \aTerm} = \subs \aTypeVar \rho \\
+\subs \aTypeVar {\envextend \env \aVar \aBase} = \subs \aTypeVar \rho \\
 \subs \aTypeVar {\envextend \env {\aTypeVar[1]} \aType} =
 \begin{cases}
   \aType & \text{if } \aTypeVar = \aTypeVar[1] \\
@@ -61,9 +67,9 @@ $
 \subsubsection{Term substitution}
 $
 \subs \aVar \envid = \aVar \\
-\subs \aVar {\envextend \env {\aVar[1]} \aTerm} =
+\subs \aVar {\envextend \env {\aVar[1]} \aBase} =
 \begin{cases}
-  \aTerm & \text{if } \aVar = \aVar[1] \\
+  \aBase & \text{if } \aVar = \aVar[1] \\
   \subs \aVar \env & \text{otherwise}
 \end{cases} \\
 \subs \aVar {\envextend \env \aTypeVar \aType} = \subs \aVar \env \\

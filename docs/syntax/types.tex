@@ -79,7 +79,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {Empty stack}
 
 \aRule   {\frameJudge \aContext \aStack \aType \aType[2] \\
-          \judgecheck \aContext {\aType[1]} \subs {\aTerm[1]} \env}
+          \judgecheck \aContext {\aType[1]} \subs \aBase \env}
          {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod \aType[2]}
          {Applied function stack}
 
