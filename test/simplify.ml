@@ -25,12 +25,15 @@ let test_simplification_atom_bool () =
   let t = Base (Bool true) in
   test_simplification t t
 
+let test_simplification_fun () =
+  let t = fn x TyBool (fun x -> Base x) in
+  test_simplification t t
+
 let test_simplification_fun1 () =
   (* fun x2:Bool -> true
      Expected: no simplification *)
   let x2 = fresh "x2" in
   let t = fn x2 TyBool (fun _ -> Base (Bool true)) in
-  print_string (Terms.to_string t);
   test_simplification t t
 
 let test_simplification_fun2 () =
@@ -52,7 +55,7 @@ let test_simplification_funapply2 () =
 
 let test_simplification_funapply3 () =
   let t =
-    fn x TyBool (fun _ -> fn y TyBool (fun y -> Base y) $ Bool true) $ Bool true
+    fn x TyBool (fun x -> fn y TyBool (fun y -> Base y) $ x) $ Bool true
   in
   let expected = Base (Bool true) in
   test_simplification expected t
