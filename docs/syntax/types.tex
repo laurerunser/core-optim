@@ -87,8 +87,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} \aType[2]}
          {Instantiated polymorphism stack}
 
-\aRule  {\judge \aContext {\aTerm} {\subs {\aType[2]} \env} \\
-          \judgecheck \aContext {\aType[2]} {\subs {\aTerm[1]} \env} \\
+\aRule  {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
+          \judgecheck \aContext {\aType[2]} {\subs {\aTerm[2]} \env} \\
           \frameJudge \aContext \aStack {\aType[2]} \aType}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}

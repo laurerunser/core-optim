@@ -94,9 +94,13 @@
            {#1 \lbrack #2 \rbrack }
 
 \newcommand{\aFrame}{F}
-\newcommand{\aFunFrame}{\square \: \scoped {\aTerm[1]} \env }
-\newcommand{\aPolyFrame}{\square \: \scoped {\aType[1]} \env }
-\newcommand{\aIteFrame}{\textbf{if } \square \: \textbf{then } \scoped \aTerm \env \textbf{ else } \scoped {\aTerm[1]} \env }
+\newcommand{\aFunFrame}
+            {\square \: \scoped {\aTerm[1]} \env }
+\newcommand{\aPolyFrame}
+            {\square \: \scoped {\aType[1]} \env }
+\newcommand{\aIteFrame}
+            {\textbf{if } \square \: \textbf{then } \scoped {\aTerm[1]} \env \textbf{ else } \scoped {\aTerm[2]} \env }
+
 \newcommand{\aStack}{s}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%
