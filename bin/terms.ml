@@ -99,13 +99,16 @@ let to_string t =
 
 module VarSet = Types.VarSet
 
+let free_vars_base b =
+  let open VarSet in
+  match b with
+  | Var x -> singleton x
+  | _ -> empty (* boolean value, not a free var *)
+
 let rec free_vars t =
   let open VarSet in
   match t with
-  | Base x -> (
-      match x with
-      | Var x -> singleton x
-      | _ -> empty (* boolean value, not a free var *))
+  | Base x -> free_vars_base x
   | Fun (x, _, t) -> diff (free_vars t) (singleton x)
   | FunApply (t, u) ->
       union (free_vars t) (free_vars (Base u))

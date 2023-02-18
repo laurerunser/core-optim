@@ -45,6 +45,21 @@ let well_scoped (t : 'a scoped) (freevars_term : 'a -> VarSet.t)
       let f_ty = freevars_ty t.scope in
       VarSet.subset f_term t.vars_term && VarSet.subset f_ty t.vars_ty
 
+let well_scoped_term t = well_scoped t free_vars free_ty_vars_of_term
+let well_scoped_base b = well_scoped b free_vars_base (fun _ -> VarSet.empty)
+let well_scoped_ty ty = well_scoped ty (fun _ -> VarSet.empty) free_ty_vars
+
+let rec well_scoped_stack (s : stack) =
+  match s with
+  | [] -> true
+  | HoleFun a :: s ->
+      if not (well_scoped_base a) then false else well_scoped_stack s
+  | HoleType t :: s ->
+      if not (well_scoped_ty t) then false else well_scoped_stack s
+  | HoleIf (e1, e2) :: s ->
+      if not (well_scoped_term e1 || well_scoped_term e2) then false
+      else well_scoped_stack s
+
 (* Returns a scoped term where the scope is [t], and all the sets/maps are empty *)
 let empty_scope t =
   {
