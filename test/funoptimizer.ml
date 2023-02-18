@@ -207,6 +207,7 @@ let () =
       ( "test simplification",
         [
           test_case "Atom bool" `Quick test_simplification_atom_bool;
+          test_case "Fun" `Quick test_simplification_fun;
           test_case "Fun simple" `Quick test_simplification_fun1;
           test_case "Fun with apply" `Quick test_simplification_fun2;
           test_case "FunApply simple var" `Quick test_simplification_funapply1;
