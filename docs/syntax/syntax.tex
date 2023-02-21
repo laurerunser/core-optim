@@ -4,6 +4,7 @@
 \usepackage{amsmath, amssymb}
 \usepackage{pf}
 \usepackage{plong}
+\usepackage{listings-ocaml}
 \usepackage{xcolor}
 \newcommand{\TODO}[1]{\textcolor{red}{$\langle$ Pierre:}~#1\textcolor{red}{~$\rangle$}}
 
@@ -115,6 +116,10 @@ $
 
 \TODO{Définir ``bien scopé'' pour les terms et les piles. (Et ne pas utiliser un anglicisme, ou écrire en anglais : ``bien formé''?)}
 \TODO{Problème de notation : le ``plug'' d'un terme dans une pile utilise la même notation que l'application d'une substitution. Ce sont 2 concepts distincts, il faut 2 notations différentes.}
+
+\TODO{In the proof, explicitly point to lines of code. Here is an
+  example of a pointer to a label in the OCaml code :
+  line~\ref{go:fun-holefun}}
 
 \textbf{Prop:}
 Soit $\scoped \aTerm \env$ un terme bien scopé. Soit $\aStack$ une stack bien scopé.
@@ -387,4 +392,9 @@ Alors $\go {\scoped \aTerm \env} \aStack = \aTerm[1]$ avec $\stackapp \aStack {\
     \step{label-12.3}{$\go {\scoped {\ttyann {\aTerm[1]} \aType} \env} \aStack = \go {\scoped {\aTerm[1]} \env} \aStack$}
   \end{proof}
 \end{proof}
+
+\begin{figure}
+  \ocamlfrom{stack.ml}{go}
+\end{figure}
+
 \end{document}

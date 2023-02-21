@@ -225,6 +225,7 @@ and go (t : term scoped) (acc : stack) =
         | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun arg :: acc ->
+        (*@ \label{go:fun-holefun} *)
         let body_scoped =
           scope_with_new_var ~term:body ~scope:t ~var:x ~base:arg
         in
