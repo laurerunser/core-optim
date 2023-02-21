@@ -1,0 +1,36 @@
+% Configuring listings for OCaml.
+\usepackage{listings}
+
+% Comments in blue.
+\newcommand{\ocamlcommentstyle}{\color{blue}}
+
+\lstdefinelanguage{ocaml}[Objective]{Caml}{
+  basicstyle=\small\ttfamily,
+  % Fix errors in the default definition of ocaml.
+  deletekeywords={closed,ref},
+  morekeywords={initializer,effect,perform,continue},
+  % General settings.
+  flexiblecolumns=false,
+  showstringspaces=false,
+%%  framesep=5pt,
+  %% Hide comments
+  commentstyle=\@gobble,
+  % By default, we use a small font.
+  basicstyle=\tt\small,
+  numberstyle=\footnotesize,
+  numbers=left,
+  % LaTeX escape.
+  %% mathescape=true,
+  % LaTeX escape as an OCaml comment.
+  escapeinside={(*@}{*)},
+  % Range markers.
+  rangeprefix=\(\*\ \=,
+  rangesuffix=\=\ \*\),
+  includerangemarker=false,
+}
+
+\newcommand{\ocamlfrom}[2]
+           {\lstinputlisting[language=ocaml,linerange={#2}-end]{../../bin/#1}}
+
+% An environment.
+\lstnewenvironment{ocaml}{\lstset{language=ocaml}}{}
