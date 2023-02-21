@@ -4,6 +4,8 @@
 \usepackage{amsmath, amssymb}
 \usepackage{pf}
 \usepackage{plong}
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{\textcolor{red}{$\langle$ Pierre:}~#1\textcolor{red}{~$\rangle$}}
 
 \begin{document}
 \section{Terms}
@@ -41,6 +43,11 @@ $
 $
 \section{Scoped terms}
 \subsection{Terms environnement}
+
+\TODO{I am not a big fan of the notation ``$\envextend a b c$'': the
+  directionality of the substitution is not visually preserved. How
+  about $a [ b \mapsto c ]$?}
+
 $
 \begin{array}{ccll}
 \env & ::= & \\
