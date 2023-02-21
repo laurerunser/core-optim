@@ -109,6 +109,9 @@ $
 \aStack ::= \emptyStack \:|\: \nonEmptyStack \aFrame \aStack \quad \text{(stacks)}
 $
 \section{Simplifications}
+
+\TODO{Définir ``bien scopé'' pour les terms et les piles. (Et ne pas utiliser un anglicisme, ou écrire en anglais : ``bien formé''?)}
+
 \textbf{Prop:}
 Soit $\scoped \aTerm \env$ un terme bien scopé. Soit $\aStack$ une stack bien scopé.
 Alors $\go {\scoped \aTerm \env} \aStack = \aTerm[1]$ avec $\stackapp \aStack {\subs \aTerm \env} \to^* \aTerm[1]$.
