@@ -65,7 +65,6 @@ and simplify_aux (t : term scoped) (acc : stack) =
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc -> go (inherit_scope body t) acc
   in
-  assert (well_scoped_term t);
   let t' = go t acc in
   (* check that the term is closed *)
   assert (
