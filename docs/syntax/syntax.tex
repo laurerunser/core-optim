@@ -4,6 +4,8 @@
 \usepackage{amsmath, amssymb}
 \usepackage{pf}
 \usepackage{plong}
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{\textcolor{red}{$\langle$ Pierre:}~#1\textcolor{red}{~$\rangle$}}
 
 \begin{document}
 \section{Terms}
@@ -41,6 +43,11 @@ $
 $
 \section{Scoped terms}
 \subsection{Terms environnement}
+
+\TODO{I am not a big fan of the notation ``$\envextend a b c$'': the
+  directionality of the substitution is not visually preserved. How
+  about $a [ b \mapsto c ]$?}
+
 $
 \begin{array}{ccll}
 \env & ::= & \\
@@ -98,24 +105,31 @@ $
 $
 \aStack ::= \emptyStack \:|\: \nonEmptyStack \aFrame \aStack \quad \text{(stacks)}
 $
+
+\TODO{Définir formellement le ``plug'' d'un terme dans une pile.}
+
 \section{Simplifications}
+
+\TODO{Définir ``bien scopé'' pour les terms et les piles. (Et ne pas utiliser un anglicisme, ou écrire en anglais : ``bien formé''?)}
+\TODO{Problème de notation : le ``plug'' d'un terme dans une pile utilise la même notation que l'application d'une substitution. Ce sont 2 concepts distincts, il faut 2 notations différentes.}
+
 \textbf{Prop:}
 Soit $\scoped \aTerm \env$ un terme bien scopé. Soit $\aStack$ une stack bien scopé.
 Alors $\go {\scoped \aTerm \env} \aStack = \aTerm[1]$ avec $\stackapp \aStack {\subs \aTerm \env} \to^* \aTerm[1]$.
 \begin{proof}
   \pfsketch\ Preuve par induction sur $\aTerm$
   \assume{\begin{pfenum}
-            \item $\scoped \aTerm \env$ est un terme bien scopé
-            \item $\aStack$ est bien scopé
+            \item $\scoped \aTerm \env$ est un terme bien scopé \label{pf:term-scoped}
+            \item $\aStack$ est bien scopé \label{pf:stack-scoped}
           \end{pfenum}}
   \prove{$\stackapp \aStack {\subs \aTerm \env} \to^* \go {\scoped \aTerm \env} \aStack$ }
   \step{label-1}{$\scoped \aTerm \env$ est bien scopé si les variables (termes et types) libres de $\aTerm$ sont substitués par $\env$.}
   \begin{proof}
-    \pf\ Par définition d'un terme bien scopé
+    \pf\ Par définition d'un terme bien scopé \TODO{Cette étape semble être une tautologie, cf. hypothèse \ref{pf:term-scoped}}
   \end{proof}
   \step{label-2}{$\aStack$ est bien scopé si tous les termes ou types scopés des frames sont bien scopés.}
   \begin{proof}
-    \pf\ Par définition d'une stack bien scopé
+    \pf\ Par définition d'une stack bien scopé \TODO{Cette étape semble être une tautologie, cf. hypothèse \ref{pf:stack-scoped}}
   \end{proof}
   \step{label-3}{\case{$\aTerm = \aVar$}}
   \begin{proof}
