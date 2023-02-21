@@ -127,17 +127,17 @@ Alors $\go {\scoped \aTerm \env} \aStack = \aTerm[1]$ avec $\stackapp \aStack {\
 \begin{proof}
   \pfsketch\ Preuve par induction sur $\aTerm$
   \assume{\begin{pfenum}
-            \item $\scoped \aTerm \env$ est un terme bien scopé
-            \item $\aStack$ est bien scopé
+            \item $\scoped \aTerm \env$ est un terme bien scopé \label{pf:term-scoped}
+            \item $\aStack$ est bien scopé \label{pf:stack-scoped}
           \end{pfenum}}
   \prove{$\stackapp \aStack {\subs \aTerm \env} \to^* \go {\scoped \aTerm \env} \aStack$ }
   \step{label-1}{$\scoped \aTerm \env$ est bien scopé si les variables (termes et types) libres de $\aTerm$ sont substitués par $\env$.}
   \begin{proof}
-    \pf\ Par définition d'un terme bien scopé
+    \pf\ Par définition d'un terme bien scopé \TODO{Cette étape semble être une tautologie, cf. hypothèse \ref{pf:term-scoped}}
   \end{proof}
   \step{label-2}{$\aStack$ est bien scopé si tous les termes ou types scopés des frames sont bien scopés.}
   \begin{proof}
-    \pf\ Par définition d'une stack bien scopé
+    \pf\ Par définition d'une stack bien scopé \TODO{Cette étape semble être une tautologie, cf. hypothèse \ref{pf:stack-scoped}}
   \end{proof}
   \step{label-3}{\case{$\aTerm = \aVar$}}
   \begin{proof}
