@@ -10,6 +10,7 @@ let rec simplify (t : term) =
   t
 
 and simplify_aux (t : term scoped) (acc : stack) =
+  (* =go= *)
   let rec go t acc =
     assert (well_scoped_term t);
     assert (well_scoped_stack acc);
@@ -23,7 +24,7 @@ and simplify_aux (t : term scoped) (acc : stack) =
             if b then go e1 acc else go e2 acc
         | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
-    | Fun (x, _, body), HoleFun b :: acc ->
+    | Fun (x, _, body), HoleFun b :: acc -> (*@ \label{go:fun-holefun} *)
         go (scope_with_new_var body t x (discharge_base b)) acc
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
         go (scope_with_new_ty body t alpha (discharge_ty ty2)) acc
@@ -64,6 +65,7 @@ and simplify_aux (t : term scoped) (acc : stack) =
         plug acc t
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc -> go (inherit_scope body t) acc
+  (* =end= *)
   in
   assert (well_scoped_term t);
   let t' = go t acc in
