@@ -61,3 +61,15 @@ val pretty_print_frame : frame -> PPrint.document
 val pretty_print : frame list -> PPrint.document
 val to_string : frame list -> string
 (* pretty printing functions *)
+
+val synth_stack : stack -> Types.ty -> Types.ty VarMap.t -> Types.ty
+val simplify : Terms.term -> Terms.term
+(* [simplify t] simplifies the term [t]
+   The simplifications:
+   - beta-reduction :
+        - `(fun x.t) a` becomes `t[x\a]`
+        - `(fun [X].t) Y` becomes `t[X\Y]`
+    - if branches simplification :
+        - `if true then a else b` becomes `a`
+        - `if false then a else b` becomes `b`
+*)

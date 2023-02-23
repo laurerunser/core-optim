@@ -2,7 +2,6 @@ open Libfun
 open Terms
 open Types
 open Atom
-open Typechecker
 open Syntax
 open Stack
 
@@ -231,7 +230,7 @@ let test_typechecking_stack expected stack ty ctxt =
     (Format.asprintf "type: %a\nin stack: %a\nexpected: %a" pp_ty ty pp_stack
        stack pp_ty expected)
     expected
-    (Typechecker.synth_stack stack ty ctxt)
+    (synth_stack stack ty ctxt)
 
 let test_fail_typecheck_stack msg stack t ctxt =
   Alcotest.(
