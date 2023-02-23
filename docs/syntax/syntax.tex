@@ -6,6 +6,7 @@
 \usepackage{plong}
 \usepackage{listings-ocaml}
 \usepackage{xcolor}
+\usepackage{hyperref}
 \newcommand{\TODO}[1]{\textcolor{red}{$\langle$ Pierre:}~#1\textcolor{red}{~$\rangle$}}
 
 \begin{document}
@@ -44,11 +45,6 @@ $
 $
 \section{Scoped terms}
 \subsection{Terms environnement}
-
-\TODO{I am not a big fan of the notation ``{\envextend a b c}'': the
-  directionality of the substitution is not visually preserved. How
-  about $a [ b \mapsto c ]$?}
-
 $
 \begin{array}{ccll}
 \env & ::= & \\
@@ -58,7 +54,11 @@ $
 \end{array}
 $\\
 A scoped term is written $\scoped \aTerm \env$ and a scoped type is written $\scoped \aType \env$
-\subsection{Substitution}
+
+\subsection{Well scoped} \label{well-scoped-term}
+$\scoped \aTerm \env$ is well scoped if the free variables and the free type variables of $\aTerm$ are substituted by $\env$ \\
+$\scoped \aType \env$ is well scoped if the free type variables of $\aType$ are substituted by $\env$
+\subsection{Substitution} \label{substitution}
 \subsubsection{Type substitution}
 
 \begin{align*}
@@ -77,24 +77,24 @@ A scoped term is written $\scoped \aTerm \env$ and a scoped type is written $\sc
 
 
 \subsubsection{Term substitution}
-$
-\subs \aVar \envid = \aVar \\
-\subs \aVar {\envextend \env {\aVar[1]} \aBase} =
+\begin{align*}
+\subs \aVar \envid &= \aVar \\
+\subs \aVar {\envextend \env {\aVar[1]} \aBase} &=
 \begin{cases}
   \aBase & \text{if } \aVar = \aVar[1] \\
   \subs \aVar \env & \text{otherwise}
 \end{cases} \\
-\subs \aVar {\envextend \env \aTypeVar \aType} = \subs \aVar \env \\
-\subs \true \env = \true \\
-\subs \false \env = \false \\
-\subs {(\tfun \aVar \aType \aTerm)} \env = \tfun {\aVar[1]} {\subs \aType \env} {\subs \aTerm {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tfun \aVar \aType \aTerm) \text{ and } \aVar[1] \notin FV(\env) \\
-\subs {(\tapp \aTerm {\aTerm[1]})} \env = \tapp {\subs \aTerm \env} {\subs {\aTerm[1]} \env} \\
-\subs {(\tlet \aVar \aTerm \aTerm[1])} \env = \tlet {\aVar[1]} {\subs \aTerm \env} {\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tlet \aVar \aTerm \aTerm[1]) \text{ and } \aVar[1] \notin FV(\env) \\
-\subs {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env = \ite {\subs \aTerm \env} {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env} \\
-\subs {(\ttyfun \aTypeVar \aTerm)} \env = \ttyfun {\aTypeVar[1]} {\subs \aTerm {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm) \text{ and } \aTypeVar[1] \notin FV(\env) \\
-\subs {(\ttyapp \aTerm \aType)} \env = \ttyapp {\subs \aTerm \env} {\subs \aType \env} \\
-\subs {\ttyann \aTerm \aType} \env = \ttyann {\subs \aTerm \env} {\subs \aType \env}
-$
+\subs \aVar {\envextend \env \aTypeVar \aType} &= \subs \aVar \env \\
+\subs \true \env &= \true \\
+\subs \false \env &= \false \\
+\subs {(\tfun \aVar \aType \aTerm)} \env &= \tfun {\aVar[1]} {\subs \aType \env} {\subs \aTerm {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tfun \aVar \aType \aTerm) \text{ and } \aVar[1] \notin FV(\env) \\
+\subs {(\tapp \aTerm {\aTerm[1]})} \env &= \tapp {\subs \aTerm \env} {\subs {\aTerm[1]} \env} \\
+\subs {(\tlet \aVar \aTerm \aTerm[1])} \env &= \tlet {\aVar[1]} {\subs \aTerm \env} {\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tlet \aVar \aTerm \aTerm[1]) \text{ and } \aVar[1] \notin FV(\env) \\
+\subs {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env &= \ite {\subs \aTerm \env} {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env} \\
+\subs {(\ttyfun \aTypeVar \aTerm)} \env &= \ttyfun {\aTypeVar[1]} {\subs \aTerm {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm) \text{ and } \aTypeVar[1] \notin FV(\env) \\
+\subs {(\ttyapp \aTerm \aType)} \env &= \ttyapp {\subs \aTerm \env} {\subs \aType \env} \\
+\subs {\ttyann \aTerm \aType} \env &= \ttyann {\subs \aTerm \env} {\subs \aType \env}
+\end{align*}
 \section{Frames and stacks}
 $
 \begin{array}{ccll}
@@ -109,287 +109,268 @@ $
 $
 \aStack ::= \emptyStack \:|\: \nonEmptyStack \aFrame \aStack \quad \text{(stacks)}
 $
+\subsection{Well scoped} \label{well-scoped-stack}
+$\aStack$ is well scoped if all scoped terms and scoped types in all frames are well scoped
 
-\TODO{Définir formellement le ``plug'' d'un terme dans une pile.}
+\subsection{Stack evaluation} \label{stack-evaluation}
+\begin{align*}
+  \stackapp \emptyStack \aTerm &= \aTerm \\
+  \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm {(\subs \aBase \env)}} \\
+  \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\subs {\aType[1]} \env}} \\
+  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]'} {\aTerm[2]'}} \text{ where } \subs {\aTerm[1]} \env \to^* \aTerm[1]' \not\to \text{ and } \subs {\aTerm[2]} \env \to^* \aTerm[2]' \not\to \\
+\end{align*}
 
 \section{Simplifications}
-
-\TODO{Définir ``bien scopé'' pour les terms et les piles. (Et ne pas utiliser un anglicisme, ou écrire en anglais : ``bien formé''?)}
-\TODO{Problème de notation : le ``plug'' d'un terme dans une pile utilise la même notation que l'application d'une substitution. Ce sont 2 concepts distincts, il faut 2 notations différentes.}
-
-\TODO{In the proof, explicitly point to lines of code. Here is an
-  example of a pointer to a label in the OCaml code :
-  line~\ref{go:fun-holefun}}
-
-\textbf{Prop:}
-Soit $\scoped \aTerm \env$ un terme bien scopé. Soit $\aStack$ une stack bien scopé.
-Alors $\go {\scoped \aTerm \env} \aStack = \aTerm[1]$ avec $\stackapp \aStack {\subs \aTerm \env} \to^* \aTerm[1]$.
 \begin{proof}
-  \pfsketch\ Preuve par induction sur $\aTerm$
+  \pfsketch\ Proof by induction on $\aTerm$
   \assume{\begin{pfenum}
-            \item $\scoped \aTerm \env$ est un terme bien scopé \label{pf:term-scoped}
-            \item $\aStack$ est bien scopé \label{pf:stack-scoped}
+            \item $\scoped \aTerm \env$ is a well-scoped term \label{pf:term-scoped}
+            \item $\aStack$ is a well-scoped stack \label{pf:stack-scoped}
           \end{pfenum}}
-  \prove{$\stackapp \aStack {\subs \aTerm \env} \to^* \go {\scoped \aTerm \env} \aStack$ }
-  \step{label-1}{$\scoped \aTerm \env$ est bien scopé si les variables (termes et types) libres de $\aTerm$ sont substitués par $\env$.}
+  \prove{$\stackapp \aStack {\subs \aTerm \env} \to^* \go {\scoped \aTerm \env} \aStack$ where $\go {\scoped \aTerm \env} \aStack \not\to$}
+  \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
   \begin{proof}
-    \pf\ Par définition d'un terme bien scopé \TODO{Cette étape semble être une tautologie, cf. hypothèse \ref{pf:term-scoped}}
-  \end{proof}
-  \step{label-2}{$\aStack$ est bien scopé si tous les termes ou types scopés des frames sont bien scopés.}
-  \begin{proof}
-    \pf\ Par définition d'une stack bien scopé \TODO{Cette étape semble être une tautologie, cf. hypothèse \ref{pf:stack-scoped}}
-  \end{proof}
-  \step{label-3}{\case{$\aTerm = \aVar$}}
-  \begin{proof}
-    \step{label-3.1}{\case{$\subs \aVar \env = \aVar[1]$}}
+    \step{label-1.1}{If $\subs \aBase \env = \true$ and $\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}
     \begin{proof}
-      \step{label-3.1.1}{$\stackapp \aStack {\aVar[1]}$ n'est pas simplifiable}
+      \step{label-1.1.1}{$\stackapp {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})} \true \to \stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}$}
       \begin{proof}
-        \pf\ Par définition de $\to$
+        \pf\ By definition of stack evaluation and $\to$
       \end{proof}
-      \step{label-3.1.2}{$\go {\scoped \aVar \env} \aStack = \stackapp \aStack {\subs \aVar \env}$}
+      \step{label-1.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'} \not\to$}
       \begin{proof}
-        \pf\ Par définition de \textsf{go}
+        \pf\ By ?
+      \end{proof}
+      \step{label-1.1.3}{$\go {\scoped \aBase \env} {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})} = \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$}
+      \begin{proof}
+        \pf\ By definition of \textsf{go}
       \end{proof}
     \end{proof}
-    \step{label-3.2}{\case{$\subs \aVar \env = \true$}}
+    \step{label-1.2}{If $\subs \aBase \env = \false$ and $\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}
     \begin{proof}
-      \step{label-3.2.1}{Si $\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}
+      \step{label-1.2.1}{$\stackapp {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})} \false \to \stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}}$}
       \begin{proof}
-        \step{label-3.2.1.1}{$\stackapp \aStack \true \to \stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}$}
-        \begin{proof}
-          \pf\ $(\ite \true {\subs {\aTerm[1]} {\env'}} {\subs {\aTerm[2]} {\env'}}) \to \subs {\aTerm[1]} {\env'}$
-        \end{proof}
-        \step{label-3.2.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'} $}
-        \begin{proof}
-          \pf\ ?
-        \end{proof}
-        \step{label-3.2.1.3}{$\go {\scoped \aVar \env} \aStack = \go {\scoped {\aTerm[1]} {\env'}} {\aStack'} $}
-        \begin{proof}
-          \pf\ Par définition de \textsf{go}
-        \end{proof}
+        \pf\ By definition of stack evaluation and $\to$
       \end{proof}
-      \step{label-3.2.2}{Sinon}
+      \step{label-1.2.2}{$\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}} \to^* \go {\scoped {\aTerm[2]} {\env'}} {\aStack'} \not\to$}
       \begin{proof}
-        \step{label-3.2.2.1}{$\stackapp \aStack \true$ n'est pas simplifiable}
-        \begin{proof}
-          \pf\ Par définition de $\to$
-        \end{proof}
-        \step{label-3.2.2.2}{$\go {\scoped \aVar \env} \aStack = \stackapp \aStack {\subs \aVar \env}$}
-        \begin{proof}
-          \pf\ Par définition de \textsf{go}
-        \end{proof}
+        \pf\ By ?
+      \end{proof}
+      \step{label-1.2.3}{$\go {\scoped \aBase \env} {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})} = \go {\scoped {\aTerm[2]} {\env'}} {\aStack'}$}
+      \begin{proof}
+        \pf\ By definition of \textsf{go}
       \end{proof}
     \end{proof}
-    \step{label-3.3}{\case{$\subs \aVar \env = \false$}}
+    \step{label-1.3}{Else}
     \begin{proof}
-      \step{label-3.3.1}{Si $\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}
+      \step{label-1.3.1}{$\stackapp \aStack {\subs \aBase \env} \not\to$}
       \begin{proof}
-        \step{label-3.3.1.1}{$\stackapp \aStack \false \to \stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}}$}
-        \begin{proof}
-          \pf\ $(\ite \false {\subs {\aTerm[1]} {\env'}} {\subs {\aTerm[2]} {\env'}}) \to \subs {\aTerm[2]} {\env'}$
-        \end{proof}
-        \step{label-3.3.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}} \to^* \go {\scoped {\aTerm[2]} {\env'}} {\aStack'} $}
-        \begin{proof}
-          \pf\ ?
-        \end{proof}
-        \step{label-3.3.1.3}{$\go {\scoped \aVar \env} \aStack = \go {\scoped {\aTerm[2]} {\env'}} {\aStack'} $}
-        \begin{proof}
-          \pf\ Par définition de \textsf{go}
-        \end{proof}
+        \pf\ By definition of stack evaluation and $\to$
       \end{proof}
-      \step{label-3.3.2}{Sinon}
+      \step{label-1.3.2}{$\go {\scoped \aBase \env} \aStack = \stackapp \aStack {\subs \aBase \env}$}
       \begin{proof}
-        \step{label-3.3.2.1}{$\stackapp \aStack \false$ n'est pas simplifiable}
-        \begin{proof}
-          \pf\ Par définition de $\to$
-        \end{proof}
-        \step{label-3.3.2.2}{$\go {\scoped \aVar \env} \aStack = \stackapp \aStack {\subs \aVar \env}$}
-        \begin{proof}
-          \pf\ Par définition de \textsf{go}
-        \end{proof}
+        \pf\ By definition of \textsf{go}
       \end{proof}
     \end{proof}
   \end{proof}
-  \step{label-4}{\case{$\aTerm = \true$}}
-  \begin{proof}
-    \pf\ Même preuve que $\langle 1 \rangle 3 \langle 2 \rangle 2$ comme $\subs \true \env = \true$
-  \end{proof}
-  \step{label-5}{\case{$\aTerm = \false$}}
-  \begin{proof}
-    \pf\ Même preuve que $\langle 1 \rangle 3 \langle 2 \rangle 3$ comme $\subs \false \env = \false$
-  \end{proof}
-  \step{label-6}{\case{\begin{pfenum}
-                        \item $\aTerm = (\tfun \aVar \aType {\aTerm[1]})$
-                        \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
+  \step{label-2}{\case{\begin{pfenum}
+                        \item $\aTerm = (\tfun \aVar \aType {\aTerm[3]})$ \label{pf:2-term}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[3]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[3]} {\env[1]}} \to^* \go {\scoped {\aTerm[3]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:2-ih}
                       \end{pfenum}}}
   \begin{proof}
-    \step{label-6.1}{Si $\aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'}$}
+    \step{label-2.1}{If $\aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'}$ (line~\ref{go:fun-holefun})}
     \begin{proof}
-      \step{label-6.1.1}{$\stackapp \aStack {\subs {(\tfun \aVar \aType {\aTerm[1]})} \env} \to \stackapp {\aStack'} {\subs {\aTerm[1]} {\envextend \env \aVar {\subs \aBase {\env'}}}}$}
+      \step{label-2.1.1}{$\stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} \to \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}}$}
       \begin{proof}
         \pf\ \\
         $\begin{aligned}[t]
-          \tapp {\subs {(\tfun \aVar \aType {\aTerm[1]})} \env} {(\subs \aBase {\env'})}
-          & = \tapp {(\tfun {\aVar[1]} {\subs \aType \env} {\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}})} {(\subs \aBase {\env'})} \quad \text{avec } \aVar[1] \notin FV(t) \cup FV(\env) \\
-          & \to \subs {\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}} \\
-          & = \subs {\aTerm[1]} {\envextend \env \aVar {\subs \aBase {\env'}}} \quad \text{comme } \aVar[1] \notin FV(\env)
+          & \stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} \\
+          & = \stackapp {\aStack'} {\tapp {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} {(\subs \aBase {\env'})}} \\
+          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs \aType \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} {(\subs \aBase {\env'})}} \text{ with }\aVar[1] \notin FV(\aTerm) \cup FV(\env) \\
+          & \to \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} \\
+          & = \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} \text{ as } \aVar[1] \notin FV(\env)
         \end{aligned}$
       \end{proof}
-      \step{label-6.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[1]} {\envextend \env \aVar {\subs \aBase {\env'}}}} \to^* \go {\scoped {\aTerm[1]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'}$}
+      \step{label-2.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} \to^* \go {\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'} \not\to$}
       \begin{proof}
-        \step{label-6.1.2.1}{$\scoped {\aTerm[1]} {\envextend \env \aVar {\subs \aBase {\env'}}}$ est bien scopé}
+        \step{label-2.1.2.1}{$\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}$ is well scoped}
         \begin{proof}
-          \step{label-6.1.2.1.1}{$FV(u) \subseteq FV(t) \cup \{ x \}$}
+          \step{label-2.1.2.1.1}{$FV(\aTerm[3]) \subseteq FV(\aTerm) \cup \{ x \}$}
           \begin{proof}
-            \pf\ Par \stepref{label-6}:1 et la définition des variables libres
+            \pf\ By \stepref{label-2}:\ref{pf:2-term} and the definition of free variables
           \end{proof}
           \qedstep
           \begin{proof}
-            \pf\ Par \stepref{label-1} et \toplevel{:1}
+            \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
           \end{proof}
         \end{proof}
-        \step{label-6.1.2.2}{$\aStack'$ est bien scopé}
+        \step{label-2.1.2.2}{$\aStack'$ is well scoped}
         \begin{proof}
-          \pf\ Par \toplevel{:2} et \stepref{label-2}
+          \pf\ By \toplevel:\ref{pf:stack-scoped} and the definition of well scoped stack~\ref{well-scoped-stack}
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ Par l'hypothèse \stepref{label-6}:2
+          \pf\ By \stepref{label-2}:\ref{pf:2-ih}
         \end{proof}
       \end{proof}
-      \step{label-6.1.3}{$\go {\scoped {(\tfun \aVar \aType {\aTerm[1]})} \env} \aStack = \go {\scoped {\aTerm[1]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'}$}
+      \step{label-2.1.3}{$\go {\scoped {(\tfun \aVar \aType {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'}$}
       \begin{proof}
-        \pf\ Par définition de \textsf{go}
+        \pf\ By definition of \textsf{go}
       \end{proof}
     \end{proof}
-    \step{label-6.2}{Sinon}
+    \step{label-2.2}{Else (line~\ref{go:fun-else})}
     \begin{proof}
-      \step{label-6.2.1}{$\stackapp \aStack {\subs {(\tfun \aVar \aType {\aTerm[1]})} \env} \to^* \stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\aTerm[2]}}$ avec $\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}} \to^* \aTerm[2]$}
+      \step{label-2.2.1}{$\stackapp \aStack {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} \to^* \stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\aTerm[2]}}$ where $\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}} \to^* \aTerm[2]$}
       \begin{proof}
-        \pf\ Par substitution et définition de $\to^*$
+        \pf\ By substitution~\ref{substitution} and définition of $\to^*$
       \end{proof}
-      \step{label-6.2.2}{$\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}} \to^* \go {\scoped {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack $}
+      \step{label-2.2.2}{$\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}} \to^* \go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack \not\to$}
       \begin{proof}
-        \step{label-6.2.2.1}{$\scoped {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}$ est bien scopé}
+        \step{label-2.2.2.1}{$\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$ is well scoped}
         \begin{proof}
-          \step{label-6.2.2.1.1}{$FV(u) \subseteq FV(t) \cup \{ x \}$}
+          \step{label-2.2.2.1.1}{$FV(\aTerm[3]) \subseteq FV(\aTerm) \cup \{ x \}$}
           \begin{proof}
-            \pf\ Par \stepref{label-6}:1 et la définition des variables libres
+            \pf\ By \stepref{label-2}:\ref{pf:2-term} and the definition of free variables
           \end{proof}
           \qedstep
           \begin{proof}
-            \pf\ Par \stepref{label-1} et \toplevel{:1}
+            \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
           \end{proof}
         \end{proof}
-        \step{label-6.2.2.2}{$\emptyStack$ est bien scopé}
+        \step{label-2.2.2.2}{$\emptyStack$ is well scoped}
         \begin{proof}
-          \pf\ Par \stepref{label-2}
+          \pf\ By the definition of well scoped stack~\ref{well-scoped-stack}
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ Par l'hypothèse \stepref{label-6}:2
+          \pf\ By \stepref{label-2}:\ref{pf:2-ih}
         \end{proof}
       \end{proof}
-      \step{label-6.2.3}{$\go {\scoped {(\tfun \aVar \aType {\aTerm[1]})} \env} \aStack = \stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\go {\scoped {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$}
+      \step{label-2.2.3}{$\go {\scoped {(\tfun \aVar \aType {\aTerm[3]})} \env} \aStack = \stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$}
       \begin{proof}
-        \pf\ Par définition de \textsf{go}
+        \pf\ By definition of \textsf{go}
       \end{proof}
     \end{proof}
   \end{proof}
-  \step{label-7}{\case{\begin{pfenum}
-                  \item $\aTerm = \tapp {\aTerm[1]} {\aBase}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
-                \end{pfenum}}}
+  \step{label-3}{\case{\begin{pfenum}
+                        \item $\aTerm = \ttyfun \aTypeVar {\aTerm[3]}$ \label{pf:3-term}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[3]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[3]} {\env[1]}} \to^* \go {\scoped {\aTerm[3]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:3-ih}
+                       \end{pfenum}}}
   \begin{proof}
-    \step{label-7.1}{$\stackapp \aStack {\subs {(\tapp {\aTerm[1]} {\aBase})} \env} = \stackapp {(\nonEmptyStack \aFunFrame \aStack)} {\subs {\aTerm[1]} \env}$}
+    \step{label-3.1}{If $\aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'}$ (line~\ref{go:tyfun-holetype})}
     \begin{proof}
-      \pf\ Par définition de la substitution et du context applied function
+      \step{label-3.1.1}{$\stackapp {(\nonEmptyStack {\aPolyFrame[\env']} {\aStack'})} {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \to \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}}$}
+      \step{label-3.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} \to^* \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'} \not\to$}
+      \step{label-3.1.3}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'}$}
     \end{proof}
-    \step{label-7.2}{$\stackapp {(\nonEmptyStack \aFunFrame \aStack)} {\subs {\aTerm[1]} \env} \to^* \go {\scoped {\aTerm[1]} \env} {(\nonEmptyStack \aFunFrame \aStack)}$}
+    \step{label-3.2}{Else (line~\ref{go:tyfun-else})}
     \begin{proof}
-      \step{label-7.2.1}{$\scoped {\aTerm[1]} \env$ et $\scoped \aBase \env$ sont bien scopés}
+      \step{label-3.2.1}{$\stackapp \aStack {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \to^* \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\aTerm[2]}}$ where $\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \to^* \aTerm[2]$}
+      \step{label-3.2.2}{$\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \to^* \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack \not\to $}
+      \step{label-3.2.3}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}$}
+    \end{proof}
+  \end{proof}
+  \step{label-4}{\case{\begin{pfenum}
+                        \item $\aTerm = \tapp {\aTerm[3]} {\aBase}$ (line~\ref{go:funApply}) \label{pf:4-term}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[3]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[3]} {\env[1]}} \to^* \go {\scoped {\aTerm[3]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:4-ih}
+                      \end{pfenum}}}
+  \begin{proof}
+    \step{label-4.1}{$\stackapp \aStack {\subs {(\tapp {\aTerm[3]} {\aBase})} \env} = \stackapp {(\nonEmptyStack \aFunFrame \aStack)} {\subs {\aTerm[3]} \env}$}
+    \begin{proof}
+      \pf\ By substitution~\ref{substitution} and stack evaluation~\ref{stack-evaluation}
+    \end{proof}
+    \step{label-4.2}{$\stackapp {(\nonEmptyStack \aFunFrame \aStack)} {\subs {\aTerm[3]} \env} \to^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack \aFunFrame \aStack)} \not\to$}
+    \begin{proof}
+      \step{label-4.2.1}{$\scoped {\aTerm[3]} \env$ and $\scoped \aBase \env$ are well scoped}
       \begin{proof}
-        \step{label-7.2.1.1}{$FV(u) \subseteq FV(t)$ et $FV(\aBase) \subseteq FV(t)$}
+        \step{label-4.2.1.1}{$FV(\aTerm[3]) \subseteq FV(\aTerm)$ and $FV(\aBase) \subseteq FV(\aTerm)$}
         \begin{proof}
-          \pf\ Par \stepref{label-7}:1 et la définition des variables libres
+          \pf\ By \stepref{label-4}:\ref{pf:4-term} and the definition of free variables
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ Par \stepref{label-1} et \toplevel{:1}
+          \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
         \end{proof}
       \end{proof}
-      \step{label-7.2.2}{$(\nonEmptyStack \aFunFrame \aStack)$ est bien scopé}
+      \step{label-4.2.2}{$(\nonEmptyStack \aFunFrame \aStack)$ is well scoped}
       \begin{proof}
-        \pf\ Par \stepref{label-7.2.1}, \toplevel{:2} et \stepref{label-2}
+        \pf\ By \toplevel:\ref{pf:stack-scoped} and the definition of well scoped stack~\ref{well-scoped-stack}
       \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ Par l'hypothèse \stepref{label-7}:2
+        \pf\ By \stepref{label-4}:\ref{pf:4-ih}
       \end{proof}
     \end{proof}
-    \step{label-7.3}{$\go {\scoped {(\tapp {\aTerm[1]} \aBase)} \env} \aStack = \go {\scoped {\aTerm[1]} \env {(\nonEmptyStack \aFunFrame \aStack)}}$}
+    \step{label-4.3}{$\go {\scoped {(\tapp {\aTerm[3]} \aBase)} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack \aFunFrame \aStack)}}$}
     \begin{proof}
-      \pf\ Par définition de \textsf{go}
+      \pf\ By definition of \textsf{go}
     \end{proof}
+  \end{proof}
+  \step{label-5}{\case{\begin{pfenum}
+                        \item $\aTerm = \ttyapp {\aTerm[3]} {\aType[1]}$ (line~\ref{go:typeApply}) \label{pf:5-term}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[3]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[3]} {\env[1]}} \to^* \go {\scoped {\aTerm[3]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:5-ih}
+                      \end{pfenum}}}
+  \begin{proof}
+    \step{label-5.1}{$\stackapp \aStack {\subs {(\ttyapp {\aTerm[3]} {\aType[1]})} \env} = \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} {\subs {\aTerm[3]} \env}$}
+    \step{label-5.2}{$\stackapp {(\nonEmptyStack \aPolyFrame \aStack)} {\subs {\aTerm[3]} \env} \to^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack \aPolyFrame \aStack)} \not\to$}
+    \step{label-5.3}{$\go {\scoped {(\ttyapp {\aTerm[3]} {\aType[1]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack \aPolyFrame \aStack)}}$}
+  \end{proof}
+  \step{label-6}{\case{\begin{pfenum}
+                        \item $\aTerm = \ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]}$ (line~\ref{go:ite}) \label{pf:6-term}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[3]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[3]} {\env[1]}} \to^* \go {\scoped {\aTerm[3]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:6-ih1}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[4]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[4]} {\env[1]}} \to^* \go {\scoped {\aTerm[4]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:6-ih2}
+                        \item $\forall \aStack[1], \forall \env[1].$ if $\scoped {\aTerm[5]} {\env[1]}$ is well scoped and $\aStack[1]$ is well scoped, then $\stackapp {\aStack[1]} {\subs {\aTerm[5]} {\env[1]}} \to^* \go {\scoped {\aTerm[5]} {\env[1]}} {\aStack[1]} \not\to$ \label{pf:6-ih3}
+                      \end{pfenum}}}
+  \begin{proof}
+    \step{label-6.1}{$\stackapp \aStack {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} = \stackapp {(\nonEmptyStack {\aIteFrameAll \env {\aTerm[4]} {\aTerm[5]}} \aStack)} {\subs {\aTerm[3]} \env}$}
+    \begin{proof}
+      \pf\ By substitution~\ref{substitution} and stack evaluation~\ref{stack-evaluation}
+    \end{proof}
+    \step{label-6.2}{$\stackapp {(\nonEmptyStack {\aIteFrameAll \env {\aTerm[4]} {\aTerm[5]}} \aStack)} {\subs {\aTerm[3]} \env} \to^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aIteFrameAll \env {\aTerm[4]} {\aTerm[5]}} \aStack)} \not\to$}
+    \begin{proof}
+      \step{label-6.2.1}{$\scoped {\aTerm[3]} \env$, $\scoped {\aTerm[4]} \env$ and $\scoped {\aTerm[5]} \env$ are well scoped}
+      \begin{proof}
+        \step{label-6.2.1.1}{$FV(\aTerm[3]) \subseteq FV(\aTerm)$, $FV(\aTerm[4]) \subseteq FV(\aTerm)$ and $FV(\aTerm[5]) \subseteq FV(\aTerm)$}
+        \begin{proof}
+          \pf\ By \stepref{label-6}:\ref{pf:4-term} and the definition of free variables
+        \end{proof}
+        \qedstep
+        \begin{proof}
+          \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
+        \end{proof}
+      \end{proof}
+      \step{label-6.2.2}{$(\nonEmptyStack {\aIteFrameAll \env {\aTerm[4]} {\aTerm[5]}} \aStack)$ is well scoped}
+      \begin{proof}
+        \pf\ By \toplevel:\ref{pf:stack-scoped} and the definition of well scoped stack~\ref{well-scoped-stack}
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By \stepref{label-6}:\ref{pf:6-ih1}
+      \end{proof}
+    \end{proof}
+    \step{label-6.3}{$\go {\scoped {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll \env {\aTerm[4]} {\aTerm[5]}} \aStack)}}$}
+    \begin{proof}
+      \pf\ By definition of \textsf{go}
+    \end{proof}
+  \end{proof}
+  \step{label-7}{\case{\begin{pfenum}
+                  \item $\aTerm = \tlet \aVar {\aTerm[3]} {\aTerm[4]}$ (line~\ref{go:let}) \label{pf:7-term}
+                  \item $\forall \aStack', \forall \env'.$ if $\aStack'$ is well scoped and $\scoped {\aTerm[1]} {\env'}$ is well scoped, then $\stackapp {\aStack'} {\subs {\aTerm[3]} {\env'}} \to^* \go {\scoped {\aTerm[3]} {\env'}} {\aStack'} \not\to$ \label{pf:7-ih1}
+                  \item $\forall \aStack', \forall \env'.$ if $\aStack'$ is well scoped and $\scoped {\aTerm[2]} {\env'}$ is well scoped, then $\stackapp {\aStack'} {\subs {\aTerm[4]} {\env'}} \to^* \go {\scoped {\aTerm[4]} {\env'}} {\aStack'} \not\to$ \label{pf:7-ih2}
+                \end{pfenum}}}
+  \begin{proof}
+    \step{label-7.1}{$\stackapp \aStack {\subs {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env} \to^* \stackapp \aStack {(\tlet {\aVar[1]} {\aTerm[3]'} {\aTerm[4]'})}$ where $\subs {\aTerm[3]} \env \to^* {\aTerm[3]'}$ and $\subs {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}} \to^* {\aTerm[4]'}$}
+    \step{label-7.2}{$\subs {\aTerm[3]} \env \to^* \go {\scoped {\aTerm[3]} \env} \emptyStack \not\to$}
+    \step{label-7.3}{$\subs {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}} \to^* \go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack \not\to$}
+    \step{label-7.4}{$\go {\scoped {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env} \aStack = \stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})}$}
   \end{proof}
   \step{label-8}{\case{\begin{pfenum}
-                  \item $\aTerm = \tlet \aVar {\aTerm[1]} {\aTerm[2]}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[2]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}} \to^* \go {\scoped {\aTerm[2]} {\env'}} {\aStack'}$
+                  \item $\aTerm = \ttyann {\aTerm[3]} \aType$ (line~\ref{go:annot}) \label{pf:8-term}
+                  \item $\forall \aStack', \forall \env'.$ if $\aStack'$ if well scoped and $\scoped {\aTerm[1]} {\env'}$ is well scoped, then $\stackapp {\aStack'} {\subs {\aTerm[3]} {\env'}} \to^* \go {\scoped {\aTerm[3]} {\env'}} {\aStack'} \not\to$ \label{pf:8-ih}
                 \end{pfenum}}}
   \begin{proof}
-    \step{label-8.1}{$\stackapp \aStack {\subs {(\tlet \aVar {\aTerm[1]} {\aTerm[2]})} \env} \to^* \stackapp \aStack {(\tlet {\aVar[1]} {\aTerm[1]'} {\aTerm[2]'})}$ avec $\subs {\aTerm[1]} \env \to^* {\aTerm[1]'}$ et $\subs {\aTerm[2]} {\envextend \env \aVar {\aVar[1]}} \to^* {\aTerm[2]'}$}
-    \step{label-8.2}{$\subs {\aTerm[1]} \env \to^* \go {\scoped {\aTerm[1]} \env} \emptyStack $}
-    \step{label-8.3}{$\subs {\aTerm[2]} {\envextend \env \aVar {\aVar[1]}} \to^* \go {\scoped {\aTerm[2]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack $}
-    \step{label-8.4}{$\go {\scoped {(\tlet \aVar {\aTerm[1]} {\aTerm[2]})} \env} \aStack = \stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})}$}
-  \end{proof}
-  \step{label-9}{\case{\begin{pfenum}
-                  \item $\aTerm = \ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[3]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[3]} {\env'}} \to^* \go {\scoped {\aTerm[3]} {\env'}} {\aStack'}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[2]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}} \to^* \go {\scoped {\aTerm[2]} {\env'}} {\aStack'}$
-                \end{pfenum}}}
-  \begin{proof}
-    \step{label-9.1}{$\stackapp \aStack {\subs {(\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]})} \env} = \stackapp {(\nonEmptyStack \aIteFrame \aStack)} {\subs {\aTerm[3]} \env}$}
-    \step{label-9.2}{$\stackapp {(\nonEmptyStack \aIteFrame \aStack)} {\subs {\aTerm[3]} \env} \to^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack \aIteFrame \aStack)}$}
-    \step{label-9.3}{$\go {\scoped {(\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack \aIteFrame \aStack)}}$}
-  \end{proof}
-  \step{label-10}{\case{\begin{pfenum}
-                  \item $\aTerm = \ttyfun \aTypeVar {\aTerm[1]} $
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
-                \end{pfenum}}}
-  \begin{proof}
-    \step{label-10.1}{Si $\aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'}$}
-    \begin{proof}
-      \step{label-10.1.1}{$\stackapp \aStack {\subs {(\ttyfun \aTypeVar {\aTerm[1]})} \env} \to \stackapp {\aStack'} {\subs {\aTerm[1]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}}$}
-      \step{label-10.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[1]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} \to^* \go {\scoped {\aTerm[1]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'}$}
-      \step{label-10.1.3}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[1]})} \env} \aStack = \go {\scoped {\aTerm[1]} {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'}$}
-    \end{proof}
-    \step{label-10.2}{Sinon}
-    \begin{proof}
-      \step{label-6.2.1}{$\stackapp \aStack {\subs {(\ttyfun \aTypeVar {\aTerm[1]})} \env} \to^* \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\aTerm[2]}}$ avec $\subs {\aTerm[1]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \to^* \aTerm[2]$}
-      \step{label-6.2.2}{$\subs {\aTerm[1]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \to^* \go {\scoped {\aTerm[1]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack $}
-      \step{label-6.2.3}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[1]})} \env} \aStack = \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[1]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}$}
-    \end{proof}
-  \end{proof}
-  \step{label-11}{\case{\begin{pfenum}
-                  \item $\aTerm = \ttyapp {\aTerm[1]} {\aType[1]}$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
-                \end{pfenum}}}
-  \begin{proof}
-    \step{label-11.1}{$\stackapp \aStack {\subs {(\ttyapp {\aTerm[1]} {\aType[1]})} \env} = \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} {\subs {\aTerm[1]} \env}$}
-    \step{label-11.2}{$\stackapp {(\nonEmptyStack \aPolyFrame \aStack)} {\subs {\aTerm[1]} \env} \to^* \go {\scoped {\aTerm[1]} \env} {(\nonEmptyStack \aPolyFrame \aStack)}$}
-    \step{label-11.3}{$\go {\scoped {(\ttyapp {\aTerm[1]} {\aType[1]})} \env} \aStack = \go {\scoped {\aTerm[1]} \env {(\nonEmptyStack \aPolyFrame \aStack)}}$}
-  \end{proof}
-  \step{label-12}{\case{\begin{pfenum}
-                  \item $\aTerm = \ttyann {\aTerm[1]} \aType$
-                  \item $\forall \aStack', \forall \env'.$ si $\aStack'$ est bien scopé et $\scoped {\aTerm[1]} {\env'}$ est bien scopé, alors $\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}} \to^* \go {\scoped {\aTerm[1]} {\env'}} {\aStack'}$
-                \end{pfenum}}}
-  \begin{proof}
-    \step{label-12.1}{$\stackapp \aStack {\subs {\ttyann {\aTerm[1]} \aType} \env} \to \stackapp \aStack {\subs {\aTerm[1]} \env}$}
-    \step{label-12.2}{$\stackapp \aStack {\subs {\aTerm[1]} \env} \to^* \go {\scoped {\aTerm[1]} \env} \aStack$}
-    \step{label-12.3}{$\go {\scoped {\ttyann {\aTerm[1]} \aType} \env} \aStack = \go {\scoped {\aTerm[1]} \env} \aStack$}
+    \step{label-8.1}{$\stackapp \aStack {\subs {\ttyann {\aTerm[3]} \aType} \env} \to \stackapp \aStack {\subs {\aTerm[3]} \env}$}
+    \step{label-8.2}{$\stackapp \aStack {\subs {\aTerm[3]} \env} \to^* \go {\scoped {\aTerm[3]} \env} \aStack \not\to$}
+    \step{label-8.3}{$\go {\scoped {\ttyann {\aTerm[3]} \aType} \env} \aStack = \go {\scoped {\aTerm[3]} \env} \aStack$}
   \end{proof}
 \end{proof}
 
