@@ -235,7 +235,7 @@ and simplify_aux (t : term scoped) (acc : stack) =
     assert (well_scoped_stack acc);
     match (t.scope, acc) with
     (* replace base values, renaming variables if they appear in the substitutions *)
-    | Base _, acc -> (
+    | Base _, acc (*@ \label{go:base}*) -> (
         let t = discharge_term t in
         match (t, acc) with
         (* simplify if branches with booleans *)
@@ -243,48 +243,49 @@ and simplify_aux (t : term scoped) (acc : stack) =
             if b then go e1 acc else go e2 acc
         | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
-    | Fun (x, _, body), HoleFun b :: acc ->
-        (*@ \label{go:fun-holefun} *)
+    | Fun (x, _, body), HoleFun b :: acc (*@ \label{go:fun-holefun} *) ->
         go (scope_with_new_var body t x (discharge_base b)) acc
+    (*@ \label{go:tyfun-holetype} *)
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
         go (scope_with_new_ty body t alpha (discharge_ty ty2)) acc
     (* abstractions but can't simplify in the context *)
-    | Fun (x, ty, body), acc ->
+    | Fun (x, ty, body), acc (*@ \label{go:fun-else} *) ->
         let x' = Atom.fresh x.identifier in
         let ty = discharge_ty (inherit_scope ty t) in
         let body_scoped = scope_with_new_var body t x (Var x') in
         let new_body = go body_scoped [] in
         let t = Fun (x', ty, new_body) in
         plug acc t
-    | TypeAbstraction (alpha, body), acc ->
+    | TypeAbstraction (alpha, body), acc (*@ \label{go:tyfun-else} *) ->
         let alpha' = Atom.fresh alpha.identifier in
         let body_scoped = scope_with_new_ty body t alpha (TyFreeVar alpha') in
         let new_body = go body_scoped [] in
         let t = TypeAbstraction (alpha', new_body) in
         plug acc t
     (* cases that create a context that we can simplify in *)
-    | FunApply (f, arg), acc ->
+    | FunApply (f, arg), acc (*@ \label{go:funApply}*) ->
         let f = inherit_scope f t in
         let arg = inherit_scope arg t in
         go f (HoleFun arg :: acc)
-    | TypeApply (f, ty), acc ->
+    | TypeApply (f, ty), acc (*@ \label{go:typeApply}*) ->
         let f = inherit_scope f t in
         let ty = inherit_scope ty t in
         go f (HoleType ty :: acc)
-    | IfThenElse (t1, t2, t3), acc ->
+    | IfThenElse (t1, t2, t3), acc (*@ \label{go:ite}*) ->
         let t1 = inherit_scope t1 t in
         let t2 = inherit_scope t2 t in
         let t3 = inherit_scope t3 t in
         go t1 (HoleIf (t2, t3) :: acc)
     (* other cases *)
-    | Let (x, t1, body), acc ->
+    | Let (x, t1, body), acc (*@ \label{go:let}*) ->
         let x' = Atom.fresh x.identifier in
         let t1 = go (inherit_scope t1 t) [] in
         let body = go (scope_with_new_var body t x (Var x')) [] in
         let t = Let (x', t1, body) in
         plug acc t
     (* throw away the type annotation *)
-    | TypeAnnotation (body, _), acc -> go (inherit_scope body t) acc
+    | TypeAnnotation (body, _), acc (*@ \label{go:annot}*) ->
+        go (inherit_scope body t) acc
     (* =end= *)
   in
   let t' = go t acc in
