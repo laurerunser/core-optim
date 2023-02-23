@@ -3,7 +3,7 @@ open Terms
 open Types
 open Atom
 open Syntax
-open Simplify
+open Stack
 
 let pa = pretty_print_atom
 let toto = fresh "toto"
@@ -151,4 +151,16 @@ let test_simplification_fun_if () =
     $ Bool true
   in
   let expected = Base (Bool true) in
+  test_simplification expected t
+
+let test_simplification_var_if () =
+  let t =
+    fn x TyBool (fun x ->
+        ite (Base x)
+          (fn y TyBool (fun x -> Base x) $ Bool true)
+          (fn y TyBool (fun x -> Base x) $ Bool false))
+  in
+  let expected =
+    fn x TyBool (fun x -> ite (Base x) (Base (Bool true)) (Base (Bool false)))
+  in
   test_simplification expected t

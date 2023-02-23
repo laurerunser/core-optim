@@ -37,3 +37,10 @@ module VarMap = Types.VarMap
 
 val sub_var : Atom.t -> base VarMap.t -> base
 val alpha_eq : term -> term -> bool
+
+exception Type_Error of Types.ty
+
+val type_error : string -> 'a
+val type_if_branches_error : term -> Types.ty -> Types.ty -> 'a
+val synth : Types.ty VarMap.t -> term -> Types.ty
+val check : Types.ty VarMap.t -> Types.ty -> term -> Types.ty
