@@ -91,7 +91,7 @@
 \newcommand{\envid}
             {\textsf {id}}
 \newcommand{\envextend}[3]
-            {\ensuremath{#1, #2 \backslash #3}}
+            {#1, #2 \mapsto #3}
 \newcommand{\scoped}[2]
            {#1 \{ #2 \} }
 \newcommand{\subs}[2]
@@ -104,15 +104,19 @@
             {\square \: \scoped {\aType[1]} {#1} }
 \newcommand{\aIteFrame}[1][\env]
             {\textbf{if } \square \: \textbf{then } \scoped {\aTerm[1]} {#1} \textbf{ else } \scoped {\aTerm[2]} {#1} }
+\newcommand{\aIteFrameAll}[3]
+            {\textbf{if } \square \: \textbf{then } \scoped {#2} {#1} \textbf{ else } \scoped {#3} {#1} }
 
-\newcommand{\aStack}{s}
+\newcommand{\aStack}[1][0]
+            {\ifthenelse{#1 = 0}{s}
+            {s_{\the\numexpr #1 - 1 \relax}}}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%
           {#1 : #2}
 \newcommand{\frameJudge}[4]%
           {#1 \, \vert \, #2 : #3 \vdash #4}
 \newcommand{\stackapp}[2]%
-          {#1 \lbrack #2 \rbrack}
+          {#1 \lceil #2 \rfloor}
 
 \newcommand{\go}[2]%
           {\textsf{go } #1 \: #2}
