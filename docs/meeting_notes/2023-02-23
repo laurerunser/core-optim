@@ -1,0 +1,33 @@
+# Meeting notes 23rd Feb 2023
+
+- use another arrow for our transformation (the one with zig-zags)
+- define this transformation bc it's not completely beta-redex (that would normally reduce into a value) - lamda x.t b -> t[x := b] - let x = t1 in t2 -> let x = t1' in t2'
+
+  - -> write a rule system to clarify
+  - add all the rules that do smth
+  - and all the congruence rules
+
+- define what free variables are
+- write scopes as the pair `(t, rho)` instead of `t{rho}`
+- define what it means to be well-scoped
+  `t, rho` is well-scoped if ...
+  - add the maths first
+  - then write the english definition
+
+Proof:
+
+- assume goes first
+- then proof sketch
+  - use {}
+  - use an arrow with zigzags instead of the standard arrow because we are not doing normal beta-reduction, and it's confusing
+
+by induction on the pair (t, s), with lexicographic order
+-> either we decrease `t`, and we can push on `s`
+-> or we leave `t` as is and instead we have to pop `s`
+
+Add as hypothesis:
+
+- s is well-typed in regards to t^rho
+
+OR more simply: just simplify the If branches when we see them, and don't add scopes to the stack
+-> much easier to prove, and we can always try to go back to prove this implementation later
