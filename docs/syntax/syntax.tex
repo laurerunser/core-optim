@@ -124,8 +124,8 @@ $\aStack$ is well scoped if all scoped terms and scoped types in all frames are 
 \begin{proof}
   \pfsketch\ Proof by induction on $\aTerm$
   \assume{\begin{pfenum}
-            \item $\scoped \aTerm \env$ is a well scoped \label{pf:term-scoped}
-            \item $\aStack$ is well scoped \label{pf:stack-scoped}
+            \item $\scoped \aTerm \env$ is a well-scoped term \label{pf:term-scoped}
+            \item $\aStack$ is a well-scoped stack \label{pf:stack-scoped}
           \end{pfenum}}
   \prove{$\stackapp \aStack {\subs \aTerm \env} \to^* \go {\scoped \aTerm \env} \aStack$ where $\go {\scoped \aTerm \env} \aStack \not\to$}
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
