@@ -3,6 +3,7 @@ all: syntax types
 
 syntax:
 	pdflatex syntax.tex
+	pdflatex syntax.tex
 
 types:
 	pdflatex types.tex
