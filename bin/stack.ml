@@ -16,14 +16,13 @@ type 'a scoped = {
   vars_ty : VarSet.t; [@opaque]
   p_ty : ty VarMap.t; [@opaque]
 }
-[@@deriving show]
+(* [@@deriving show] *)
 
 type frame =
-  | HoleFun of
-      base scoped (* applied function: f(term) -> where f is not given *)
+  | HoleFun of base (* applied function: f(term) -> where f is not given *)
   | HoleType of
-      ty scoped (* instantiated polymorphism: T[ty] -> where T is not given *)
-  | HoleIf of term scoped * term scoped (* for conditions: _ then e1 else e2 *)
+      ty (* instantiated polymorphism: T[ty] -> where T is not given *)
+  | HoleIf of term * term (* for conditions: _ then e1 else e2 *)
 [@@deriving show]
 
 and stack = frame list [@@deriving show]
@@ -46,19 +45,19 @@ let well_scoped (t : 'a scoped) (freevars_term : 'a -> VarSet.t)
       VarSet.subset f_term t.vars_term && VarSet.subset f_ty t.vars_ty
 
 let well_scoped_term t = well_scoped t free_vars free_ty_vars_of_term
-let well_scoped_base b = well_scoped b free_vars_base (fun _ -> VarSet.empty)
-let well_scoped_ty ty = well_scoped ty (fun _ -> VarSet.empty) free_ty_vars
+(* let well_scoped_base b = well_scoped b free_vars_base (fun _ -> VarSet.empty)
+   let well_scoped_ty ty = well_scoped ty (fun _ -> VarSet.empty) free_ty_vars *)
 
-let rec well_scoped_stack (s : stack) =
-  match s with
-  | [] -> true
-  | HoleFun a :: s ->
-      if not (well_scoped_base a) then false else well_scoped_stack s
-  | HoleType t :: s ->
-      if not (well_scoped_ty t) then false else well_scoped_stack s
-  | HoleIf (e1, e2) :: s ->
-      if not (well_scoped_term e1 || well_scoped_term e2) then false
-      else well_scoped_stack s
+(* let rec well_scoped_stack (s : stack) =
+   match s with
+   | [] -> true
+   | HoleFun a :: s ->
+       if not (well_scoped_base a) then false else well_scoped_stack s
+   | HoleType t :: s ->
+       if not (well_scoped_ty t) then false else well_scoped_stack s
+   | HoleIf (e1, e2) :: s ->
+       if not (well_scoped_term e1 || well_scoped_term e2) then false
+       else well_scoped_stack s *)
 
 (* Returns a scoped term where the scope is [t], and all the sets/maps are empty *)
 let empty_scope t =
@@ -79,33 +78,22 @@ let inherit_scope t old =
     p_ty = old.p_ty;
   }
 
-let scope_with_new_var (t : term) (old : term scoped) (old_var : Atom.t)
-    (new_var : base) =
-  {
-    scope = t;
-    (* add the variable to the set of authorized variables.
-       We add the old variable name, because the new one will only be
-       replaced at the end. *)
-    vars_term =
-      (match new_var with
-      | Var x -> VarSet.add x old.vars_term
-      | _ -> old.vars_term);
-    vars_ty = old.vars_ty;
-    (* add the binding to the substitution *)
-    p_term = VarMap.add old_var new_var old.p_term;
-    p_ty = old.p_ty;
-  }
+let scope_with_new_var ~(new_term : term) ~(old : term scoped)
+    ~(old_var : Atom.t) ~(new_var : base) =
+  let vars_term =
+    match new_var with
+    | Var x -> VarSet.add x old.vars_term
+    | _ -> old.vars_term
+  in
+  let p_term = VarMap.add old_var new_var old.p_term in
+  { old with scope = new_term; vars_term; p_term }
 
-let scope_with_new_ty (t : term) (old : term scoped) (old_ty : Atom.t)
-    (new_ty : ty) =
+let scope_with_new_ty ~(new_term : term) ~(old : term scoped) ~(old_ty : Atom.t)
+    ~(new_ty : ty) =
   let new_ty_fv = free_ty_vars new_ty in
-  {
-    scope = t;
-    vars_term = old.vars_term;
-    vars_ty = VarSet.union new_ty_fv old.vars_ty;
-    p_term = old.p_term;
-    p_ty = VarMap.add old_ty new_ty old.p_ty;
-  }
+  let vars_ty = VarSet.union new_ty_fv old.vars_ty in
+  let p_ty = VarMap.add old_ty new_ty old.p_ty in
+  { old with scope = new_term; vars_ty; p_ty }
 
 let discharge_term (t : term scoped) =
   let rec sub_terms term =
@@ -145,17 +133,17 @@ let pretty_print_frame f =
   match f with
   | HoleFun arg ->
       let f = string "_" in
-      let x = print_base arg.scope in
+      let x = print_base arg in
       group @@ prefix 2 1 f x
   | HoleType arg ->
       let t = string "_" in
-      group @@ t ^^ lbracket ^^ pretty_print_type arg.scope ^^ rbracket
+      group @@ t ^^ lbracket ^^ pretty_print_type arg ^^ rbracket
   | HoleIf (e1, e2) ->
       let t = string " _ " in
       group @@ string "if" ^^ t ^^ string "then"
-      ^^ surround 2 1 empty (pretty_print e1.scope) empty
+      ^^ surround 2 1 empty (pretty_print e1) empty
       ^^ string "else"
-      ^^ surround 0 1 empty (pretty_print e2.scope) empty
+      ^^ surround 0 1 empty (pretty_print e2) empty
 
 let rec pretty_print s =
   match s with
@@ -188,7 +176,6 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
   | f :: s -> (
       match f with
       | HoleFun arg -> (
-          let arg = discharge_base arg in
           match ty with
           | TyFun (a, b) -> (
               try
@@ -197,13 +184,11 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
               with Type_Error ty' -> type_fun_frame_error f ty ty')
           | _ -> type_fun_frame_error f ty (synth ctxt (Base arg)))
       | HoleType arg -> (
-          try synth_stack s (fill ty (discharge_ty arg)) ctxt
+          try synth_stack s (fill ty arg) ctxt
           with Not_Polymorphic -> type_poly_frame_error f ty)
       | HoleIf (e1, e2) ->
           if ty <> TyBool then type_ite_frame_error f ty
           else
-            let e1 = discharge_term e1 in
-            let e2 = discharge_term e2 in
             let ty1 = synth ctxt e1 in
             let ty2 = synth ctxt e2 in
             if Types.equal_ty ty1 ty2 then ty1
@@ -219,10 +204,9 @@ let rec plug (s : stack) (t : term) =
   | f :: s ->
       let filled_term =
         match f with
-        | HoleFun arg -> FunApply (t, discharge_base arg)
-        | HoleType arg -> TypeApply (t, discharge_ty arg)
-        | HoleIf (e1, e2) ->
-            IfThenElse (t, simplify_aux e1 [], simplify_aux e2 [])
+        | HoleFun arg -> FunApply (t, arg)
+        | HoleType arg -> TypeApply (t, arg)
+        | HoleIf (e1, e2) -> IfThenElse (t, e1, e2)
       in
       plug s filled_term
 
@@ -234,8 +218,6 @@ and simplify (t : term) =
 
 and simplify_aux (t : term scoped) (acc : stack) =
   let rec go t acc =
-    assert (well_scoped_term t);
-    assert (well_scoped_stack acc);
     match (t.scope, acc) with
     (* replace base values, renaming variables if they appear in the substitutions *)
     | Base _, acc -> (
@@ -243,24 +225,35 @@ and simplify_aux (t : term scoped) (acc : stack) =
         match (t, acc) with
         (* simplify if branches with booleans *)
         | Base (Bool b), HoleIf (e1, e2) :: acc ->
-            if b then go e1 acc else go e2 acc
+            if b then plug acc e1 else plug acc e2
         | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
-    | Fun (x, _, body), HoleFun b :: acc ->
-        go (scope_with_new_var body t x (discharge_base b)) acc
+    | Fun (x, _, body), HoleFun arg :: acc ->
+        let body_scoped =
+          scope_with_new_var ~new_term:body ~old:t ~old_var:x ~new_var:arg
+        in
+        go body_scoped acc
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
-        go (scope_with_new_ty body t alpha (discharge_ty ty2)) acc
+        let body_scoped =
+          scope_with_new_ty ~new_term:body ~old:t ~old_ty:alpha ~new_ty:ty2
+        in
+        go body_scoped acc
     (* abstractions but can't simplify in the context *)
     | Fun (x, ty, body), acc ->
         let x' = Atom.fresh x.identifier in
         let ty = discharge_ty (inherit_scope ty t) in
-        let body_scoped = scope_with_new_var body t x (Var x') in
+        let body_scoped =
+          scope_with_new_var ~new_term:body ~old:t ~old_var:x ~new_var:(Var x')
+        in
         let new_body = go body_scoped [] in
         let t = Fun (x', ty, new_body) in
         plug acc t
     | TypeAbstraction (alpha, body), acc ->
         let alpha' = Atom.fresh alpha.identifier in
-        let body_scoped = scope_with_new_ty body t alpha (TyFreeVar alpha') in
+        let body_scoped =
+          scope_with_new_ty ~new_term:body ~old:t ~old_ty:alpha
+            ~new_ty:(TyFreeVar alpha')
+        in
         let new_body = go body_scoped [] in
         let t = TypeAbstraction (alpha', new_body) in
         plug acc t
@@ -268,21 +261,24 @@ and simplify_aux (t : term scoped) (acc : stack) =
     | FunApply (f, arg), acc ->
         let f = inherit_scope f t in
         let arg = inherit_scope arg t in
-        go f (HoleFun arg :: acc)
+        go f (HoleFun (discharge_base arg) :: acc)
     | TypeApply (f, ty), acc ->
         let f = inherit_scope f t in
         let ty = inherit_scope ty t in
-        go f (HoleType ty :: acc)
+        go f (HoleType (discharge_ty ty) :: acc)
     | IfThenElse (t1, t2, t3), acc ->
         let t1 = inherit_scope t1 t in
-        let t2 = inherit_scope t2 t in
-        let t3 = inherit_scope t3 t in
+        let t2 = go (inherit_scope t2 t) [] in
+        let t3 = go (inherit_scope t3 t) [] in
         go t1 (HoleIf (t2, t3) :: acc)
     (* other cases *)
     | Let (x, t1, body), acc ->
         let x' = Atom.fresh x.identifier in
         let t1 = go (inherit_scope t1 t) [] in
-        let body = go (scope_with_new_var body t x (Var x')) [] in
+        let body_scoped =
+          scope_with_new_var ~new_term:body ~old:t ~old_var:x ~new_var:(Var x')
+        in
+        let body = go body_scoped [] in
         let t = Let (x', t1, body) in
         plug acc t
     (* throw away the type annotation *)

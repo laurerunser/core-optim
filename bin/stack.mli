@@ -17,9 +17,9 @@ type 'a scoped = {
 }
 
 type frame =
-  | HoleFun of Terms.base scoped
-  | HoleType of Types.ty scoped
-  | HoleIf of Terms.term scoped * Terms.term scoped
+  | HoleFun of Terms.base
+  | HoleType of Types.ty
+  | HoleIf of Terms.term * Terms.term
 
 and stack = frame list
 
@@ -30,15 +30,22 @@ val inherit_scope : 'a -> 'b scoped -> 'a scoped
 (* [empty_scope t old] returns the scope of old with the term t *)
 
 val scope_with_new_var :
-  Terms.term -> Terms.term scoped -> Atom.t -> Terms.base -> Terms.term scoped
+  new_term:Terms.term ->
+  old:Terms.term scoped ->
+  old_var:Atom.t ->
+  new_var:Terms.base ->
+  Terms.term scoped
 
 val scope_with_new_ty :
-  Terms.term -> Terms.term scoped -> Atom.t -> Types.ty -> Terms.term scoped
+  new_term:Terms.term ->
+  old:Terms.term scoped ->
+  old_ty:Atom.t ->
+  new_ty:Types.ty ->
+  Terms.term scoped
 
 val well_scoped_term : Terms.term scoped -> bool
 (* [well_scoped_term t] checks if the scoped term t is well constructed *)
 
-val well_scoped_stack : stack -> bool
 val discharge_term : Terms.term scoped -> Terms.term
 (* [discharge_term t] applies the substitutions t.p_term and t.p_ty to t.scope.
    [t] must be a well_scoped term *)
