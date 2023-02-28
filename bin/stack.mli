@@ -30,17 +30,17 @@ val inherit_scope : 'a -> 'b scoped -> 'a scoped
 (* [empty_scope t old] returns the scope of old with the term t *)
 
 val scope_with_new_var :
-  new_term:Terms.term ->
-  old:Terms.term scoped ->
-  old_var:Atom.t ->
-  new_var:Terms.base ->
+  term:Terms.term ->
+  scope:Terms.term scoped ->
+  var:Atom.t ->
+  base:Terms.base ->
   Terms.term scoped
 
 val scope_with_new_ty :
-  new_term:Terms.term ->
-  old:Terms.term scoped ->
-  old_ty:Atom.t ->
-  new_ty:Types.ty ->
+  term:Terms.term ->
+  scope:Terms.term scoped ->
+  var:Atom.t ->
+  ty:Types.ty ->
   Terms.term scoped
 
 val well_scoped_term : Terms.term scoped -> bool
