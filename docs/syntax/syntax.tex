@@ -139,15 +139,12 @@ $
 $
 \aStack ::= \emptyStack \:|\: \nonEmptyStack \aFrame \aStack \quad \text{(stacks)}
 $
-\subsection{Well scoped} \label{well-scoped-stack}
-$\aStack$ is well scoped if all scoped terms and scoped types in all frames are well scoped
-
 \subsection{Stack evaluation} \label{stack-evaluation}
 \begin{align*}
   \stackapp \emptyStack \aTerm &= \aTerm \\
-  \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm {(\subs \aBase \env)}} \\
-  \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\subs {\aType[1]} \env}} \\
-  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]'} {\aTerm[2]'}} \text{ where } \subs {\aTerm[1]} \env \to^* \aTerm[1]' \not\to \text{ and } \subs {\aTerm[2]} \env \to^* \aTerm[2]' \not\to \\
+  \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm \aBase} \\
+  \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\aType[1]}} \\
+  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} \\
 \end{align*}
 
 \section{Simplifications}

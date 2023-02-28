@@ -44,12 +44,12 @@ and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aCo
          {If then else}
 
 \aRule   {\judge {\aContext \ctxtSep \aTypeVar} \aTerm \aType \\
-          \aTypeVar \notin freetyvars(\aContext)}
+          \aTypeVar \notin FV(\aContext)}
          {\judge \aContext {\ttyfun \aTypeVar \aTerm} {\tforall \aTypeVar \aType}}
          {Type abstraction}
 
 \aRule  {\judge \aContext \aTerm {\tforall \aTypeVar \aType}}
-        {\judge \aContext {\ttyapp \aTerm {\aType[1]}} {\ttyapp \aType {\ttysub \aTypeVar \aType[1]}}}
+        {\judge \aContext {\ttyapp \aTerm {\aType[1]}} {\subs \aType {\envextend \envid \aTypeVar {\aType[1]}}}}
         {Type application}
 
 \aRule  {\judgecheck \aContext \aType \aTerm}
@@ -79,16 +79,16 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {Empty stack}
 
 \aRule   {\frameJudge \aContext \aStack \aType \aType[2] \\
-          \judgecheck \aContext {\aType[1]} \subs \aBase \env}
+          \judgecheck \aContext {\aType[1]} \aBase}
          {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod \aType[2]}
-         {Applied function stack}
+         {Applied function frame}
 
-\aRule   {\frameJudge \aContext \aStack {\ttyapp \aType {\ttysub \aTypeVar {\subs {\aType[1]} \env}}} \aType[2]}
+\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envextend \envid \aTypeVar {\aType[1]}}} \aType[2]}
          {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} \aType[2]}
-         {Instantiated polymorphism stack}
+         {Instantiated polymorphism frame}
 
-\aRule  {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
-          \judgecheck \aContext {\aType[2]} {\subs {\aTerm[2]} \env} \\
+\aRule  {\judge \aContext {\aTerm[1]} {\aType[2]} \\
+          \judgecheck \aContext {\aType[2]} {\aTerm[2]} \\
           \frameJudge \aContext \aStack {\aType[2]} \aType}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}
