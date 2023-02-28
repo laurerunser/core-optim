@@ -151,6 +151,60 @@ $\aStack$ is well scoped if all scoped terms and scoped types in all frames are 
 \end{align*}
 
 \section{Simplifications}
+\subsection{Beta-reduction}
+\begin{mathpar}
+\aRule   { }
+         {\tapp {(\tfun \aVar \aType \aTerm)} \aBase \rightsquigarrow \subs \aTerm {\envextend \envid \aVar \aBase}}
+         {}
+
+\aRule   { }
+         {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType \rightsquigarrow \subs \aTerm {\envextend \envid \aTypeVar \aType}}
+         {}
+
+\aRule   { }
+         {\ite \true \aTerm {\aTerm[1]} \rightsquigarrow \aTerm}
+         {}
+
+\aRule   { }
+         {\ite \false \aTerm {\aTerm[1]} \rightsquigarrow {\aTerm[1]}}
+         {}
+
+\aRule   {{\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} \rightsquigarrow {\aTerm[1]} \\
+          \aVar[1] \notin FV(\tfun \aVar \aType \aTerm)}
+         {\tfun \aVar \aType \aTerm \rightsquigarrow \tfun {\aVar[1]} \aType {\aTerm[1]}}
+         {}
+
+\aRule   {\aTerm \rightsquigarrow \aTerm[1]}
+         {\tapp \aTerm \aBase \rightsquigarrow \tapp {\aTerm[1]} \aBase}
+         {}
+
+\aRule   {{\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} \rightsquigarrow \aTerm' \\
+          \aTerm[1] \rightsquigarrow \aTerm[1]' \\
+          \aVar[1] \notin FV(\tlet \aVar \aTerm {\aTerm[1]})}
+         {\tlet \aVar \aTerm {\aTerm[1]} \rightsquigarrow \tlet {\aVar[1]} {\aTerm'} {\aTerm[1]'}}
+         {}
+
+\aRule   {\aTerm \rightsquigarrow \aTerm' \\
+          \aTerm[1] \rightsquigarrow \aTerm[1]' \\
+          \aTerm[2] \rightsquigarrow \aTerm[2]'}
+         {\ite \aTerm {\aTerm[1]} {\aTerm[2]} \rightsquigarrow \ite {\aTerm'} {\aTerm[1]'} {\aTerm[2]'}}
+         {}
+
+\aRule   {{\subs \aTerm {\envextend \envid \aTypeVar {\aTypeVar[1]}}} \rightsquigarrow {\aTerm[1]} \\
+          \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm)}
+         {\ttyfun \aTypeVar \aTerm \rightsquigarrow \ttyfun {\aTypeVar[1]} {\aTerm[1]}}
+         {}
+
+\aRule   {\aTerm \rightsquigarrow \aTerm[1]}
+         {\ttyapp \aTerm \aType \rightsquigarrow \ttyapp {\aTerm[1]} \aType}
+         {}
+
+\aRule   { }
+         {\ttyann \aTerm \aType \rightsquigarrow \aTerm}
+         {}
+
+\end{mathpar}
+\subsection{Correctness}
 \begin{proof}
   \pfsketch\ Proof by induction on $\aTerm$
   \assume{\begin{pfenum}
