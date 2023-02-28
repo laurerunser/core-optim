@@ -93,9 +93,9 @@
 \newcommand{\envextend}[3]
             {#1, #2 \mapsto #3}
 \newcommand{\scoped}[2]
-           {#1 \{ #2 \} }
+           {#1 ^{#2} }
 \newcommand{\subs}[2]
-           {#1 \lbrack #2 \rbrack }
+           {#1 \left\{ #2 \right\} }
 
 \newcommand{\aFrame}{F}
 \newcommand{\aFunFrame}[1][\env]
@@ -116,7 +116,7 @@
 \newcommand{\frameJudge}[4]%
           {#1 \, \vert \, #2 : #3 \vdash #4}
 \newcommand{\stackapp}[2]%
-          {#1 \lceil #2 \rfloor}
+          {#1 \left[ #2 \right]}
 
 \newcommand{\go}[2]%
           {\textsf{go } #1 \: #2}
