@@ -1,12 +1,9 @@
 
-all: syntax types
+all: syntax
 
 syntax:
 	pdflatex syntax.tex
 	pdflatex syntax.tex
-
-types:
-	pdflatex types.tex
 
 clean: 
 	rm *.log *.aux
