@@ -10,7 +10,8 @@
 \newcommand{\TODO}[1]{\textcolor{red}{$\langle$ Pierre:}~#1\textcolor{red}{~$\rangle$}}
 
 \begin{document}
-\section{Terms}
+\section{Syntax}
+\subsection{Terms}
 $
 \begin{array}{ccll}
 \aTerm, \aTerm[1], \aTerm[2] & ::= & & \\
@@ -32,7 +33,7 @@ $
 & | & \false & \text{(false)} \\
 \end{array}
 $
-\section{Types}
+\subsection{Types}
 $
 \begin{array}{ccll}
 \aType, \aType[1] & ::= & & \\
@@ -43,6 +44,28 @@ $
 & | & \aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k} & \text{(tuples)}
 \end{array}
 $
+\section{Free variables}
+\subsection{Free type variables in type}
+\begin{align*}
+FV(\aTypeVar) &= \aTypeVar \\
+FV(\tyBool) &= \emptyset \\
+FV(\domToCod) &= FV(\aDomType) \cup FV(\aCodType) \\
+FV(\tforall \aTypeVar \aType) &= FV(\aType) \setminus \{ \aTypeVar \} \\
+FV(\aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k}) &= FV(\aType[2]) \cup FV(\aType[3]) \cup \ldots \cup FV(\aType_{k}) \\
+\end{align*}
+\subsection{Free variables in term}
+\begin{align*}
+FV(\aVar) &= \aVar \\
+FV(\true) &= \emptyset \\
+FV(\false) &= \emptyset \\
+FV(\tfun \aVar \aType \aTerm) &= FV(\aType) \cup (FV(\aTerm) \setminus \{ \aVar \}) \\
+FV(\tapp \aTerm \aBase) &= FV(\aTerm) \cup FV(\aBase) \\
+FV(\tlet \aVar \aTerm {\aTerm[1]}) &= FV(\aTerm) \cup (FV(\aTerm[1]) \setminus \{\aVar\}) \\
+FV(\ite \aTerm {\aTerm[1]} {\aTerm[2]}) &= FV(\aTerm) \cup FV(\aTerm[1]) \cup FV(\aTerm[2]) \\
+FV(\ttyfun \aTypeVar \aTerm) &= FV(\aTerm) \setminus \{ \aTypeVar \} \\
+FV(\ttyapp \aTerm \aType) &= FV(\aTerm) \cup FV(\aType) \\
+FV(\ttyann \aTerm \aType) &= FV(\aTerm) \cup FV(\aType) \\
+\end{align*}
 \section{Scoped terms}
 \subsection{Terms environnement}
 $
