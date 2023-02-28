@@ -98,10 +98,10 @@
            {#1 \left\{ #2 \right\} }
 
 \newcommand{\aFrame}{F}
-\newcommand{\aFunFrame}
-            {\square \: \aBase}
-\newcommand{\aPolyFrame}
-            {\square \: \aType[1]}
+\newcommand{\aFunFrame}[1][\aBase]
+            {\square \: {#1}}
+\newcommand{\aPolyFrame}[1][{\aType[1]}]
+            {\square \: {#1}}
 \newcommand{\aIteFrame}
             {\textbf{if } \square \: \textbf{then } {\aTerm[1]} \textbf{ else } {\aTerm[2]} }
 \newcommand{\aIteFrameAll}[2]
