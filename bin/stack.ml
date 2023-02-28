@@ -36,13 +36,15 @@ let well_scoped (t : 'a scoped) (freevars_term : 'a -> VarSet.t)
     let get_keys map =
       VarSet.of_list @@ fst @@ List.split @@ VarMap.bindings map
     in
-    if not (VarSet.disjoint (get_keys t.p_term) (get_keys t.p_ty)) then false
+    let term_key = get_keys t.p_term in
+    let ty_key = get_keys t.p_ty in
+    if not (VarSet.disjoint term_key ty_key) then false
     else
       (* the free variables must be included in vars_term
          and the free type variables must be included in vars_ty *)
       let f_term = freevars_term t.scope in
       let f_ty = freevars_ty t.scope in
-      VarSet.subset f_term t.vars_term && VarSet.subset f_ty t.vars_ty
+      VarSet.subset f_term term_key && VarSet.subset f_ty ty_key
 
 let well_scoped_term t = well_scoped t free_vars free_ty_vars_of_term
 (* let well_scoped_base b = well_scoped b free_vars_base (fun _ -> VarSet.empty)
@@ -212,12 +214,13 @@ let rec plug (s : stack) (t : term) =
 
 and simplify (t : term) =
   let ty = synth VarMap.empty t in
-  let t = simplify_aux (empty_scope t) [] in
+  let t = go (empty_scope t) [] in
   assert (check VarMap.empty ty t = ty);
   t
 
-and simplify_aux (t : term scoped) (acc : stack) =
-  let rec go t acc =
+and go (t : term scoped) (acc : stack) =
+  assert (well_scoped_term t);
+  let result =
     match (t.scope, acc) with
     (* replace base values, renaming variables if they appear in the substitutions *)
     | Base _, acc -> (
@@ -284,7 +287,6 @@ and simplify_aux (t : term scoped) (acc : stack) =
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc -> go (inherit_scope body t) acc
   in
-  let t' = go t acc in
   (* check that the term is closed *)
-  assert (closed_term_in_scope t' t);
-  t'
+  assert (closed_term_in_scope result t);
+  result
