@@ -105,9 +105,7 @@ $\scoped \aType \env$ is well scoped if the free type variables of $\aType$ are 
 \subs {(\tforall \aTypeVar \aType)} \env &= \tforall {\aTypeVar[1]} {\subs \aType {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\tforall \aTypeVar \aType) \cup FV(\env) \\
 \subs {(\aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k})} \env &= \subs {\aType[2]} \env \tprod \subs {\aType[3]} \env \tprod \ldots \subs {\tprod \aType_{k}} \env
 \end{align*}
-
-
-\subsubsection{Term substitution}
+\subsection{Term substitution}
 \begin{align*}
 \subs \aVar \envid &= \aVar \\
 \subs \aVar {\envextend \env {\aVar[1]} \aBase} &=
