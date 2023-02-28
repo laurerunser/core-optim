@@ -56,6 +56,13 @@ $\\
 A scoped term is written $\scoped \aTerm \env$ and a scoped type is written $\scoped \aType \env$
 
 \subsection{Well scoped} \label{well-scoped-term}
+$\scoped \aTerm \env$ is well-scoped if:
+\begin{itemize}
+  \item the sets of type variables and variables are disjoint
+  \item the domains of the type substitution and the variable substitutions are disjoint
+  \item the co-domain of the substitution is included in the corresponding set
+  (for both substitutions)
+\end{itemize}
 $\scoped \aTerm \env$ is well scoped if the free variables and the free type variables of $\aTerm$ are substituted by $\env$ \\
 $\scoped \aType \env$ is well scoped if the free type variables of $\aType$ are substituted by $\env$
 \subsection{Substitution} \label{substitution}
