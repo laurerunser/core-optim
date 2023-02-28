@@ -37,7 +37,7 @@ We didn't include in this report the formal syntax and systems we wrote.
 They can be found in the git repo, under {\tt docs/syntax}, and
 can be compiled into a pdf with the command {\tt make}.
 If you're reading this before we merged into {\tt master}, the files are on the 
-{\tt beta-reduction} branch.
+{\tt beta\_reduction} branch.
 
 
 \section{Presentation}
@@ -111,7 +111,7 @@ in the {\tt syntax.tex} file.
 We've also implemented functions to plug an evaluation context with a term, which produces a
 new, well-typed term.
 
-\paragraph{Beta-reduction and if-simplifications.}Finally, we've started the work on the 
+\paragraph{Beta-reduction.}Finally, we've started the work on the 
 actual simplifications. We implemented the pseudo beta-reduction, as described in the 
 presentation.
 
@@ -139,7 +139,7 @@ This implementation was quite hard to put together and test properly.
 \paragraph{Evaluation contexts.}This was a new notion for us, so we struggle to understand it at first.
 We also had some trouble finding the typechecking rules that applied to them.
 
-\paragraph{Simplifications.}This was our first real use of evaluation contexts, and it took us 
+\paragraph{Beta-reduction.}This was our first real use of evaluation contexts, and it took us 
 a while to figure out how to pattern-match them against a term so that we could simplify it.
 
 We also had a lot of trouble writing the proof, and Pierre-Evariste was a great help for this step.
