@@ -78,22 +78,22 @@ let inherit_scope t old =
     p_ty = old.p_ty;
   }
 
-let scope_with_new_var ~(new_term : term) ~(old : term scoped)
-    ~(old_var : Atom.t) ~(new_var : base) =
+let scope_with_new_var ~(term : term) ~(scope : term scoped) ~(var : Atom.t)
+    ~(base : base) =
   let vars_term =
-    match new_var with
-    | Var x -> VarSet.add x old.vars_term
-    | _ -> old.vars_term
+    match base with
+    | Var x -> VarSet.add x scope.vars_term
+    | _ -> scope.vars_term
   in
-  let p_term = VarMap.add old_var new_var old.p_term in
-  { old with scope = new_term; vars_term; p_term }
+  let p_term = VarMap.add var base scope.p_term in
+  { scope with scope = term; vars_term; p_term }
 
-let scope_with_new_ty ~(new_term : term) ~(old : term scoped) ~(old_ty : Atom.t)
-    ~(new_ty : ty) =
-  let new_ty_fv = free_ty_vars new_ty in
-  let vars_ty = VarSet.union new_ty_fv old.vars_ty in
-  let p_ty = VarMap.add old_ty new_ty old.p_ty in
-  { old with scope = new_term; vars_ty; p_ty }
+let scope_with_new_ty ~(term : term) ~(scope : term scoped) ~(var : Atom.t)
+    ~(ty : ty) =
+  let new_ty_fv = free_ty_vars ty in
+  let vars_ty = VarSet.union new_ty_fv scope.vars_ty in
+  let p_ty = VarMap.add var ty scope.p_ty in
+  { scope with scope = term; vars_ty; p_ty }
 
 let discharge_term (t : term scoped) =
   let rec sub_terms term =
@@ -230,12 +230,12 @@ and simplify_aux (t : term scoped) (acc : stack) =
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun arg :: acc ->
         let body_scoped =
-          scope_with_new_var ~new_term:body ~old:t ~old_var:x ~new_var:arg
+          scope_with_new_var ~term:body ~scope:t ~var:x ~base:arg
         in
         go body_scoped acc
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
         let body_scoped =
-          scope_with_new_ty ~new_term:body ~old:t ~old_ty:alpha ~new_ty:ty2
+          scope_with_new_ty ~term:body ~scope:t ~var:alpha ~ty:ty2
         in
         go body_scoped acc
     (* abstractions but can't simplify in the context *)
@@ -243,7 +243,7 @@ and simplify_aux (t : term scoped) (acc : stack) =
         let x' = Atom.fresh x.identifier in
         let ty = discharge_ty (inherit_scope ty t) in
         let body_scoped =
-          scope_with_new_var ~new_term:body ~old:t ~old_var:x ~new_var:(Var x')
+          scope_with_new_var ~term:body ~scope:t ~var:x ~base:(Var x')
         in
         let new_body = go body_scoped [] in
         let t = Fun (x', ty, new_body) in
@@ -251,8 +251,8 @@ and simplify_aux (t : term scoped) (acc : stack) =
     | TypeAbstraction (alpha, body), acc ->
         let alpha' = Atom.fresh alpha.identifier in
         let body_scoped =
-          scope_with_new_ty ~new_term:body ~old:t ~old_ty:alpha
-            ~new_ty:(TyFreeVar alpha')
+          scope_with_new_ty ~term:body ~scope:t ~var:alpha
+            ~ty:(TyFreeVar alpha')
         in
         let new_body = go body_scoped [] in
         let t = TypeAbstraction (alpha', new_body) in
@@ -276,7 +276,7 @@ and simplify_aux (t : term scoped) (acc : stack) =
         let x' = Atom.fresh x.identifier in
         let t1 = go (inherit_scope t1 t) [] in
         let body_scoped =
-          scope_with_new_var ~new_term:body ~old:t ~old_var:x ~new_var:(Var x')
+          scope_with_new_var ~term:body ~scope:t ~var:x ~base:(Var x')
         in
         let body = go body_scoped [] in
         let t = Let (x', t1, body) in
