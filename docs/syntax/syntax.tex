@@ -295,7 +295,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \subsection{Correctness}
 \begin{proof}
   \assume{\begin{pfenum}
-            \item $\scoped \aTerm \env$ is a well-scoped term \label{pf:term-scoped}
+            \item $\scoped \aTerm \env$ is a well-scoped term in the context $\aContext$ \label{pf:term-scoped}
+            \item $\scoped \aTerm \env$ is well-scoped in regards to the stack $\aStack$ \label{pf:term-plug}
             \item $\forall \aTerm \in \aStack, \aTerm \not\rightsquigarrow$ \label{pf:term-in-stack}
           \end{pfenum}}
   \prove{$\stackapp \aStack {\subs \aTerm \env} \rightsquigarrow^* \go {\scoped \aTerm \env} \aStack \not\rightsquigarrow$}
@@ -405,7 +406,12 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
             \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term
           \end{proof}
         \end{proof}
-        \step{label-2.2.2.2}{$\forall \aTerm' \in \emptyStack, \aTerm' \not\rightsquigarrow$}
+        \step{label-2.2.2.2}{$\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$ can be plugged into the stack $\aStack$}
+        \begin{proof}
+          \pf\ \textsf{go} preserves typing, so $\scoped {\aTerm[3]} \env$ has the same type than $\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$,
+        and is therefore well-scoped in regards to the stack $\aStack$ by \toplevel:\ref{pf:term-plug}
+          \end{proof}
+        \step{label-2.2.2.3}{$\forall \aTerm' \in \emptyStack, \aTerm' \not\rightsquigarrow$}
         \qedstep
         \begin{proof}
           \pf\ By IH
@@ -413,7 +419,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
       \step{label-2.2.3}{$\stackapp \aStack {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} \rightsquigarrow^* \stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
       \begin{proof}
-        \pf\ By substitution~\ref{substitution} and définition of $\rightsquigarrow^*$
+        \pf\ By substitution~\ref{substitution} and definition of $\rightsquigarrow^*$
       \end{proof}
     \end{proof}
   \end{proof}
