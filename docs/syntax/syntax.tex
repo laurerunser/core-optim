@@ -283,13 +283,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \end{mathpar}
 \subsection{Correctness}
 \begin{proof}
-  \assume{\begin{pfenum}
-      \item $\scoped \aTerm \env$ is a well-scoped term \label{pf:term-scoped}
-      \item $\forall \aTerm \in \aStack, \betaNormal \aTerm$ \label{pf:term-in-stack}
-      \item $\subs \aTerm \env$ is well-typed in the context $\aContext$ \label{pf:term-typed}
-      \item $\aStack$ is well-typed in the context $\aContext$ for the type of $\subs \aTerm \env$ \label{pf:stack-typed}
-    \end{pfenum}}
-  \prove{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\go {\scoped \aTerm \env} \aStack}}$ and $\go {\scoped \aTerm \env} \aStack$ has the type of $\stackapp \aStack {\subs \aTerm \env}$ in the context $\Gamma$}
+  \pflet{$\Gamma$ a context} %item
+  \pflet{$\scoped \aTerm \env$ a well-scoped term}
+  \pflet{$\aStack$ a fully-simplified stack}
+  \assume{$\exists \aType. \exists \aType[1]
+    \begin{conj}
+      \judge \Gamma {\subs \aTerm \env} \aType \\
+      \frameJudge \Gamma \aStack \aType {\aType[1]}
+    \end{conj}$}
+  \prove{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\go {\scoped \aTerm \env} \aStack}}$ and $\judge \Gamma {\go {\scoped \aTerm \env} \aStack} {\aType[1]}$}
   \pfsketch\ Proof by induction on $\aTerm$
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
   \begin{proof}
