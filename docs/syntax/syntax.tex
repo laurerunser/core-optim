@@ -234,53 +234,53 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \subsection{Beta-reduction} \label{beta-reduction}
 \begin{mathpar}
 \aRule   { }
-         {\tapp {(\tfun \aVar \aType \aTerm)} \aBase \rightsquigarrow \subs \aTerm {\envextend \envid \aVar \aBase}}
+         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {\subs \aTerm {\envextend \envid \aVar \aBase}}}
          {}
 
 \aRule   { }
-         {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType \rightsquigarrow \subs \aTerm {\envextend \envid \aTypeVar \aType}}
+         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {\subs \aTerm {\envextend \envid \aTypeVar \aType}}}
          {}
 
 \aRule   { }
-         {\ite \true \aTerm {\aTerm[1]} \rightsquigarrow \aTerm}
+         {\simplBeta {\ite \true \aTerm {\aTerm[1]}} \aTerm}
          {}
 
 \aRule   { }
-         {\ite \false \aTerm {\aTerm[1]} \rightsquigarrow {\aTerm[1]}}
+         {\simplBeta {\ite \false \aTerm {\aTerm[1]}} {\aTerm[1]}}
          {}
 
-\aRule   {{\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} \rightsquigarrow {\aTerm[1]} \\
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} {\aTerm[1]} \\
           \aVar[1] \notin FV(\tfun \aVar \aType \aTerm)}
-         {\tfun \aVar \aType \aTerm \rightsquigarrow \tfun {\aVar[1]} \aType {\aTerm[1]}}
+         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\aVar[1]} \aType {\aTerm[1]}}}
          {}
 
-\aRule   {\aTerm \rightsquigarrow \aTerm[1]}
-         {\tapp \aTerm \aBase \rightsquigarrow \tapp {\aTerm[1]} \aBase}
+\aRule   {\simplBeta \aTerm {\aTerm[1]}}
+         {\simplBeta {\tapp \aTerm \aBase} {\tapp {\aTerm[1]} \aBase}}
          {}
 
-\aRule   {{\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} \rightsquigarrow \aTerm' \\
-          \aTerm[1] \rightsquigarrow \aTerm[1]' \\
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} {\aTerm'} \\
+          \simplBeta {\aTerm[1]} {\aTerm[1]'} \\
           \aVar[1] \notin FV(\tlet \aVar \aTerm {\aTerm[1]})}
-         {\tlet \aVar \aTerm {\aTerm[1]} \rightsquigarrow \tlet {\aVar[1]} {\aTerm'} {\aTerm[1]'}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\aVar[1]} {\aTerm'} {\aTerm[1]'}}}
          {}
 
-\aRule   {\aTerm \rightsquigarrow \aTerm' \\
-          \aTerm[1] \rightsquigarrow \aTerm[1]' \\
-          \aTerm[2] \rightsquigarrow \aTerm[2]'}
-         {\ite \aTerm {\aTerm[1]} {\aTerm[2]} \rightsquigarrow \ite {\aTerm'} {\aTerm[1]'} {\aTerm[2]'}}
+\aRule   {\simplBeta \aTerm {\aTerm'} \\
+          \simplBeta {\aTerm[1]} {\aTerm[1]'} \\
+          \simplBeta {\aTerm[2]} {\aTerm[2]'}}
+         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm'} {\aTerm[1]'} {\aTerm[2]'}}}
          {}
 
-\aRule   {{\subs \aTerm {\envextend \envid \aTypeVar {\aTypeVar[1]}}} \rightsquigarrow {\aTerm[1]} \\
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\aTypeVar[1]}}} {\aTerm[1]} \\
           \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm)}
-         {\ttyfun \aTypeVar \aTerm \rightsquigarrow \ttyfun {\aTypeVar[1]} {\aTerm[1]}}
+         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\aTypeVar[1]} {\aTerm[1]}}}
          {}
 
-\aRule   {\aTerm \rightsquigarrow \aTerm[1]}
-         {\ttyapp \aTerm \aType \rightsquigarrow \ttyapp {\aTerm[1]} \aType}
+\aRule   {\simplBeta \aTerm {\aTerm[1]}}
+         {\simplBeta {\ttyapp \aTerm \aType} {\ttyapp {\aTerm[1]} \aType}}
          {}
 
 \aRule   { }
-         {\ttyann \aTerm \aType \rightsquigarrow \aTerm}
+         {\simplBeta {\ttyann \aTerm \aType} \aTerm}
          {}
 
 \end{mathpar}
@@ -289,9 +289,9 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \assume{\begin{pfenum}
             \item $\scoped \aTerm \env$ is a well-scoped term in the context $\aContext$ \label{pf:term-scoped}
             \item $\scoped \aTerm \env$ is well-scoped in regards to the stack $\aStack$ \label{pf:term-plug}
-            \item $\forall \aTerm \in \aStack, \aTerm \not\rightsquigarrow$ \label{pf:term-in-stack}
+            \item $\forall \aTerm \in \aStack, \betaNormal{\aTerm}$ \label{pf:term-in-stack}
           \end{pfenum}}
-  \prove{$\stackapp \aStack {\subs \aTerm \env} \rightsquigarrow^* \go {\scoped \aTerm \env} \aStack \not\rightsquigarrow$}
+  \prove{$\simplBeta[*]{\stackapp \aStack {\subs \aTerm \env}} {\betaNormal{\go {\scoped \aTerm \env} \aStack}}$}
   \pfsketch\ Proof by induction on $\aTerm$
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
   \begin{proof}
@@ -301,11 +301,11 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-1.1.2}{$\stackapp {\aStack'} {\aTerm[1]} \not\rightsquigarrow$}
+      \step{label-1.1.2}{$\betaNormal {\stackapp {\aStack'} {\aTerm[1]}}$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:term-in-stack} and definition of $\rightsquigarrow$ \ref{beta-reduction}
       \end{proof}
-      \step{label-1.1.3}{$\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true \rightsquigarrow \stackapp {\aStack'} {\aTerm[1]}$}
+      \step{label-1.1.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true} {\stackapp {\aStack'} {\aTerm[1]}}$}
       \begin{proof}
         \pf\ By definition of stack evaluation \ref{stack-evaluation} and $\rightsquigarrow$
       \end{proof}
@@ -316,11 +316,11 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-1.2.2}{$\stackapp {\aStack'} {\aTerm[2]} \not\rightsquigarrow$}
+      \step{label-1.2.2}{$\betaNormal {\stackapp {\aStack'} {\aTerm[2]}}$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:term-in-stack} and definition of $\rightsquigarrow$
       \end{proof}
-      \step{label-1.2.3}{$\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false \rightsquigarrow \stackapp {\aStack'} {\aTerm[2]} $}
+      \step{label-1.2.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false} {\stackapp {\aStack'} {\aTerm[2]}} $}
       \begin{proof}
         \pf\ By definition of stack evaluation and $\rightsquigarrow$
       \end{proof}
@@ -331,7 +331,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-1.3.2}{$\stackapp \aStack {\subs \aBase \env} \not\rightsquigarrow$}
+      \step{label-1.3.2}{$\betaNormal{\stackapp \aStack {\subs \aBase \env}}$}
       \begin{proof}
         \pf\ By definition of stack evaluation and $\rightsquigarrow$
       \end{proof}
@@ -345,7 +345,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-2.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} \rightsquigarrow^* \go {\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aStack'} \not\rightsquigarrow$}
+      \step{label-2.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aStack'}}}$}
       \begin{proof}
         \step{label-2.1.2.1}{$\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}$ is well scoped}
         \begin{proof}
@@ -358,7 +358,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
             \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
           \end{proof}
         \end{proof}
-        \step{label-2.1.2.2}{$\forall \aTerm' \in \aStack', \aTerm' \not\rightsquigarrow$}
+        \step{label-2.1.2.2}{$\forall \aTerm' \in \aStack', \betaNormal {\aTerm'}$}
         \begin{proof}
           \pf\ By \toplevel:\ref{pf:term-in-stack}
         \end{proof}
@@ -367,7 +367,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ By IH
         \end{proof}
       \end{proof}
-      \step{label-2.1.3}{$\stackapp {(\nonEmptyStack \aFunFrame {\aStack'})} {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} \rightsquigarrow \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}}$}
+      \step{label-2.1.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aFunFrame {\aStack'})} {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env}}{\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}}}$}
       \begin{proof}
         \pf\ \\
         $\begin{aligned}[t]
@@ -385,7 +385,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-2.2.2}{$\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}} \rightsquigarrow^* \go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack \not\rightsquigarrow$}
+      \step{label-2.2.2}{$\simplBeta[*] {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$}
       \begin{proof}
         \step{label-2.2.2.1}{$\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$ is well scoped}
         \begin{proof}
@@ -403,13 +403,13 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ \textsf{go} preserves typing, so $\scoped {\aTerm[3]} \env$ has the same type than $\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$,
         and is therefore well-scoped in regards to the stack $\aStack$ by \toplevel:\ref{pf:term-plug}
           \end{proof}
-        \step{label-2.2.2.3}{$\forall \aTerm' \in \emptyStack, \aTerm' \not\rightsquigarrow$}
+        \step{label-2.2.2.3}{$\forall \aTerm' \in \emptyStack, \betaNormal{\aTerm'}$}
         \qedstep
         \begin{proof}
           \pf\ By IH
         \end{proof}
       \end{proof}
-      \step{label-2.2.3}{$\stackapp \aStack {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} \rightsquigarrow^* \stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
+      \step{label-2.2.3}{$\simplBeta[*] {\stackapp \aStack {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env}} {\stackapp \aStack {\tfun {\aVar[1]} {\subs \aType \env} {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
       \begin{proof}
         \pf\ By substitution~\ref{substitution} and definition of $\rightsquigarrow^*$
       \end{proof}
@@ -420,14 +420,14 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \step{label-3.1}{\case{$\aStack = \nonEmptyStack \aPolyFrame {\aStack'}$ (line~\ref{go:tyfun-holetype})}}
     \begin{proof}
       \step{label-3.1.1}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} {\aStack'}$}
-      \step{label-3.1.2}{$\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} \rightsquigarrow^* \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} {\aStack'} \not\rightsquigarrow$}
-      \step{label-3.1.3}{$\stackapp {(\nonEmptyStack \aPolyFrame {\aStack'})} {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \rightsquigarrow \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}}$}
+      \step{label-3.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} {\aStack'}}}$}
+      \step{label-3.1.3}{$\simplBeta{\stackapp {(\nonEmptyStack \aPolyFrame {\aStack'})} {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env}} {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}}}$}
     \end{proof}
     \step{label-3.2}{\case{Else (line~\ref{go:tyfun-else})}}
     \begin{proof}
       \step{label-3.2.1}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
-      \step{label-3.2.2}{$\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \rightsquigarrow^* \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack \not\rightsquigarrow $}
-      \step{label-3.2.3}{$\stackapp \aStack {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \rightsquigarrow^* \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\aTerm[2]}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$ and $\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \rightsquigarrow^* \aTerm[2]$}
+      \step{label-3.2.2}{$\simplBeta[*] {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}$}
+      \step{label-3.2.3}{$\simplBeta[*] {\stackapp \aStack {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env}} {\stackapp \aStack {\ttyfun {\aTypeVar[1]} {\aTerm[2]}}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$ and $\simplBeta[*] {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} {\aTerm[2]}$}
     \end{proof}
   \end{proof}
   \step{label-4}{\case{$\aTerm = \tapp {\aTerm[3]} {\aBase}$ (line~\ref{go:funApply})}}
@@ -436,7 +436,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \begin{proof}
       \pf\ By definition of \textsf{go}
     \end{proof}
-    \step{label-4.2}{$\stackapp {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} {\subs {\aTerm[3]} \env} \rightsquigarrow^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} \not\rightsquigarrow$}
+    \step{label-4.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} {\subs {\aTerm[3]} \env}} \betaNormal{{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)}}}$}
     \begin{proof}
       \step{label-4.2.1}{$\scoped {\aTerm[3]} \env$ is well scoped}
       \begin{proof}
@@ -449,9 +449,9 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
         \end{proof}
       \end{proof}
-      \step{label-4.2.2}{$\forall \aTerm' \in (\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack), \aTerm' \not\rightsquigarrow$}
+      \step{label-4.2.2}{$\forall \aTerm' \in (\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack), \betaNormal{\aTerm'}$}
       \begin{proof}
-        \step{label-4.2.2.1}{$\subs \aBase \env \not\rightsquigarrow$}
+        \step{label-4.2.2.1}{$\betaNormal{\subs \aBase \env}$}
         \begin{proof}
           \pf\ By the definition of substitution \ref{substitution} and $\rightsquigarrow$ \ref{beta-reduction}
         \end{proof}
@@ -473,7 +473,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \step{label-5}{\case{$\aTerm = \ttyapp {\aTerm[3]} {\aType[1]}$ (line~\ref{go:typeApply})}}
   \begin{proof}
     \step{label-5.1}{$\go {\scoped {(\ttyapp {\aTerm[3]} {\aType[1]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)}}$}
-    \step{label-5.2}{$\stackapp {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)} {\subs {\aTerm[3]} \env} \rightsquigarrow^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)} \not\rightsquigarrow$}
+    \step{label-5.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)}}}$}
     \step{label-5.3}{$\stackapp \aStack {\subs {(\ttyapp {\aTerm[3]} {\aType[1]})} \env} = \stackapp {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)} {\subs {\aTerm[3]} \env}$}
   \end{proof}
   \step{label-6}{\case{$\aTerm = \ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]}$ (line~\ref{go:ite})}}
@@ -482,7 +482,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \begin{proof}
       \pf\ By definition of \textsf{go}
     \end{proof}
-    \step{label-6.2}{$\subs {\aTerm[4]} \env \rightsquigarrow {\go {\scoped {\aTerm[4]} \env} \emptyStack} \not\rightsquigarrow$} \label{pf:6-2}
+    \step{label-6.2}{$\simplBeta{\subs {\aTerm[4]} \env} {\betaNormal{\go {\scoped {\aTerm[4]} \env} \emptyStack}}$} \label{pf:6-2}
     \begin{proof}
       \step{label-6.2.1}{$\scoped {\aTerm[4]} \env$ is well scoped}
       \begin{proof}
@@ -495,14 +495,14 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term
         \end{proof}
       \end{proof}
-      \step{label-6.2.2}{$\forall \aTerm' \in \emptyStack, \aTerm' \not\rightsquigarrow$}
+      \step{label-6.2.2}{$\forall \aTerm' \in \emptyStack, \betaNormal{\aTerm'}$}
       \qedstep
       \begin{proof}
         \pf\ By IH
       \end{proof}
     \end{proof}
-    \step{label-6.3}{$\subs {\aTerm[5]} \env \rightsquigarrow {\go {\scoped {\aTerm[5]} \env} \emptyStack} \not\rightsquigarrow$}
-    \step{label-6.4}{$\stackapp {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)} {\subs {\aTerm[3]} \env} \rightsquigarrow^* \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)}} \not\rightsquigarrow$}
+    \step{label-6.3}{$\simplBeta{\subs {\aTerm[5]} \env} {\betaNormal{\go {\scoped {\aTerm[5]} \env} \emptyStack}}$}
+    \step{label-6.4}{$\simplBeta[*]{\stackapp {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)}}}}$}
     \begin{proof}
       \step{label-6.4.1}{$\scoped {\aTerm[3]} \env$ is well scoped}
       \begin{proof}
@@ -515,7 +515,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ By \toplevel:\ref{pf:term-scoped} and the definition of well scoped term~\ref{well-scoped-term}
         \end{proof}
       \end{proof}
-      \step{label-6.4.2}{$\forall \aTerm' \in ((\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)), \aTerm' \not\rightsquigarrow$}
+      \step{label-6.4.2}{$\forall \aTerm' \in (\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack), \betaNormal{\aTerm'}$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:term-in-stack}, \stepref{label-6.2} and \stepref{label-6.3}
       \end{proof}
@@ -524,7 +524,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \pf\ By IH
       \end{proof}
     \end{proof}
-    \step{label-6.5}{$\stackapp \aStack {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \rightsquigarrow^* \stackapp {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)} {\subs {\aTerm[3]} \env}$}
+    \step{label-6.5}{$\simplBeta[*]{\stackapp \aStack {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env}} {\stackapp {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack)} {\subs {\aTerm[3]} \env}}$}
     \begin{proof}
       \pf\ By substitution, $\rightsquigarrow^*$ and stack evaluation
     \end{proof}
@@ -532,15 +532,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \step{label-7}{\case{$\aTerm = \tlet \aVar {\aTerm[3]} {\aTerm[4]}$ (line~\ref{go:let})}}
   \begin{proof}
     \step{label-7.1}{$\go {\scoped {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env} \aStack = \stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})} \text{ with }\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
-    \step{label-7.2}{$\subs {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}} \rightsquigarrow^* \go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack \not\rightsquigarrow$}
-    \step{label-7.3}{$\subs {\aTerm[3]} \env \rightsquigarrow^* \go {\scoped {\aTerm[3]} \env} \emptyStack \not\rightsquigarrow$}
-    \step{label-7.4}{$\stackapp \aStack {\subs {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env} \rightsquigarrow^* \stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})} \text{ with } \aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
+    \step{label-7.2}{$\simplBeta[*] {\subs {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} {\betaNormal{\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$}
+    \step{label-7.3}{$\simplBeta[*] {\subs {\aTerm[3]} \env } {\betaNormal{\go {\scoped {\aTerm[3]} \env} \emptyStack}}$}
+    \step{label-7.4}{$\simplBeta[*] {\stackapp \aStack {\subs {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env}} {\stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})}} \text{ with } \aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
   \end{proof}
   \step{label-8}{\case{$\aTerm = \ttyann {\aTerm[3]} \aType$ (line~\ref{go:annot})}}
   \begin{proof}
     \step{label-8.1}{$\go {\scoped {\ttyann {\aTerm[3]} \aType} \env} \aStack = \go {\scoped {\aTerm[3]} \env} \aStack$}
-    \step{label-8.2}{$\stackapp \aStack {\subs {\aTerm[3]} \env} \rightsquigarrow^* \go {\scoped {\aTerm[3]} \env} \aStack \not\rightsquigarrow$}
-    \step{label-8.3}{$\stackapp \aStack {\subs {\ttyann {\aTerm[3]} \aType} \env} \rightsquigarrow \stackapp \aStack {\subs {\aTerm[3]} \env}$}
+    \step{label-8.2}{$\simplBeta[*] {\stackapp \aStack {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env} \aStack}}$}
+    \step{label-8.3}{$\simplBeta{\stackapp \aStack {\subs {\ttyann {\aTerm[3]} \aType} \env}} {\stackapp \aStack {\subs {\aTerm[3]} \env}}$}
   \end{proof}
 \end{proof}
 
