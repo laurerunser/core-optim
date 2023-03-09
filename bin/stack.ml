@@ -229,7 +229,7 @@ and go (t : term scoped) (acc : stack) =
         match (t, acc) with
         (* simplify if branches with booleans *)
         | Base (Bool b), HoleIf (e1, e2) :: acc ->
-            if b then plug acc e1 else plug acc e2
+            if b then go (empty_scope e1) acc else go (empty_scope e2) acc
         | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun arg :: acc (*@ \label{go:fun-holefun} *) ->

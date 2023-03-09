@@ -229,5 +229,6 @@ let () =
             test_simplification_ite1;
           test_case "Fun with x as condition" `Quick test_simplification_fun_if;
           test_case "IfThenElse with var" `Quick test_simplification_var_if;
+          test_case "If in If" `Quick test_simplification_if_in_if;
         ] );
     ]
