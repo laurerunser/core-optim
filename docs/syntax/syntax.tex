@@ -283,14 +283,18 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \end{mathpar}
 \subsection{Correctness}
 \begin{proof}
-  \pflet{$\Gamma$ a context} %item
-  \pflet{$\scoped \aTerm \env$ a well-scoped term}
-  \pflet{$\aStack$ a fully-simplified stack}
-  \assume{$\exists \aType. \exists \aType[1]
-    \begin{conj}
-      \judge \Gamma {\subs \aTerm \env} \aType \\
-      \frameJudge \Gamma \aStack \aType {\aType[1]}
-    \end{conj}$}
+  \pflet
+  {\begin{enumerate}
+    \item $\Gamma$ a context
+    \item $\scoped \aTerm \env$ a well-scoped term \label{pf:term-scoped}
+    \item $\aStack$ a fully-simplified stack \label{pf:term-in-stack}
+  \end{enumerate}}
+  \assume{$\exists \aType. \exists \aType[1]$
+    \begin{enumerate}
+      \item $\judge \Gamma {\subs \aTerm \env} \aType$ \label{pf:term-typed}
+      \item $\frameJudge \Gamma \aStack \aType {\aType[1]}$ \label{pf:stack-typed}
+    \end{enumerate}
+    }
   \prove{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\go {\scoped \aTerm \env} \aStack}}$ and $\judge \Gamma {\go {\scoped \aTerm \env} \aStack} {\aType[1]}$}
   \pfsketch\ Proof by induction on $\aTerm$
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
