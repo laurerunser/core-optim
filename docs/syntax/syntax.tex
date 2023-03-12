@@ -301,19 +301,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \begin{proof}
     \step{label-1.1}{\case{$\subs \aBase \env = \true$ and $\aStack = \nonEmptyStack \aIteFrame {\aStack'}$}}
     \begin{proof}
-      \step{label-1.1.1}{$\go {\scoped \aBase \env} {(\nonEmptyStack \aIteFrame {\aStack'})} = \stackapp {\aStack'} {\aTerm[1]}$}
+      \step{label-1.1.1}{$\go {\scoped \aBase \env} {(\nonEmptyStack \aIteFrame {\aStack'})} = \go {\scoped {\aTerm[1]} \varnothing {\aStack'}}$}
       \begin{proof}
-        \pf\ By definition of \textsf{go}
+        \pf\ By definition of \textsf{go} and stack evaluation \ref{stack-evaluation}
       \end{proof}
-      \step{label-1.1.2}{$\betaNormal {\stackapp {\aStack'} {\aTerm[1]}}$}
+      \step{label-1.1.2}{$\betaNormal {\go {\scoped {\aTerm[1]} \varnothing {\aStack'}}}$}
       \begin{proof}
-        \pf\ By \toplevel:\ref{pf:term-in-stack} and definition of $\rightsquigarrow$ \ref{beta-reduction}
+        \pf\ By definition of \textsf{go} and definition of $\rightsquigarrow$ \ref{beta-reduction}
       \end{proof}
-      \step{label-1.1.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true} {\stackapp {\aStack'} {\aTerm[1]}}$}
-      \begin{proof}
-        \pf\ By definition of stack evaluation \ref{stack-evaluation} and $\rightsquigarrow$
-      \end{proof}
-      \step{label-1.1.4}{$\stackapp {\aStack'} {\aTerm[1]}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true$ in the context $\Gamma$}
+      \step{label-1.1.3}{$\go {\scoped {\aTerm[1]} \varnothing {\aStack'}}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true$ in the context $\Gamma$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed},
         $\aRule {\judge \Gamma {\aTerm[1]} {\aType[2]} \\ \judgecheck \Gamma {\aType[2]} {\aTerm[2]} \\ \frameJudge \Gamma {\aStack'} {\aType[2]} \aType} {\frameJudge \Gamma {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType} {}$
@@ -321,20 +317,16 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \end{proof}
     \step{label-1.2}{\case{$\subs \aBase \env = \false$ and $\aStack = \nonEmptyStack \aIteFrame {\aStack'}$}}
     \begin{proof}
-      \step{label-1.2.1}{$\go {\scoped \aBase \env} {(\nonEmptyStack \aIteFrame {\aStack'})} = \stackapp {\aStack'} {\aTerm[2]}$}
-      \begin{proof}
-        \pf\ By definition of \textsf{go}
-      \end{proof}
-      \step{label-1.2.2}{$\betaNormal {\stackapp {\aStack'} {\aTerm[2]}}$}
-      \begin{proof}
-        \pf\ By \toplevel:\ref{pf:term-in-stack} and definition of $\rightsquigarrow$
-      \end{proof}
-      \step{label-1.2.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false} {\stackapp {\aStack'} {\aTerm[2]}} $}
-      \begin{proof}
-        \pf\ By definition of stack evaluation and $\rightsquigarrow$
-      \end{proof}
-      \step{label-1.1.4}{$\stackapp {\aStack'} {\aTerm[2]}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false$ in the context $\Gamma$}
-      \begin{proof}
+        \step{label-1.1.1}{$\go {\scoped \aBase \env} {(\nonEmptyStack \aIteFrame {\aStack'})} = \go {\scoped {\aTerm[2]} \varnothing {\aStack'}}$}
+        \begin{proof}
+          \pf\ By definition of \textsf{go} and stack evaluation \ref{stack-evaluation}
+        \end{proof}
+        \step{label-1.1.2}{$\betaNormal {\go {\scoped {\aTerm[2]} \varnothing {\aStack'}}}$}
+        \begin{proof}
+          \pf\ By definition of \textsf{go} and definition of $\rightsquigarrow$ \ref{beta-reduction}
+        \end{proof}
+        \step{label-1.1.3}{$\go {\scoped {\aTerm[2]} \varnothing {\aStack'}}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false$ in the context $\Gamma$}
+        \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed},
         $\aRule {\judge \Gamma {\aTerm[1]} {\aType[2]} \\ \judgecheck \Gamma {\aType[2]} {\aTerm[2]} \\ \frameJudge \Gamma {\aStack'} {\aType[2]} \aType} {\frameJudge \Gamma {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType} {}$
       \end{proof}
