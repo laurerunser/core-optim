@@ -26,7 +26,7 @@ and stack = frame list
 val empty_scope : 'a -> 'a scoped
 (* [empty_scope t] returns t with a scope where all the maps and sets are empty *)
 
-val inherit_scope : 'a -> 'b scoped -> 'a scoped
+val inherit_scope : x:'a -> scope:'b scoped -> 'a scoped
 (* [empty_scope t old] returns the scope of old with the term t *)
 
 val scope_with_new_var :
