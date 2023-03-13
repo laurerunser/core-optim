@@ -296,17 +296,17 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \begin{proof}
   \pflet
   {\begin{enumerate}
-    \item $\Gamma$ a context
+    \item $\aContext$ a context
     \item $\scoped \aTerm \env$ a well-scoped term \label{pf:term-scoped}
     \item $\aStack$ a fully-simplified stack \label{pf:term-in-stack}
   \end{enumerate}}
   \assume{$\exists \aType. \exists \aType[1]$
     \begin{enumerate}
-      \item $\judge \Gamma {\subs \aTerm \env} \aType$ \label{pf:term-typed}
-      \item $\frameJudge \Gamma \aStack \aType {\aType[1]}$ \label{pf:stack-typed}
+      \item $\judge \aContext {\subs \aTerm \env} \aType$ \label{pf:term-typed}
+      \item $\frameJudge \aContext \aStack \aType {\aType[1]}$ \label{pf:stack-typed}
     \end{enumerate}
     }
-  \prove{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\go {\scoped \aTerm \env} \aStack}}$ and $\judge \Gamma {\go {\scoped \aTerm \env} \aStack} {\aType[1]}$}
+  \prove{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\go {\scoped \aTerm \env} \aStack}}$ and $\judge \aContext {\go {\scoped \aTerm \env} \aStack} {\aType[1]}$}
   \pfsketch\ Proof by induction on $\aTerm$
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
   \begin{proof}
@@ -320,10 +320,10 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go} and definition of $\rightsquigarrow$ \ref{beta-reduction}
       \end{proof}
-      \step{label-1.1.3}{$\go {\scoped {\aTerm[1]} \varnothing {\aStack'}}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true$ in the context $\Gamma$}
+      \step{label-1.1.3}{$\go {\scoped {\aTerm[1]} \varnothing {\aStack'}}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \true$ in the context $\aContext$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed},
-        $\aRule {\judge \Gamma {\aTerm[1]} {\aType[2]} \\ \judgecheck \Gamma {\aType[2]} {\aTerm[2]} \\ \frameJudge \Gamma {\aStack'} {\aType[2]} \aType} {\frameJudge \Gamma {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType} {}$
+        $\aRule {\judge \aContext {\aTerm[1]} {\aType[2]} \\ \judgecheck \aContext {\aType[2]} {\aTerm[2]} \\ \frameJudge \aContext {\aStack'} {\aType[2]} \aType} {\frameJudge \aContext {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType} {}$
       \end{proof}
     \end{proof}
     \step{label-1.2}{\case{$\subs \aBase \env = \false$ and $\aStack = \nonEmptyStack \aIteFrame {\aStack'}$}}
@@ -336,10 +336,10 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \begin{proof}
           \pf\ By definition of \textsf{go} and definition of $\rightsquigarrow$ \ref{beta-reduction}
         \end{proof}
-        \step{label-1.1.3}{$\go {\scoped {\aTerm[2]} \varnothing {\aStack'}}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false$ in the context $\Gamma$}
+        \step{label-1.1.3}{$\go {\scoped {\aTerm[2]} \varnothing {\aStack'}}$ has the type of $\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false$ in the context $\aContext$}
         \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed},
-        $\aRule {\judge \Gamma {\aTerm[1]} {\aType[2]} \\ \judgecheck \Gamma {\aType[2]} {\aTerm[2]} \\ \frameJudge \Gamma {\aStack'} {\aType[2]} \aType} {\frameJudge \Gamma {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType} {}$
+        $\aRule {\judge \aContext {\aTerm[1]} {\aType[2]} \\ \judgecheck \aContext {\aType[2]} {\aTerm[2]} \\ \frameJudge \aContext {\aStack'} {\aType[2]} \aType} {\frameJudge \aContext {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType} {}$
       \end{proof}
     \end{proof}
     \step{label-1.3}{\case{Else}}
@@ -348,7 +348,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-1.3.2}{$\stackapp \aStack {\subs \aBase \env}$ is well-typed in the context $\Gamma$}
+      \step{label-1.3.2}{$\stackapp \aStack {\subs \aBase \env}$ is well-typed in the context $\aContext$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed}
       \end{proof}
@@ -356,7 +356,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By definition of stack evaluation and $\rightsquigarrow$
       \end{proof}
-      \step{label-1.3.4}{$\stackapp \aStack {\subs \aBase \env}$ has the type of $\stackapp \aStack {\subs \aBase \env}$ in the context $\Gamma$}
+      \step{label-1.3.4}{$\stackapp \aStack {\subs \aBase \env}$ has the type of $\stackapp \aStack {\subs \aBase \env}$ in the context $\aContext$}
     \end{proof}
   \end{proof}
   \step{label-2}{\case{$\aTerm = (\tfun \aVar \aType {\aTerm[3]})$}}
@@ -384,36 +384,36 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \begin{proof}
           \pf\ By \toplevel:\ref{pf:term-in-stack}
         \end{proof}
-        \step{label-2.1.2.3}{$\subs {\aTerm[3]} {\envextend \env \aVar \aBase}$ is well-typed in the context $\Gamma$}
+        \step{label-2.1.2.3}{$\subs {\aTerm[3]} {\envextend \env \aVar \aBase}$ is well-typed in the context $\aContext$}
         \begin{proof}
           \step{label-2.1.2.3.1}{$\judge {\ctxtExtend \aContext {\aVar[1]} {\subs \aType \env}} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \aType[3]$ with $\aVar[1] \notin FV(t) \cup FV(\env)$}
           \begin{proof}
             \pf\ By substitution and \toplevel:\ref{pf:term-typed},
             $\aRule {\judge {\ctxtExtend \aContext {\aVar[1]} {\subs \aType \env}} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \aType[3] \\
-            \aVar[1] \notin FV(t) \cup FV(\env)} {\judge \Gamma {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} {{\subs \aType \env} \to \aType[3]}} {}$ 
+            \aVar[1] \notin FV(t) \cup FV(\env)} {\judge \aContext {\subs {(\tfun \aVar \aType {\aTerm[3]})} \env} {{\subs \aType \env} \to \aType[3]}} {}$ 
           \end{proof}
-          \step{label-2.1.2.3.2}{$\judge \Gamma \aBase {\subs \aType \env}$}
+          \step{label-2.1.2.3.2}{$\judge \aContext \aBase {\subs \aType \env}$}
           \begin{proof}
             \pf\ By \toplevel:\ref{pf:stack-typed},
-            $\aRule {\frameJudge \Gamma {\aStack'} {\aType[3]} {\aType[2]} \\ \judgecheck \Gamma {\subs \aType \env} \aBase}
-            {\frameJudge \Gamma {\nonEmptyStack \aFunFrame {\aStack'}} {{\subs \aType \env} \to {\aType[3]}} {\aType[2]}} {}$
+            $\aRule {\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[2]} \\ \judgecheck \aContext {\subs \aType \env} \aBase}
+            {\frameJudge \aContext {\nonEmptyStack \aFunFrame {\aStack'}} {{\subs \aType \env} \to {\aType[3]}} {\aType[2]}} {}$
           \end{proof}
-          \step{label-2.1.2.3.3}{$\judge \Gamma {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aType[3]}$}
+          \step{label-2.1.2.3.3}{$\judge \aContext {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aType[3]}$}
           \begin{proof}
             \pf\ By term typechecker
           \end{proof}
         \end{proof}
-        \step{label-2.1.2.4}{$\aStack'$ is well-typed in the context $\Gamma$ for the type of $\subs {\aTerm[3]} {\envextend \env \aVar \aBase}$}
+        \step{label-2.1.2.4}{$\aStack'$ is well-typed in the context $\aContext$ for the type of $\subs {\aTerm[3]} {\envextend \env \aVar \aBase}$}
         \begin{proof}
-          \step{label-2.1.2.4.1}{$\judge \Gamma {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aType[3]}$}
+          \step{label-2.1.2.4.1}{$\judge \aContext {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aType[3]}$}
           \begin{proof}
             \pf\ By \stepref{label-2.1.2.3}
           \end{proof}
-          \step{label-2.1.2.4.2}{$\frameJudge \Gamma {\aStack'} {\aType[3]} {\aType[2]}$}
+          \step{label-2.1.2.4.2}{$\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[2]}$}
           \begin{proof}
             \pf\ By \toplevel:\ref{pf:stack-typed},
-            $\aRule {\frameJudge \Gamma {\aStack'} {\aType[3]} {\aType[2]} \\ \judgecheck \Gamma {\subs \aType \env} \aBase}
-            {\frameJudge \Gamma {\nonEmptyStack \aFunFrame {\aStack'}} {{\subs \aType \env} \to {\aType[3]}} {\aType[2]}} {}$
+            $\aRule {\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[2]} \\ \judgecheck \aContext {\subs \aType \env} \aBase}
+            {\frameJudge \aContext {\nonEmptyStack \aFunFrame {\aStack'}} {{\subs \aType \env} \to {\aType[3]}} {\aType[2]}} {}$
           \end{proof}
         \end{proof}
         \qedstep
@@ -456,11 +456,11 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \begin{proof}
           \pf\ By the definition of well scoped stack
         \end{proof}
-        \step{label-2.2.2.3}{$\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$ is well-typed in the context $\ctxtExtend {\Gamma \setminus \hasType \aVar \aType} {\aVar[1]} \aType$}
+        \step{label-2.2.2.3}{$\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$ is well-typed in the context $\ctxtExtend {\aContext \setminus \hasType \aVar \aType} {\aVar[1]} \aType$}
         \begin{proof}
           \pf\ Rename a variable doesn't change types
         \end{proof}
-        \step{label-2.2.2.4}{$\emptyStack$ is well-typed in the context $\ctxtExtend {\Gamma \setminus \hasType \aVar \aType} {\aVar[1]} \aType$ for the type of $\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$}
+        \step{label-2.2.2.4}{$\emptyStack$ is well-typed in the context $\ctxtExtend {\aContext \setminus \hasType \aVar \aType} {\aVar[1]} \aType$ for the type of $\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}$}
         \begin{proof}
           \pf\ By empty stack rule \ref{stack-typechecker}
         \end{proof}
@@ -520,15 +520,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ By \toplevel:\ref{pf:term-in-stack}
         \end{proof}
       \end{proof}
-      \step{label-4.2.3}{$\subs {\aTerm[3]} \env$ is well-typed in the context $\Gamma$}
+      \step{label-4.2.3}{$\subs {\aTerm[3]} \env$ is well-typed in the context $\aContext$}
       \begin{proof}
         \pf\ By substitution and \toplevel:\ref{pf:term-typed},
-        $\aRule {\judge \Gamma {\subs {\aTerm[3]} \env} {\aType[1] \to \aType}\\ \judgecheck \Gamma {\aType[1]} {\subs \aBase \env}} {\judge \Gamma {\subs {(\tapp {\aTerm[3]} \aBase)} \env} \aType} {}$
+        $\aRule {\judge \aContext {\subs {\aTerm[3]} \env} {\aType[1] \to \aType}\\ \judgecheck \aContext {\aType[1]} {\subs \aBase \env}} {\judge \aContext {\subs {(\tapp {\aTerm[3]} \aBase)} \env} \aType} {}$
       \end{proof}
-      \step{label-4.2.4}{$\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack$ is well-typed in the context $\Gamma$ for the type of $\subs {\aTerm[3]} \env$}
+      \step{label-4.2.4}{$\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack$ is well-typed in the context $\aContext$ for the type of $\subs {\aTerm[3]} \env$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed} \\
-        $\aRule {\frameJudge \Gamma \aStack \aType {\aType[2]} \\ \judgecheck \Gamma {\aType[1]} {\subs \aBase \env}} {\frameJudge \Gamma {\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack} {\aType[1] \to \aType} {\aType[2]}} {}$
+        $\aRule {\frameJudge \aContext \aStack \aType {\aType[2]} \\ \judgecheck \aContext {\aType[1]} {\subs \aBase \env}} {\frameJudge \aContext {\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack} {\aType[1] \to \aType} {\aType[2]}} {}$
       \end{proof}
       \qedstep
       \begin{proof}
@@ -569,14 +569,14 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By the definition of well scoped stack
       \end{proof}
-      \step{label-6.2.3}{$\subs {\aTerm[4]} \env$ is well-typed in the context $\Gamma$}
+      \step{label-6.2.3}{$\subs {\aTerm[4]} \env$ is well-typed in the context $\aContext$}
       \begin{proof}
         \begin{proof}
           \pf\ By substitution and \toplevel:\ref{pf:term-typed},
-          $\aRule {\judge \Gamma {\subs {\aTerm[3]} \env} {\tyBool}\\ \judge \Gamma {\subs {\aTerm[4]} \env} \aType \\ \judgecheck \Gamma \aType {\subs {\aTerm[5]} \env}} {\judge \Gamma {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aType} {}$
+          $\aRule {\judge \aContext {\subs {\aTerm[3]} \env} {\tyBool}\\ \judge \aContext {\subs {\aTerm[4]} \env} \aType \\ \judgecheck \aContext \aType {\subs {\aTerm[5]} \env}} {\judge \aContext {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aType} {}$
         \end{proof}
       \end{proof}
-      \step{label-6.2.4}{$\emptyStack$ is well-typed in the context $\Gamma$ for the type of $\subs {\aTerm[4]} \env$}
+      \step{label-6.2.4}{$\emptyStack$ is well-typed in the context $\aContext$ for the type of $\subs {\aTerm[4]} \env$}
       \begin{proof}
         \pf\ By empty stack rule \ref{stack-typechecker}
       \end{proof}
@@ -603,15 +603,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:term-in-stack}, \stepref{label-6.2} and \stepref{label-6.3}
       \end{proof}
-      \step{label-6.4.3}{$\subs {\aTerm[3]} \env$ is well-typed in the context $\Gamma$}
+      \step{label-6.4.3}{$\subs {\aTerm[3]} \env$ is well-typed in the context $\aContext$}
       \begin{proof}
         \pf\ By substitution and \toplevel:\ref{pf:term-typed},
-        $\aRule {\judge \Gamma {\subs {\aTerm[3]} \env} {\tyBool}\\ \judge \Gamma {\subs {\aTerm[4]} \env} \aType \\ \judgecheck \Gamma \aType {\subs {\aTerm[5]} \env}} {\judge \Gamma {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aType} {}$
+        $\aRule {\judge \aContext {\subs {\aTerm[3]} \env} {\tyBool}\\ \judge \aContext {\subs {\aTerm[4]} \env} \aType \\ \judgecheck \aContext \aType {\subs {\aTerm[5]} \env}} {\judge \aContext {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aType} {}$
       \end{proof}
-      \step{label-6.4.4}{$\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack$ is well-typed in the context $\Gamma$ for the type of $\subs {\aTerm[3]} \env$}
+      \step{label-6.4.4}{$\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack$ is well-typed in the context $\aContext$ for the type of $\subs {\aTerm[3]} \env$}
       \begin{proof}
         \pf\ By \toplevel:\ref{pf:stack-typed}, 
-        $\aRule {\judge \Gamma {\go {\scoped {\aTerm[4]} \env} \emptyStack} {\aType[3]} \\ \judgecheck \Gamma {\aType[3]} {\go {\scoped {\aTerm[5]} \env} \emptyStack} \\ \frameJudge \Gamma \aStack {\aType[3]} \aType} {\frameJudge \Gamma {\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack} {\tyBool} \aType} {}$
+        $\aRule {\judge \aContext {\go {\scoped {\aTerm[4]} \env} \emptyStack} {\aType[3]} \\ \judgecheck \aContext {\aType[3]} {\go {\scoped {\aTerm[5]} \env} \emptyStack} \\ \frameJudge \aContext \aStack {\aType[3]} \aType} {\frameJudge \aContext {\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)}} \aStack} {\tyBool} \aType} {}$
       \end{proof}
       \qedstep
       \begin{proof}
