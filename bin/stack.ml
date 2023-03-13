@@ -71,14 +71,7 @@ let empty_scope t =
     p_ty = VarMap.empty;
   }
 
-let inherit_scope t old =
-  {
-    scope = t;
-    vars_term = old.vars_term;
-    vars_ty = old.vars_ty;
-    p_term = old.p_term;
-    p_ty = old.p_ty;
-  }
+let inherit_scope ~x ~scope = { scope with scope = x }
 
 let scope_with_new_var ~(term : term) ~(scope : term scoped) ~(var : Atom.t)
     ~(base : base) =
@@ -246,7 +239,7 @@ and go (t : term scoped) (acc : stack) =
     (* abstractions but can't simplify in the context *)
     | Fun (x, ty, body), acc (*@ \label{go:fun-else} *) ->
         let x' = Atom.fresh x.identifier in
-        let ty = discharge_ty (inherit_scope ty t) in
+        let ty = discharge_ty (inherit_scope ~x:ty ~scope:t) in
         let body_scoped =
           scope_with_new_var ~term:body ~scope:t ~var:x ~base:(Var x')
         in
@@ -264,22 +257,22 @@ and go (t : term scoped) (acc : stack) =
         plug acc t
     (* cases that create a context that we can simplify in *)
     | FunApply (f, arg), acc (*@ \label{go:funApply}*) ->
-        let f = inherit_scope f t in
-        let arg = inherit_scope arg t in
+        let f = inherit_scope ~x:f ~scope:t in
+        let arg = inherit_scope ~x:arg ~scope:t in
         go f (HoleFun (discharge_base arg) :: acc)
     | TypeApply (f, ty), acc (*@ \label{go:typeApply}*) ->
-        let f = inherit_scope f t in
-        let ty = inherit_scope ty t in
+        let f = inherit_scope ~x:f ~scope:t in
+        let ty = inherit_scope ~x:ty ~scope:t in
         go f (HoleType (discharge_ty ty) :: acc)
     | IfThenElse (t1, t2, t3), acc (*@ \label{go:ite}*) ->
-        let t1 = inherit_scope t1 t in
-        let t2 = go (inherit_scope t2 t) [] in
-        let t3 = go (inherit_scope t3 t) [] in
+        let t1 = inherit_scope ~x:t1 ~scope:t in
+        let t2 = go (inherit_scope ~x:t2 ~scope:t) [] in
+        let t3 = go (inherit_scope ~x:t3 ~scope:t) [] in
         go t1 (HoleIf (t2, t3) :: acc)
     (* other cases *)
     | Let (x, t1, body), acc (*@ \label{go:let}*) ->
         let x' = Atom.fresh x.identifier in
-        let t1 = go (inherit_scope t1 t) [] in
+        let t1 = go (inherit_scope ~x:t1 ~scope:t) [] in
         let body_scoped =
           scope_with_new_var ~term:body ~scope:t ~var:x ~base:(Var x')
         in
@@ -288,7 +281,7 @@ and go (t : term scoped) (acc : stack) =
         plug acc t
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc (*@ \label{go:annot}*) ->
-        go (inherit_scope body t) acc (* =end= *)
+        go (inherit_scope ~x:body ~scope:t) acc (* =end= *)
   in
   (* check that the term is closed *)
   assert (closed_term_in_scope result t);
