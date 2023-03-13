@@ -138,6 +138,9 @@ $
   \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} \\
 \end{align*}
 
+\subsection{Fully-simplified} \label{simplified-stack}
+$\aStack$ is fully-simplified if $\forall \aTerm \in \aStack, \betaNormal{\aTerm}$
+
 \section{Typechecker}
 \subsection{Type synthesis for terms} \label{term-typechecker}
 The type synthesis judgment for terms is written
