@@ -52,3 +52,7 @@ Pagani:
 
 02/02/23
 - modifications to beta-reduction and evaluation contexts to make them more coherent
+
+15/03/23
+Pagani:
+- on se voit demain chez Dagand
