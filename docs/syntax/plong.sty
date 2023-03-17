@@ -106,6 +106,8 @@
             {\textbf{if } \square \: \textbf{then } {\aTerm[1]} \textbf{ else } {\aTerm[2]} }
 \newcommand{\aIteFrameAll}[2]
             {\textbf{if } \square \: \textbf{then } {#1} \textbf{ else } {#2}}
+\newcommand{\aIteFrameScoped}
+            {\textbf{if } \square \: \textbf{then } {\scoped {\aTerm[1]} {\env[1]}} \textbf{ else } {\scoped {\aTerm[2]} {\env[2]}} }
 
 \newcommand{\aStack}[1][0]
             {\ifthenelse{#1 = 0}{s}
