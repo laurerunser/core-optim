@@ -261,7 +261,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {}
 
 \aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} {\aTerm[1]} \\
-          \aVar[1] \notin FV(\tfun \aVar \aType \aTerm)}
+          \aVar[1] \notin FV(\aTerm)}
          {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\aVar[1]} \aType {\aTerm[1]}}}
          {}
 
@@ -269,20 +269,29 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {\simplBeta {\tapp \aTerm \aBase} {\tapp {\aTerm[1]} \aBase}}
          {}
 
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} {\aTerm'} \\
-          \simplBeta {\aTerm[1]} {\aTerm[1]'} \\
-          \aVar[1] \notin FV(\tlet \aVar \aTerm {\aTerm[1]})}
-         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\aVar[1]} {\aTerm'} {\aTerm[1]'}}}
+\aRule   {\simplBeta \aTerm {\aTerm'}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar {\aTerm'} {\aTerm[1]}}}
          {}
 
-\aRule   {\simplBeta \aTerm {\aTerm'} \\
-          \simplBeta {\aTerm[1]} {\aTerm[1]'} \\
-          \simplBeta {\aTerm[2]} {\aTerm[2]'}}
-         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm'} {\aTerm[1]'} {\aTerm[2]'}}}
+\aRule   {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar {\aVar[1]}}} {\aTerm[1]'} \\
+          \aVar[1] \notin FV({\aTerm[1]})}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\aVar[1]} \aTerm {\aTerm[1]'}}}
+         {}
+
+\aRule   {\simplBeta \aTerm {\aTerm'}}
+         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm'} {\aTerm[1]} {\aTerm[2]}}}
+         {}
+
+\aRule   {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
+         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]'} {\aTerm[2]}}}
+         {}
+
+\aRule   {\simplBeta {\aTerm[2]} {\aTerm[2]'}}
+         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\aTerm[2]'}}}
          {}
 
 \aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\aTypeVar[1]}}} {\aTerm[1]} \\
-          \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm)}
+          \aTypeVar[1] \notin FV(\aTerm)}
          {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\aTypeVar[1]} {\aTerm[1]}}}
          {}
 
