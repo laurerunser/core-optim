@@ -102,12 +102,10 @@
             {\square \: {#1}}
 \newcommand{\aPolyFrame}[1][{\aType[1]}]
             {\square \: {#1}}
-\newcommand{\aIteFrame}
-            {\textbf{if } \square \: \textbf{then } {\aTerm[1]} \textbf{ else } {\aTerm[2]} }
-\newcommand{\aIteFrameAll}[2]
-            {\textbf{if } \square \: \textbf{then } {#1} \textbf{ else } {#2}}
-\newcommand{\aIteFrameScoped}
-            {\textbf{if } \square \: \textbf{then } {\scoped {\aTerm[1]} {\env[1]}} \textbf{ else } {\scoped {\aTerm[2]} {\env[2]}} }
+\newcommand{\aIteFrame}[1][\env]
+            {(\textbf{if } \square \: \textbf{then } {\aTerm[1]} \textbf{ else } {\aTerm[2]})^{#1}}
+\newcommand{\aIteFrameAll}[3]
+            {(\textbf{if } \square \: \textbf{then } {#1} \textbf{ else } {#2})^{#3}}
 
 \newcommand{\aStack}[1][0]
             {\ifthenelse{#1 = 0}{s}
