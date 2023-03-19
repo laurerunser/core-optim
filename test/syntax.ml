@@ -21,4 +21,4 @@ let poly_ty v f = abstract v (f (TyFreeVar v))
 (* smart constructors for the frames *)
 let hfun t = HoleFun t
 let htype t = HoleType t
-let hif t1 t2 = HoleIf (t1, t2)
+let hif t1 t2 = HoleIf (empty_scope (t1, t2))

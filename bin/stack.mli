@@ -19,7 +19,7 @@ type 'a scoped = {
 type frame =
   | HoleFun of Terms.base
   | HoleType of Types.ty
-  | HoleIf of Terms.term * Terms.term
+  | HoleIf of (Terms.term * Terms.term) scoped
 
 and stack = frame list
 
