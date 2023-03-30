@@ -139,9 +139,9 @@ $
 \subsection{Stack application} \label{stack-application}
 \begin{align*}
   \stackapp \emptyStack \aTerm &= \aTerm \\
-  \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm \aBase} \\
-  \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\aType[1]}} \\
-  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}} \\
+  \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm {(\subs \aBase \env)}} \\
+  \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\subs {\aType[1]} \env}} \\
+  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]'} {\aTerm[2]'}} \text{ where } \subs {\aTerm[1]} \env \to^* \aTerm[1]' \not\to \text{ and } \subs {\aTerm[2]} \env \to^* \aTerm[2]' \not\to \\
 \end{align*}
 
 \section{Typechecker}
@@ -213,21 +213,21 @@ The type synthesis judgment for stacks is written
 and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term of type $\aType[1]$ has type $\aType$".
 \begin{mathpar}
 \aRule   { }
-         {\frameJudge \aContext \emptyStack \aType \aType}
+         {\frameJudge \aContext {\scoped \emptyStack \env} \aType {\aType}}
          {Empty stack}
 
-\aRule   {\frameJudge \aContext \aStack \aType \aType[2] \\
+\aRule   {\frameJudge \aContext \aStack \aType {\aType[2]} \\
           \judgecheck \aContext {\aType[1]} \aBase}
-         {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod \aType[2]}
+         {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod {\aType[2]}}
          {Applied function frame}
 
-\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envextend \envid \aTypeVar {\aType[1]}}} \aType[2]}
-         {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} \aType[2]}
+\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envextend \envid \aTypeVar {\aType[1]}}} {\aType[2]}}
+         {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} {\aType[2]}}
          {Instantiated polymorphism frame}
 
-\aRule  {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
-          \judge \aContext {\subs {\aTerm[2]} \env} {\aType[2]} \\
-          \frameJudge \aContext \aStack {\aType[2]} \aType}
+\aRule  {\judgecheck \aContext {\aTerm[1]} {\aType[2]} \\
+          \judgecheck \aContext {\aTerm[2]} {\aType[2]} \\
+          \frameJudge \aContext \aStack {\aType[2]} {\aType}}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}
 
@@ -238,39 +238,37 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \subsubsection{Rules}
 \begin{mathpar}
 \aRule   { }
-         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {\subs \aTerm {\envextend \envid \aVar \aBase}}}
+         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {{\subs \aTerm {\envextend \envid \aVar \textcolor{orange}{\frak{\aBase}}}}}}
          {}
 
 \aRule   { }
-         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {\subs \aTerm {\envextend \envid \aTypeVar \aType}}}
+         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {{\subs \aTerm {\envextend \envid \aTypeVar \textcolor{orange}{\frak{\aType}}}}}}
          {}
 
 \aRule   { }
-         {\simplBeta {\ite \true \aTerm {\aTerm[1]}} \aTerm}
+         {\simplBeta {{\ite \true {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\subs \aTerm \env}}
          {}
 
 \aRule   { }
-         {\simplBeta {\ite \false \aTerm {\aTerm[1]}} {\aTerm[1]}}
+         {\simplBeta {{\ite \false {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\subs {\aTerm[1]} \env}}
          {}
 \end{mathpar}
 \subsubsection{Congruence rules}
 \begin{mathpar}
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\aVar[1]}}} {\aTerm[1]} \\
-          \aVar[1] \notin FV(\aTerm)}
-         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\aVar[1]} \aType {\aTerm[1]}}}
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\aTerm[1]}}
+         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\textcolor{orange}{\frak{\aVar}}} \aType {\aTerm[1]}}}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm[1]}}
-         {\simplBeta {\tapp \aTerm \aBase} {\tapp {\aTerm[1]} \aBase}}
+         {\simplBeta {\tapp \aTerm \aBase} \tapp {\aTerm[1]} \aBase}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm'}}
-         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar {\aTerm'} {\aTerm[1]}}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar {\aTerm'}} {\aTerm[1]}}
          {}
 
-\aRule   {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar {\aVar[1]}}} {\aTerm[1]'} \\
-          \aVar[1] \notin FV({\aTerm[1]})}
-         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\aVar[1]} \aTerm {\aTerm[1]'}}}
+\aRule   {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\aTerm[1]'}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\textcolor{orange}{\frak{\aVar}}} \aTerm \aTerm[1]'}}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm'}}
@@ -278,16 +276,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {}
 
 \aRule   {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
-         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]'} {\aTerm[2]}}}
-         {}
+          {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]'} {\aTerm[2]} }}
+{}
 
 \aRule   {\simplBeta {\aTerm[2]} {\aTerm[2]'}}
          {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\aTerm[2]'}}}
          {}
 
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\aTypeVar[1]}}} {\aTerm[1]} \\
-          \aTypeVar[1] \notin FV(\aTerm)}
-         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\aTypeVar[1]} {\aTerm[1]}}}
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\textcolor{orange}{\frak{\aTypeVar}}}}} {\aTerm[1]}}
+         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\textcolor{orange}{\frak{\aTypeVar}}} {\aTerm[1]}}}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm[1]}}
