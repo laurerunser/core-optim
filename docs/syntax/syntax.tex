@@ -238,61 +238,61 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \subsubsection{Rules}
 \begin{mathpar}
 \aRule   { }
-         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {\subs {\textcolor{orange}{\frak{\aTerm}}} {\envextend \envid \aVar \textcolor{orange}{\frak{\aBase}}}}}
+         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {{\subs \aTerm {\envextend \envid \aVar \textcolor{orange}{\frak{\aBase}}}}}}
          {}
 
 \aRule   { }
-         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {\subs {\textcolor{orange}{\frak{\aTerm}}} {\envextend \envid \aTypeVar \textcolor{orange}{\frak{\aType}}}}}
+         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {{\subs \aTerm {\envextend \envid \aTypeVar \textcolor{orange}{\frak{\aType}}}}}}
          {}
 
 \aRule   { }
-         {\simplBeta {{\ite \true {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} \textcolor{orange}{\frak{\subs \aTerm \env}}}
+         {\simplBeta {{\ite \true {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\subs \aTerm \env}}
          {}
 
 \aRule   { }
-         {\simplBeta {{\ite \false {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\textcolor{orange}{\frak{\subs {\aTerm[1]} \env}}}}
+         {\simplBeta {{\ite \false {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\subs {\aTerm[1]} \env}}
          {}
 \end{mathpar}
 \subsubsection{Congruence rules}
 \begin{mathpar}
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\textcolor{orange}{\frak{\aTerm[1]}}}}
-         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\textcolor{orange}{\frak{\aVar}}} \aType {\textcolor{orange}{\frak{\aTerm[1]}}}}}
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\aTerm[1]}}
+         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\textcolor{orange}{\frak{\aVar}}} \aType {\aTerm[1]}}}
          {}
 
-\aRule   {\simplBeta \aTerm {\textcolor{orange}{\frak{\aTerm[1]}}}}
-         {\simplBeta {\tapp \aTerm \aBase} {\textcolor{orange}{\frak{\tapp {\aTerm[1]} \aBase}}}}
+\aRule   {\simplBeta \aTerm {\aTerm[1]}}
+         {\simplBeta {\tapp \aTerm \aBase} \tapp {\aTerm[1]} \aBase}
          {}
 
-\aRule   {\simplBeta \aTerm {\textcolor{orange}{\frak{\aTerm'}}}}
-         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar {\textcolor{orange}{\frak{\aTerm'}}} {\aTerm[1]}}}
+\aRule   {\simplBeta \aTerm {\aTerm'}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar {\aTerm'}} {\aTerm[1]}}
          {}
 
-\aRule   {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\textcolor{orange}{\frak{\aTerm[1]'}}}}
-         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\textcolor{orange}{\frak{\aVar}}} \aTerm {\textcolor{orange}{\frak{\aTerm[1]'}}}}}
+\aRule   {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\aTerm[1]'}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\textcolor{orange}{\frak{\aVar}}} \aTerm \aTerm[1]'}}
          {}
 
-\aRule   {\simplBeta \aTerm {\textcolor{orange}{\frak{\aTerm'}}}}
-         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite {\textcolor{orange}{\frak{\aTerm'}}} {\aTerm[1]} {\aTerm[2]}}}
+\aRule   {\simplBeta \aTerm {\aTerm'}}
+         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm'} {\aTerm[1]} {\aTerm[2]}}}
          {}
 
-\aRule   {\simplBeta {\aTerm[1]} {\textcolor{orange}{\frak{\aTerm[1]'}}}}
-          {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\textcolor{orange}{\frak{\aTerm[1]'}}} {\aTerm[2]} }}
+\aRule   {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
+          {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]'} {\aTerm[2]} }}
 {}
 
-\aRule   {\simplBeta {\aTerm[2]} {\textcolor{orange}{\frak{\aTerm[2]'}}}}
-         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\textcolor{orange}{\frak{\aTerm[2]'}}}}}
+\aRule   {\simplBeta {\aTerm[2]} {\aTerm[2]'}}
+         {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\aTerm[2]'}}}
          {}
 
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\textcolor{orange}{\frak{\aTypeVar}}}}} {\textcolor{orange}{\frak{\aTerm[1]}}}}
-         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\textcolor{orange}{\frak{\aTypeVar}}} {\textcolor{orange}{\frak{\aTerm[1]}}}}}
+\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\textcolor{orange}{\frak{\aTypeVar}}}}} {\aTerm[1]}}
+         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\textcolor{orange}{\frak{\aTypeVar}}} {\aTerm[1]}}}
          {}
 
-\aRule   {\simplBeta \aTerm {\textcolor{orange}{\frak{\aTerm[1]}}}}
-         {\simplBeta {\ttyapp \aTerm \aType} {\ttyapp {\textcolor{orange}{\frak{\aTerm[1]}}} \aType}}
+\aRule   {\simplBeta \aTerm {\aTerm[1]}}
+         {\simplBeta {\ttyapp \aTerm \aType} {\ttyapp {\aTerm[1]} \aType}}
          {}
 
 \aRule   { }
-         {\simplBeta {\ttyann \aTerm \aType} {\textcolor{orange}{\frak{\aTerm}}}}
+         {\simplBeta {\ttyann \aTerm \aType} \aTerm}
          {}
 
 \end{mathpar}
