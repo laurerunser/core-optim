@@ -676,4 +676,61 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \end{figure}
 \restoregeometry
 
+\subsection{Some problems with typing stacks}
+
+We ran into problems while trying to typecheck stacks.
+
+Here is one example: 
+$$
+\ttyapp {\tapp {\ttyfun \aTypeVar {\tfun \aVar \aTypeVar 
+        {\tapp {\tapp {\ttyapp { \text{smth} } {\aTypeVar[1]}} {\aVar[1]}} \aVar}}} 
+        \tyBool} \true 
+$$
+
+\begin{mathpar}
+  \aRule  {\aRule 
+            {\aRule
+              { {\frameJudge 
+                 {\aContext}
+                 {\emptyStack}
+                 {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}
+                 {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}  \\
+                {\judge {\aContext} {\aVar[1]} {\aTypeVar[1]}}
+              }
+              {{\frameJudge 
+                {\aContext}
+                {{\aFunFame[1]}; \emptyStack}
+                {{\aTypeVar[1]} \to {\aType[2][{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
+                {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}}
+              {name of rule}}
+            {\frameJudge 
+              {\aContext}
+              {\aFunFame; {\aFunFame[1]}; \emptyStack}
+              {\aTypeVar \to {\aTypeVar[1]} \to {\aType[2][{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
+              {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
+            {name of rule}}
+          {\frameJudge 
+              {\aContext = {\ttyann \aVar \aTypeVar}, {\ttyann {\aVar[1]} {\aTypeVar[1]}}}
+              {\ttyapp {\tapp {\ttyfun \aTypeVar {\tfun \aVar \aTypeVar {\tapp {\tapp {\ttyapp { \text{smth} } {\aTypeVar[1]}} {\aVar[1]}} \aVar}}} \tyBool} \true}
+              {\tforall {\aTypeVar[2]} {\aTypeVar \to {\aTypeVar[2]} \to {\aType[2]}}}
+              {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
+          {name of rule}
+\end{mathpar}
+In the example above, if you keep $\aVar \mapsto \tyBool$, but change $\aVar \mapsto \aVar$, the 
+resulting type is the same, but the stack shouldn't typecheck.
+The problem is that we are not using substitutions while typechecking our stacks.
+
+So we changed the rules to include the substitutions on the terms before checking them, and on the envrionement.
+
+With those rules, we can accuratly typecheck the following example:
+$$
+\frameJudge 
+  {\aContext = \aTypeVar}
+  {!need to write the stack with substitutions}
+  {\forall {\aTypeVar[2]} {\forall {\aTypeVar[3]} {{\aTypeVar[3] \times {\aTypeVar[2]}}}}}
+  {\mathbb{N} \times \tyBool}
+$$
+
+
+
 \end{document}
