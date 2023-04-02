@@ -99,13 +99,19 @@
 
 \newcommand{\aFrame}{F}
 \newcommand{\aFunFrame}[1][\env]
-            {\square \: \scoped \aBase {#1} }
+            {\scoped \square {#1} \: \aBase }
+\newcommand{\aFunFrameAll}[2]
+            {\scoped \square {#2} \:{#1}}
+
 \newcommand{\aPolyFrame}[1][\env]
-           {\square \: \scoped {\aType[1]} {#1} }
+           {\scoped \square {#1} \: {\aType[1]} }
+\newcommand{\aPolyFrameAll}[2]
+           {\scoped \square {#2}  \:  {#1} }
+
 \newcommand{\aIteFrame}[1][\env]
-           {\textbf{if } \square \: \textbf{then } \scoped {\aTerm[1]} {#1} \textbf{ else } \scoped {\aTerm[2]} {#1} }
+           {\textbf{if } \scoped \square {#1} \: \textbf{then } {\aTerm[1]}  \textbf{ else } {\aTerm[2]}  }
 \newcommand{\aIteFrameAll}[3]
-            {\textbf{if } \square \: \textbf{then } \scoped {#2} {#1} \textbf{ else } \scoped {#3} {#1} }
+            {\textbf{if }  \scoped \square {#1} \: \textbf{then } {#2} \textbf{ else } {#3} }
                
 \newcommand{\aStack}[1][0]
             {\ifthenelse{#1 = 0}{s}
