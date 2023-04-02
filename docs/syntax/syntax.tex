@@ -141,7 +141,7 @@ $
   \stackapp \emptyStack \aTerm &= \aTerm \\
   \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm {(\subs \aBase \env)}} \\
   \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\subs {\aType[1]} \env}} \\
-  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]'} {\aTerm[2]'}} \text{ where } \subs {\aTerm[1]} \env \to^* \aTerm[1]' \not\to \text{ and } \subs {\aTerm[2]} \env \to^* \aTerm[2]' \not\to \\
+  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]'} {\aTerm[2]'}} \\
 \end{align*}
 
 \section{Typechecker}
