@@ -141,7 +141,7 @@ $
   \stackapp \emptyStack \aTerm &= \aTerm \\
   \stackapp {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \stackapp \aStack {\tapp \aTerm {(\subs \aBase \env)}} \\
   \stackapp {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \stackapp \aStack {\ttyapp \aTerm {\subs {\aType[1]} \env}} \\
-  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\aTerm[1]'} {\aTerm[2]'}} \\
+  \stackapp {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \stackapp \aStack {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}} \\
 \end{align*}
 
 \section{Typechecker}
@@ -225,8 +225,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} {\aType[2]}}
          {Instantiated polymorphism frame}
 
-\aRule  {\judgecheck \aContext {\aTerm[1]} {\aType[2]} \\
-          \judgecheck \aContext {\aTerm[2]} {\aType[2]} \\
+\aRule  {\judge \aContext {\aTerm[1]} {\aType[2]} \\
+          \judge \aContext {\aTerm[2]} {\aType[2]} \\
           \frameJudge \aContext \aStack {\aType[2]} {\aType}}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}
@@ -246,11 +246,11 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {}
 
 \aRule   { }
-         {\simplBeta {{\ite \true {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\subs \aTerm \env}}
+         {\simplBeta {{\ite \true \aTerm {\aTerm[1]}}} {\aTerm}}
          {}
 
 \aRule   { }
-         {\simplBeta {{\ite \false {\scoped \aTerm \env} {\scoped {\aTerm[1]} \env}}} {\subs {\aTerm[1]} \env}}
+         {\simplBeta {{\ite \false \aTerm {\aTerm[1]}}} {\aTerm[1]}}
          {}
 \end{mathpar}
 \subsubsection{Congruence rules}
@@ -682,14 +682,17 @@ We ran into problems while trying to typecheck stacks.
 
 Here is one example: 
 $$
-\ttyapp {\tapp {\ttyfun \aTypeVar {\tfun \aVar \aTypeVar 
-        {\tapp {\tapp {\ttyapp { \text{smth} } {\aTypeVar[1]}} {\aVar[1]}} \aVar}}} 
-        \tyBool} \true 
+\tapp {(\ttyapp {(\ttyfun \aTypeVar {(\tfun \aVar \aTypeVar 
+        {(\tapp {(\tapp {(\ttyapp { \square } {\aTypeVar[1]})} \aVar)} {\aVar[1]})})})} 
+        \tyBool)} \true 
 $$
 
+After 2 rounds of simplification, we end up with the following stack, with $\env = \envextend {\envextend \envid \aTypeVar \tyBool} \aVar \true$.
+
 \begin{mathpar}
-  \aRule  {\aRule 
-            {\aRule
+\aRule 
+            {\aRule 
+              {\aRule
               { {\frameJudge 
                  {\aContext}
                  {\emptyStack}
@@ -699,38 +702,54 @@ $$
               }
               {{\frameJudge 
                 {\aContext}
-                {{\aFunFrame[1]}; \emptyStack}
+                {\nonEmptyStack {\aFunFrameAll {\aVar[1]} \rho} \emptyStack}
                 {{\aTypeVar[1]} \to {\aType[2][{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
-                {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}}
-              {name of rule}}
-            {\frameJudge 
+                {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}} \\
+                {\judge {\aContext} {\aVar} {\aTypeVar}}
+                }
+              {}}
+              {\frameJudge 
               {\aContext}
-              {\aFunFrame; {\aFunFrame[1]}; \emptyStack}
+              {\nonEmptyStack {\aFunFrameAll {\aVar} \rho} {\nonEmptyStack {\aFunFrameAll {\aVar[1]} \rho} \emptyStack}}
               {\aTypeVar \to {\aTypeVar[1]} \to {\aType[2][{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
               {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
-            {name of rule}}
-          {\frameJudge 
-              {\aContext = {\ttyann \aVar \aTypeVar}, {\ttyann {\aVar[1]} {\aTypeVar[1]}}}
-              {\ttyapp {\tapp {\ttyfun \aTypeVar {\tfun \aVar \aTypeVar {\tapp {\tapp {\ttyapp { \text{smth} } {\aTypeVar[1]}} {\aVar[1]}} \aVar}}} \tyBool} \true}
-              {\tforall {\aTypeVar[2]} {\aTypeVar \to {\aTypeVar[2]} \to {\aType[2]}}}
+              {}
+            }
+            {\frameJudge 
+              {\aContext = \hasType \aVar \aTypeVar, \hasType {\aVar[1]} {\aTypeVar[1]}}
+              {\nonEmptyStack {\aPolyFrameAll {\aTypeVar[1]} \rho} {\nonEmptyStack {\aFunFrameAll {\aVar} \rho} {\nonEmptyStack {\aFunFrameAll {\aVar[1]} \rho} \emptyStack}}}
+              {\forall {\aTypeVar[2]}, {\aTypeVar \to {\aTypeVar[2]} \to {\aType[2]}}}
               {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
-          {name of rule}
+            {}
 \end{mathpar}
-In the example above, if you keep $\aVar \mapsto \tyBool$, but change $\aVar \mapsto \aVar$, the 
+In the example above, if you keep $\aTypeVar \mapsto \tyBool$, but change $\aVar \mapsto 42$, the 
 resulting type is the same, but the stack shouldn't typecheck.
 The problem is that we are not using substitutions while typechecking our stacks.
 
-So we changed the rules to include the substitutions on the terms before checking them, and on the envrionement.
+So we changed the rules to include the substitutions on the terms before checking them, and on the environement.
 
-With those rules, we can accuratly typecheck the following example:
-$$
-\frameJudge 
-  {\aContext = \aTypeVar}
-  {!need to write the stack with substitutions}
-  {\forall {\aTypeVar[2]} {\forall {\aTypeVar[3]} {{\aTypeVar[3] \times {\aTypeVar[2]}}}}}
-  {\mathbb{N} \times \tyBool}
-$$
+With those rules, we can accuratly typecheck the following example: \\
+$$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttyapp {\square} {\aTypeVar[1]}})} \tyBool)} \aTypeVar})} {\mathbb{N}}$$
 
-
-
+\begin{mathpar}
+\aRule 
+  {\aRule 
+    {\frameJudge 
+      {\subs {\subs {\aContext} {\env[2]}} {\env[3]}}
+      {\emptyStack}
+      {{\subs {\aTypeVar} {\env[3]}} \times {\subs {\aTypeVar[1]} {\env[2]}}}
+      {\mathbb{N} \times \tyBool}}
+    {\frameJudge 
+      {\subs {\aContext} {{\env[2]}}}
+      {\square \: \scoped {\aTypeVar} {{\env[3]} = \aTypeVar \mapsto \mathbb{N}} : \emptyStack}
+      {\forall {\aType[3]} {{{\aType[3]} \times {\subs {\aTypeVar[1]} {\env[2]}}}}}
+      {\mathbb{N} \times \tyBool}}
+    {}}
+  {\frameJudge 
+    {\aContext = \aTypeVar, {\aTypeVar[1]}}
+    {{\square \: \scoped {\aTypeVar[1]} {{\env[2]} = \envid, \aTypeVar \mapsto \mathbb{N}, {\aTypeVar[1]} \mapsto \tyBool}} : {\square \: \scoped {\aTypeVar} {{\env[3]} = \aTypeVar \mapsto \mathbb{N}}} : \emptyStack}
+    {\forall {\aType[2]} {\forall {\aType[3]} {{{\aType[3]} \times {\aType[2]}}}}}
+    {\mathbb{N} \times \tyBool}} 
+  {}
+\end{mathpar}
 \end{document}
