@@ -52,3 +52,9 @@ Pagani:
 
 02/02/23
 - modifications to beta-reduction and evaluation contexts to make them more coherent
+
+05/04/23 with M. Pagani
+- difficultés sur le théorème de correction
+- M. Pagani est d'accord pour se concentrer sur la preuve au lieu de coder les autres optimisations
+- raport intermédiaire: bien, précis, mais manque de vulgarisation 
+(qu'est ce que la beta-reduction, qu'est ce qu'on fait exactement et pourquoi?)
