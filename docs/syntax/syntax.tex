@@ -213,20 +213,20 @@ The type synthesis judgment for stacks is written
 and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term of type $\aType[1]$ has type $\aType$".
 \begin{mathpar}
 \aRule   { }
-         {\frameJudge \aContext {\scoped \emptyStack \env} \aType {\aType}}
+         {\frameJudge \aContext \emptyStack \aType {\aType}}
          {Empty stack}
 
 \aRule   {\frameJudge \aContext \aStack \aType {\aType[2]} \\
-          \judgecheck \aContext {\aType[1]} \aBase}
+          \judgecheck \aContext {\aType[1]} {\subs \aBase \env}}
          {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod {\aType[2]}}
          {Applied function frame}
 
-\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envextend \envid \aTypeVar {\aType[1]}}} {\aType[2]}}
+\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envextend \envid \aTypeVar {\subs {\aType[1]} \env}}} {\aType[2]}}
          {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} {\aType[2]}}
          {Instantiated polymorphism frame}
 
-\aRule  {\judge \aContext {\aTerm[1]} {\aType[2]} \\
-          \judge \aContext {\aTerm[2]} {\aType[2]} \\
+\aRule  {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
+          \judge \aContext {\subs {\aTerm[2]} \env} {\aType[2]} \\
           \frameJudge \aContext \aStack {\aType[2]} {\aType}}
         {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
         {IfThenElse frame}
@@ -302,6 +302,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   {\begin{enumerate}
     \item $\aContext$ be a context
     \item $\aTerm$ be a term
+    \item $\env$ be a substitution
     \item $\aStack$ be a stack
   \end{enumerate}}
   \assume{$\exists \aType,\aType[1]$ such that
@@ -357,46 +358,6 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
     \end{proof}
     \step{label-1.2}{\case{$\subs \aBase \env = \false$ and $\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}}
-    \begin{proof}
-      \step{label-1.2.1}{$\go {\scoped \aBase \env} {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})} = \go {\scoped {\aTerm[2]} {\env'} {\aStack'}}$}
-      \begin{proof}
-        \pf\ By definition of \textsf{go}
-      \end{proof}
-      \step{label-1.2.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}}} {\betaNormal {\go {\scoped {\aTerm[2]} {\env'} {\aStack'}}}}$ and $\judge \aContext {\go {\scoped {\aTerm[2]} {\env'} {\aStack'}}} {\aType[1]}$}
-      \begin{proof}
-        \step{label-1.2.2.1}{$\exists \aType[2].\judge \aContext {\subs {\aTerm[2]} {\env'}} {\aType[2]}$ and $\frameJudge \aContext {\aStack'} {\aType[2]} {\aType[1]}$}
-        \begin{proof}
-          \pf\ By inversion of \ref{pf:stack-typed}
-        \end{proof}
-        \step{label-1.2.2.2}{$\aStack'$ is fully simplifiable}
-        \begin{proof}
-          \pf\ By inversion of \ref{pf:stack-simpl}
-        \end{proof}
-        \qedstep
-        \begin{proof}
-          \pf\ By definition of fully simplifiable
-        \end{proof}
-      \end{proof}
-      \step{label-1.2.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aIteFrame {\aStack'})} \false} {\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}}}$}
-      \begin{proof}
-        \pf\ By stack application \ref{stack-application} and $\rightsquigarrow$
-      \end{proof}
-      \qedstep
-      \begin{proof}
-        \pf\
-        \begin{enumerate}
-          \item $\judge \aContext {\go {\scoped \aBase \env} {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})}} {\aType[1]}$ by \stepref{label-1.2.1} and \stepref{label-1.2.2}
-          \item We get the following equations: \\
-            $\begin{aligned}
-            \stackapp \aStack {\subs \aBase {\env}} &= \stackapp {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})} \false && \text{by case analysis \stepref{label-1} and \stepref{label-1.2}}
-            \\ &\rightsquigarrow {\stackapp {\aStack'} {\subs {\aTerm[2]} {\env'}}} && \text{by \stepref{label-1.2.3}}
-            \\ &\rightsquigarrow^{*} {\go {\scoped {\aTerm[2]} {\env'}} {\aStack'}} && \text{by \stepref{label-1.2.2}}
-            \\ &= {\go {\scoped {\aBase} {\env}} {(\nonEmptyStack {\aIteFrame[\env']} {\aStack'})}} && \text{by \stepref{label-1.2.1}}
-            \\ &\not \rightsquigarrow && \text{by \stepref{label-1.2.2}}
-            \end{aligned}$
-        \end{enumerate}
-      \end{proof}
-    \end{proof}
     \step{label-1.3}{\case{Else}}
     \begin{proof}
       \step{label-1.3.1}{$\go {\scoped \aBase \env} \aStack = \stackapp \aStack {\subs \aBase \env}$}
@@ -415,21 +376,21 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \end{proof}
   \step{label-2}{\case{$\aTerm = (\tfun \aVar {\aType[2]} {\aTerm[3]})$}}
   \begin{proof}
-    \step{label-2.1}{\case{$\aStack = \nonEmptyStack \aFunFrame {\aStack'}$ (line~\ref{go:fun-holefun})}}
+    \step{label-2.1}{\case{$\aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'}$ (line~\ref{go:fun-holefun})}}
     \begin{proof}
-      \step{label-2.1.1}{$\go {\scoped {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aStack'}$}
+      \step{label-2.1.1}{$\go {\scoped {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'}$}
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
-      \step{label-2.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aStack'}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aStack'}} {\aType[1]}$}
+      \step{label-2.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'}} {\aType[1]}$}
       \begin{proof}
-        \step{label-2.1.2.1}{$\exists \aType[3]. \judge \aContext {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aType[3]}$ and $\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]}$}
+        \step{label-2.1.2.1}{$\exists \aType[3]. \judge \aContext {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aType[3]}$ and $\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]}$}
         \begin{proof}
           \step{label-2.1.2.1.1}{$\exists \aType[3]. \judge {\ctxtExtend \aContext {\aVar[1]} {\subs {\aType[2]} \env}} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \aType[3]$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
           \begin{proof}
             \pf\ By substitution and inversion of \ref{pf:term-typed}
           \end{proof}
-          \step{label-2.1.2.1.2}{$\judge \aContext \aBase {\subs {\aType[2]} \env}$ and $\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]}$}
+          \step{label-2.1.2.1.2}{$\judge \aContext {\subs \aBase {\env'}} {\subs {\aType[2]} \env}$ and $\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]}$}
           \begin{proof}
             \pf\ By inversion of \ref{pf:stack-typed}
           \end{proof}
@@ -443,15 +404,15 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \pf\ By IH
         \end{proof}
       \end{proof}
-      \step{label-2.1.3}{$\simplBeta {\stackapp {(\nonEmptyStack \aFunFrame {\aStack'})} {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env}}{\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}}}$}
+      \step{label-2.1.3}{$\simplBeta {\stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env}}{\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}}}$}
       \begin{proof}
         \pf\ \\
         $\begin{aligned}
-          & \stackapp {(\nonEmptyStack \aFunFrame {\aStack'})} {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} \\
-          & = \stackapp {\aStack'} {\tapp {(\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env)} \aBase} && \text{by stack application \ref{stack-application}}\\
-          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} \aBase } \text{ with }\aVar[1] \notin FV(\aTerm) \cup FV(\env) && \text{by substitution \ref{substitution}}\\
-          & \rightsquigarrow \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} \aBase}} && \text{by $\rightsquigarrow$ \ref{constant-folding}} \\
-          & = \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} && \text{as $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
+          & \stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} \\
+          & = \stackapp {\aStack'} {\tapp {(\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env)} {\subs \aBase {\env'}}} && \text{by stack application \ref{stack-application}}\\
+          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} {\subs \aBase {\env'}} } \text{ with }\aVar[1] \notin FV(\aTerm) \cup FV(\env) && \text{by substitution \ref{substitution}}\\
+          & \rightsquigarrow \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} && \text{by $\rightsquigarrow$ \ref{constant-folding}} \\
+          & = \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} && \text{as $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
         \end{aligned}$
       \end{proof}
       \qedstep
@@ -461,9 +422,9 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \item We get the following equations: \\
           $\begin{aligned}
             \stackapp \aStack {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env}
-            &= \stackapp {(\nonEmptyStack \aFunFrame {\aStack'})} {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} && \text{by case analysis \stepref{label-2} and \stepref{label-2.1}} \\
-            &\rightsquigarrow \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar \aBase}} && \text{by \stepref{label-2.1.3}} \\
-            &\rightsquigarrow^* \go {\scoped {\aTerm[3]} {\envextend \env \aVar \aBase}} {\aStack'} && \text{by \stepref{label-2.1.2}} \\
+            &= \stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {\subs {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} && \text{by case analysis \stepref{label-2} and \stepref{label-2.1}} \\
+            &\rightsquigarrow \stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} && \text{by \stepref{label-2.1.3}} \\
+            &\rightsquigarrow^* \go {\scoped {\aTerm[3]} {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'} && \text{by \stepref{label-2.1.2}} \\
             &= \go {\scoped {(\tfun \aVar {\aType[2]} {\aTerm[3]})} \env} \aStack && \text{by \stepref{label-2.1.1}} \\
             &\not \rightsquigarrow && \text{by \stepref{label-2.1.2}}
           \end{aligned}$
@@ -524,11 +485,11 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \end{proof}
   \step{label-3}{\case{$\aTerm = \ttyfun \aTypeVar {\aTerm[3]}$}}
   \begin{proof}
-    \step{label-3.1}{\case{$\aStack = \nonEmptyStack \aPolyFrame {\aStack'}$ (line~\ref{go:tyfun-holetype})}}
+    \step{label-3.1}{\case{$\aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'}$ (line~\ref{go:tyfun-holetype})}}
     \begin{proof}
-      \step{label-3.1.1}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} {\aStack'}$}
-      \step{label-3.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} {\aStack'}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}} {\aStack'}} {\aType[1]}$}
-      \step{label-3.1.3}{$\simplBeta{\stackapp {(\nonEmptyStack \aPolyFrame {\aStack'})} {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env}} {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aType[1]}}}}$}
+      \step{label-3.1.1}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}} {\aStack'}$}
+      \step{label-3.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}} {\aStack'}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}} {\aStack'}} {{\subs {\aType[1]} {\env'}}}$}
+      \step{label-3.1.3}{$\simplBeta{\stackapp {(\nonEmptyStack {\aPolyFrame[\env']} {\aStack'})} {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env}} {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}}}$}
     \end{proof}
     \step{label-3.2}{\case{Else (line~\ref{go:tyfun-else})}}
     \begin{proof}
@@ -541,21 +502,21 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \end{proof}
   \step{label-4}{\case{$\aTerm = \tapp {\aTerm[3]} {\aBase}$ (line~\ref{go:funApply})}}
   \begin{proof}
-    \step{label-4.1}{$\go {\scoped {(\tapp {\aTerm[3]} \aBase)} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)}}$}
+    \step{label-4.1}{$\go {\scoped {(\tapp {\aTerm[3]} \aBase)} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aFunFrame[\env]} \aStack)}}$}
     \begin{proof}
       \pf\ By definition of \textsf{go}
     \end{proof}
-    \step{label-4.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} {\subs {\aTerm[3]} \env}} \betaNormal{{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)}}}$ and $ \judge \aContext {\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)}} {\aType[1]}$}
+    \step{label-4.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aFunFrame[\env]} \aStack)} {\subs {\aTerm[3]} \env}} \betaNormal{{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\env]} \aStack)}}}$ and $ \judge \aContext {\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\env]} \aStack)}} {\aType[1]}$}
     \begin{proof}
       \step{label-4.2.1}{$\exists \aType[2]. \judge \aContext {\subs {\aTerm[3]} \env} {\aType[2] \to \aType}$}
       \begin{proof}
         \pf\ By substitution and inversion of \ref{pf:term-typed}
       \end{proof}
-      \step{label-4.2.2}{$(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)$ is fully simplifiable}
+      \step{label-4.2.2}{$(\nonEmptyStack {\aFunFrame[\env]} \aStack)$ is fully simplifiable}
       \begin{proof}
         \pf\ By \ref{pf:stack-simpl}
       \end{proof}
-      \step{label-4.2.3}{$\frameJudge \aContext {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} {\aType[2] \to \aType} {\aType[1]}$}
+      \step{label-4.2.3}{$\frameJudge \aContext {(\nonEmptyStack {\aFunFrame[\env]} \aStack)} {\aType[2] \to \aType} {\aType[1]}$}
       \begin{proof}
         \pf\ By inversion of \ref{pf:stack-typed}
       \end{proof}
@@ -564,7 +525,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \pf\ By IH
       \end{proof}
     \end{proof}
-    \step{label-4.3}{$\stackapp \aStack {\subs {(\tapp {\aTerm[3]} {\aBase})} \env} = \stackapp {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} {\subs {\aTerm[3]} \env}$}
+    \step{label-4.3}{$\stackapp \aStack {\subs {(\tapp {\aTerm[3]} {\aBase})} \env} = \stackapp {(\nonEmptyStack {\aFunFrame[\env]} \aStack)} {\subs {\aTerm[3]} \env}$}
     \begin{proof}
       \pf\ By substitution and stack application
     \end{proof}
@@ -575,23 +536,23 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \item We get the following equations:\\
         $\begin{aligned}
           \stackapp \aStack {\subs {(\tapp {\aTerm[3]} {\aBase})} \env}
-          &= \stackapp {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} {\subs {\aTerm[3]} \env} && \text{by \stepref{label-4.3}} \\
-          &\rightsquigarrow^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\subs \aBase \env]} \aStack)} && \text{by \stepref{label-4.2}} \\
+          &= \stackapp {(\nonEmptyStack {\aFunFrame[\env]} \aStack)} {\subs {\aTerm[3]} \env} && \text{by \stepref{label-4.3}} \\
+          &\rightsquigarrow^* \go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aFunFrame[\env]} \aStack)} && \text{by \stepref{label-4.2}} \\
           &= \go {\scoped {(\tapp {\aTerm[3]} \aBase)} \env} \aStack && \text{by \stepref{label-4.1}} \\
           &\not \rightsquigarrow && \text{by \stepref{label-4.2}}
         \end{aligned}$
       \end{enumerate}
     \end{proof}
   \end{proof}
-  \step{label-5}{\case{$\aTerm = \ttyapp {\aTerm[3]} {\aType[1]}$ (line~\ref{go:typeApply})}}
+  \step{label-5}{\case{$\aTerm = \ttyapp {\aTerm[3]} {\aType[2]}$ (line~\ref{go:typeApply})}}
   \begin{proof}
-    \step{label-5.1}{$\go {\scoped {(\ttyapp {\aTerm[3]} {\aType[1]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)}}$}
-    \step{label-5.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)}} {\aType[1]}$}
-    \step{label-5.3}{$\stackapp \aStack {\subs {(\ttyapp {\aTerm[3]} {\aType[1]})} \env} = \stackapp {(\nonEmptyStack {\aPolyFrame[\subs {\aType[1]} \env]} \aStack)} {\subs {\aTerm[3]} \env}$}
+    \step{label-5.1}{$\go {\scoped {(\ttyapp {\aTerm[3]} {\aType[2]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)}}$}
+    \step{label-5.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)}} {\aType[1]}$}
+    \step{label-5.3}{$\stackapp \aStack {\subs {(\ttyapp {\aTerm[3]} {\aType[2]})} \env} = \stackapp {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)} {\subs {\aTerm[3]} \env}$}
   \end{proof}
   \step{label-6}{\case{$\aTerm = \ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]}$ (line~\ref{go:ite})}}
   \begin{proof}
-    \step{label-6.1}{$\go {\scoped {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)}}$}
+    \step{label-6.1}{$\go {\scoped {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)}}$}
     \begin{proof}
       \pf\ By definition of \textsf{go}
     \end{proof}
@@ -615,17 +576,17 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
     \end{proof}
     \step{label-6.3}{$\simplBeta[*]{\subs {\aTerm[5]} \env} {\betaNormal{\go {\scoped {\aTerm[5]} \env} \emptyStack}}$ and $\judge \aContext {\go {\scoped {\aTerm[5]} \env} \emptyStack} {\aType}$}
-    \step{label-6.4}{$\simplBeta[*]{\stackapp {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)}}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)}}} {\aType[1]}$}
+    \step{label-6.4}{$\simplBeta[*]{\stackapp {(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)}}} {\aType[1]}$}}
     \begin{proof}
       \step{label-6.4.1}{$\judge \aContext {\subs {\aTerm[3]} \env} \tyBool$}
       \begin{proof}
         \pf\ By substitution and inversion of \ref{pf:term-typed}
       \end{proof}
-      \step{label-6.4.2}{$(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)$ is fully simplifiable}
+      \step{label-6.4.2}{$(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)$ is fully simplifiable}
       \begin{proof}
         \pf\ TODO
       \end{proof}
-      \step{label-6.4.3}{$\frameJudge \aContext {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)} \tyBool {\aType[1]}$}
+      \step{label-6.4.3}{$\frameJudge \aContext {(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)} \tyBool {\aType[1]}$}
       \begin{proof}
         \pf\ By inversion of \ref{pf:stack-typed}, \stepref{label-6.2} and \stepref{label-6.3}
       \end{proof}
@@ -634,7 +595,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \pf\ By IH
       \end{proof}
     \end{proof}
-    \step{label-6.5}{$\simplBeta[*]{\stackapp \aStack {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env}} {\stackapp {(\nonEmptyStack {\aIteFrameAll {(\go {\scoped {\aTerm[4]} \env} \emptyStack)} {(\go {\scoped {\aTerm[5]} \env} \emptyStack)} \env} \aStack)} {\subs {\aTerm[3]} \env}}$}
+    \step{label-6.5}{$\simplBeta[*]{\stackapp \aStack {\subs {(\ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]})} \env}} {\stackapp {(\nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack)} {\subs {\aTerm[3]} \env}}$}
     \begin{proof}
       \pf\ By substitution, $\rightsquigarrow^*$ and stack evaluation
     \end{proof}
