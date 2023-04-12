@@ -713,4 +713,308 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     {\mathbb{N} \times \tyBool}} 
   {}
 \end{mathpar}
+
+
+\subsection{Lemma A}
+\begin{proof}
+    \pflet
+    {\begin{enumerate}
+        \item $\aContext$ be a context
+        \item $\aTerm$ and $\aTerm'$ be terms
+        \item $\aType[1]$ be a type
+    \end{enumerate}}
+    \assume{
+        \begin{enumerate}
+        \item $\judge \aContext \aTerm {\aType[1]}$ \label{lA:H1}
+        \item $\simplBeta \aTerm {\aTerm'}$ \label{lA:H2}
+        \end{enumerate}}
+    \prove{$\judge \aContext {\aTerm'} {\aType[1]}$}
+    \pfsketch\ Proof by induction on $\simplBeta \aTerm {\aTerm'}$.
+    \step{label-1}{\case{$\aRule   { }
+                                    {\simplBeta {\tapp {(\tfun \aVar \aType {\aTerm[3]})} \aBase} {{\subs {\aTerm[3]} {\envextend \envid \aVar {\aBase}}}}}
+                                    { }$}}
+    \begin{proof}
+        \step{label-1.1}{\begin{enumerate}
+                        \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[3]} {\aType}$
+                        \item $\judge \aContext \aBase {\aType[1]}$
+                        \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1} twice.
+        \end{proof}
+        \qedstep
+        \begin{proof}
+           \pf\ \aRule  {\text{by substitution lemma and {\stepref{label-1.1}}}}
+                    {\judge {\aContext}
+                            {\subs{\aTerm[3]}{\envextend \envid \aVar \aBase}}
+                            {\aType}}
+                    {}
+        \end{proof}
+    \end{proof}
+    \step{label-2}{\case{$\aRule    { }
+                                    {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} {\aType[1]}} {{\subs \aTerm {\envextend \envid \aTypeVar {\aType[1]}}}}}
+                                    { }$}}
+    \begin{proof}
+        \step{label-2.1}{$\judge {\ctxtExtend{\aContext}{\aTypeVar}{\aType[1]}} {\aTerm} {\aType}$}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1} twice.
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\text{by substitution lemma and {\stepref{label-2.1}}}}
+                        {\judge {\aContext}
+                        {\subs{\aTerm}{\envextend \envid {\aTypeVar} {\aType[1]}}}
+                        {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+    \step{label-3}{\case{$\aRule    { }
+                                    {\simplBeta {\ite \true {\aTerm[3]} {\aTerm[1]}} {\aTerm[3]}}
+                                    { }$}}
+    \begin{proof}
+        \step{label-3.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\text{by {\stepref{label-3.1}}}}
+                        {\judge {\aContext}
+                        {\aTerm[3]}
+                        {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+    \step{label-4}{\case{$\aRule    { }
+                                    {\simplBeta {\ite \true {\aTerm[1]} {\aTerm[3]}} {\aTerm[3]}}
+                                    { }$}}
+    \begin{proof}
+        \pf\ Same reasoning than \stepref{label-3}
+    \end{proof}
+
+    \step{label-5}{\case{$\aRule    {\simplBeta {\subs {\aTerm[3]} {\envextend \envid \aVar \aVar}} {\aTerm[1]}}
+                                    {\simplBeta {\tfun \aVar {\aType[1]} {\aTerm[3]}} {\tfun \aVar {\aType[1]} {\aTerm[1]}}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-5.1}{\begin{enumerate}
+            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\domToCod}$
+            \item $\judge \aContext {\aVar} {\aType[1]}$
+            \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1} and by hypothesis.
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\text{by {\stepref{label-5.1}}}}
+                        {\judge {\aContext}
+                            {\tfun \aVar {\aType[1]} {\aTerm[1]}}
+                            {\domToCod}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-6}{\case{$\aRule    {\simplBeta {\aTerm[3]} {\aTerm[1]}}
+                                    {\simplBeta {\tapp {\aTerm[3]} \aBase} \tapp {\aTerm[1]} \aBase}
+                                    {}$}}
+    \begin{proof}
+        \step{label-6.1}{\begin{enumerate}
+            \item $\judge {\aContext} {\aTerm[3]} {\domToCod}$
+            \item $\judge \aContext {\aBase} {\aType[1]}$
+            \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1} twice.
+        \end{proof}
+        \step{label-6.2}{$\judge {\aContext} {\aTerm[1]} {\domToCod}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta{\tapp {\aTerm[3]} \aBase}{\tapp {\aTerm[1]} \aBase}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-6.2}}}} {\judge {\aContext} {\aTerm[1]} {\domToCod}} {} \\
+                        \aRule {\text{by {\stepref{label-6.1}}}} {\judge \aContext \aBase {\aType[1]}} {}}
+                        {\judge {\aContext}
+                            {\tapp {\aTerm[1]} \aBase}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-7}{\case{$\aRule    {\simplBeta {\aTerm[3]} {\aTerm[3]}'}
+                                    {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {{\aTerm[3]}'}} {\aTerm[1]}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-7.1}{\begin{enumerate}
+            \item $\judge {\aContext} {\aTerm[3]} {\aType[1]}$
+            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\aType}$
+            \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \step{label-7.2}{$\judge {\aContext} {\aTerm[3]'} {\aType[1]}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[3]'}} \prec {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {{\aTerm[3]}'}} {\aTerm[1]}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-7.2}}}} {\judge {\aContext} {\aTerm[3]'} {\aType[1]}} {} \\
+                        \aRule {\text{by {\stepref{label-7.1}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\aType}} {}}
+                        {\judge {\aContext}
+                            {\tlet \aVar {{\aTerm[3]}'}}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-8}{\case{$\aRule    {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar \aVar}} {\aTerm[1]'}}
+                                    {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar \aTerm \aTerm[1]'}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-8.1}{\begin{enumerate}
+            \item $\judge {\aContext} {\aTerm[3]} {\aType[1]}$
+            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\aType}$
+            \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \step{label-8.2}{$\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]'} {\aType}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[1]}{\aTerm[1]'}} \prec {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {\aTerm[3]}} {\aTerm[1]'}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-8.1}}}} {\judge {\aContext} {\aTerm[3]} {\aType[1]}} {} \\
+                        \aRule {\text{by {\stepref{label-8.2}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]'} {\aType}} {}}
+                        {\judge {\aContext}
+                            {\tlet \aVar {\aTerm[3]} {\aTerm[1]'}}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+  \step{label-9}{\case{$\aRule  {\simplBeta {\aTerm[3]} {\aTerm[3]'}}
+                                {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}}
+                                {}$}}
+    \begin{proof}
+        \step{label-9.1}{\begin{enumerate}
+            \item $\judge {\aContext} {\aTerm[3]} {\tyBool}$
+            \item $\judge {\aContext} {\aTerm[1]} {\aType}$
+            \item $\judge {\aContext} {\aTerm[2]} {\aType}$
+            \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \step{label-9.2}{$\judge {\aContext} {\aTerm[3]'} {\tyBool}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[3]'}} \prec {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-9.2}}}} {\judge {\aContext} {\aTerm[3]'} {\tyBool}} {} \\
+                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[1]} {\aType}} {} \\
+                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType}} {}}
+                        {\judge {\aContext}
+                            {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-10}{\case{$\aRule   {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
+                                    {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]'} {\aTerm[2]} }}
+                                    {} $}}
+    \begin{proof}
+        \step{label-10.1}{\begin{enumerate}
+            \item $\judge {\aContext} {\aTerm[3]} {\tyBool}$
+            \item $\judge {\aContext} {\aTerm[1]} {\aType}$
+            \item $\judge {\aContext} {\aTerm[2]} {\aType}$
+            \end{enumerate}}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \step{label-10.2}{$\judge {\aContext} {\aTerm[1]'} {\aType}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[1]}{\aTerm[1]'}} \prec {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[3]} {\tyBool}} {} \\
+                        \aRule {\text{by {\stepref{label-10.2}}}} {\judge {\aContext} {\aTerm[1]'} {\aType}} {} \\
+                        \aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType}} {}}
+                        {\judge {\aContext}
+                            {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-11}{\case{$\aRule   {\simplBeta {\aTerm[2]} {\aTerm[2]'}}
+                                    {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\aTerm[2]'} }}
+                                    {} $}}
+    \begin{proof}
+        \pf\ same reasoning than \stepref{label-10}
+    \end{proof}
+
+
+    \step{label-12}{\case{$\aRule   {\simplBeta {\subs {\aTerm[3]} {\envextend \envid \aTypeVar \aTypeVar}} {\aTerm[1]}}
+                                    {\simplBeta {\ttyfun \aTypeVar {\aTerm[3]}} {\ttyfun \aTypeVar {\aTerm[1]}}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-12.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \step{label-12.2}{$\judge {\aContext, \aTypeVar} {\aTerm[1]} {\aType}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta {\ttyfun \aTypeVar {\aTerm[3]}} {\ttyfun \aTypeVar {\aTerm[1]}}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-12.2}}}} {\judge {\aContext, \aTypeVar } {\aTerm[1]} {\aType}} {}}
+                        {\judge {\aContext}
+                            {\ttyfun \aTypeVar {\aTerm[1]}}
+                            {\tforall \aTypeVar \aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-13}{\case{$\aRule   {\simplBeta {\aTerm[3]} {\aTerm[1]}}
+                                    {\simplBeta {\ttyapp {\aTerm[3]} {\aType[1]}} {\ttyapp {\aTerm[1]} {\aType[1]}}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-13.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \step{label-13.2}{$\judge {\aContext} {\aTerm[1]} {\aType}$}
+        \begin{proof}
+            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta {\ttyapp {\aTerm[3]} {\aType[1]}} {\ttyapp {\aTerm[1]} {\aType[1]}}}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-13.2}}}} {\judge {\aContext} {\aTerm[1]} {\aType}} {}}
+                        {\judge {\aContext}
+                            {\ttyapp {\aTerm[1]} {\aType[1]}}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-14}{\case{$\aRule   { }
+                                    {\simplBeta {\ttyann {\aTerm[3]} \aType} {\aTerm[3]}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-14.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \begin{proof}
+            \pf\ By inversion of \ref{lA:H1}.
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\text{by {\stepref{label-14.1}}}}
+                        {\judge {\aContext}
+                            {\aTerm[3]}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+\end{proof}
+
 \end{document}
