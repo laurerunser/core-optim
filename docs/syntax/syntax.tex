@@ -1017,4 +1017,134 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     \end{proof}
 \end{proof}
 
+\subsection{Lemma B}
+\begin{proof}
+    \assume{
+        \begin{enumerate}
+        \item $\judge \aContext \aTerm {\aType}$ \label{lB:H1}
+        \item $\frameJudge{\aContext}{\aStack}{\aType}{\aType[1]}$ \label{lB:H2}
+        \end{enumerate}}
+    \prove{$\judge \aContext {\stackapp \aStack \aTerm} {\aType[1]}$}
+    \pfsketch\ Proof by induction on $\frameJudge{\aContext}{\aStack}{\aType}{\aType[1]}$.
+    \step{label-1}{\case{$\aRule    { }
+                                    {\frameJudge \aContext \emptyStack \aType {\aType}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-1.1}{$\judge \aContext \aTerm \aType$}
+        \begin{proof}
+            \pf\ by case analysis and \ref{lB:H1}.
+        \end{proof}
+        \step{label-1.2}{$\stackapp{\emptyStack}{\aTerm} = \aTerm$}
+        \begin{proof}
+            \pf\ by definition of \ref{stack-application}
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ \aRule {\text{by {\stepref{label-1.1}}} \\
+                        \text{by {\stepref{label-1.2}}}}
+                        {\judge {\aContext}
+                            {\stackapp{\emptyStack}{\aTerm}}
+                            {\aType}}
+                        {}
+        \end{proof}
+    \end{proof}
+
+    \step{label-2}{\case{$\aRule    {\frameJudge \aContext {\aStack'} \aType {\aType[2]} \\
+                                    \judgecheck \aContext {\aType[1]} {\subs \aBase \env}}
+                                    {\frameJudge \aContext {(\nonEmptyStack \aFunFrame {\aStack'})} \domToCod {\aType[2]}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-2.1}{$\judge \aContext \aTerm \domToCod$}
+        \begin{proof}
+            \pf\ by case analysis.
+        \end{proof}
+        \step{label-2.2}{$\stackapp{\aStack}{\aTerm} = \stackapp{\aStack'}{\tapp{\aTerm}{\subs \aBase \env}} $}
+        \begin{proof}
+            \pf\ by definition of \ref{stack-application}
+        \end{proof}
+        \step{label-2.3}{$\judge{\aContext}{\tapp{\aTerm}{\subs \aBase \env}}{\aType} $}
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-2.1}}}} {\judge \aContext \aTerm \domToCod} {} \\
+                        \aRule {\text{by {\stepref{label-2.2}}}} {\judge \aContext {\subs \aBase \env} {\aType[1]}} {}}
+                        {\judge {\aContext}
+                            {\tapp{\aTerm}{\subs \aBase \env}}
+                            {\aType}}
+                        {}
+        \end{proof}
+        \step{label-2.4}{$\frameJudge{\aContext}{\aStack'}{\aType}{\aType[2]} $}
+        \begin{proof}
+            \pf\ by \ref{lB:H2}
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ by IH on  ${\frameJudge{\aContext}{\aStack'}{\aType}{\aType[2]}} \prec {\frameJudge{\aContext}{\aStack}{\domToCod}{\aType[2]}}$ and \stepref{label-2.3}.
+        \end{proof}
+    \end{proof}
+
+    \step{label-3}{\case{$\aRule    {\frameJudge \aContext {\aStack'} {\subs \aType {\envextend \envid \aTypeVar {\subs {\aType[1]} \env}}} {\aType[2]}}
+                                    {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame {\aStack'})} {\tforall \aTypeVar \aType} {\aType[2]}}
+                                    {}$}}
+    \begin{proof}
+        \step{label-3.1}{$\judge \aContext \aTerm {\tforall \aTypeVar \aType}$}
+        \begin{proof}
+            \pf\ by case analysis.
+        \end{proof}
+        \step{label-3.2}{$\stackapp{\aStack}{\aTerm} = \stackapp{\aStack'}{\ttyapp{\aTerm}{\subs {\aType[1]} \env}} $}
+        \begin{proof}
+            \pf\ by definition of \ref{stack-application}
+        \end{proof}
+        \step{label-3.3}{$\judge{\aContext}{\tapp{\aTerm}{\subs {\aType[1]} \env}}{\aType} $}
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-3.1}}}} {\judge \aContext \aTerm {\tforall \aTypeVar \aType}} {} \\
+                        \aRule {\text{by {\stepref{label-3.2}}}} {\judge \aContext {\subs {\aType[1]} \env} {\aType[1]}} {}}
+                        {\judge {\aContext}
+                            {\tapp{\aTerm}{\subs {\aType[1]} \env}}
+                            {\aType}}
+                        {}
+        \end{proof}
+        \step{label-3.4}{$\frameJudge{\aContext}{\aStack'}{\aType}{\aType[2]} $}
+        \begin{proof}
+            \pf\ by \ref{lB:H2}
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ by IH on  ${\frameJudge{\aContext}{\aStack'}{\aType}{\aType[2]}} \prec {\frameJudge{\aContext}{\aStack}{\tforall \aTypeVar \aType}{\aType[2]}}$ and \stepref{label-3.3}.
+        \end{proof}
+    \end{proof}
+
+    \step{label-4}{\case{$\aRule    {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
+                                    \judge \aContext {\subs {\aTerm[2]} \env} {\aType[2]} \\
+                                    \frameJudge \aContext {\aStack'} {\aType[2]} {\aType}}
+                                    {\frameJudge \aContext {(\nonEmptyStack \aIteFrame {\aStack'})} \tyBool \aType}
+                                    {}$}}
+    \begin{proof}
+        \step{label-4.1}{$\judge \aContext \aTerm \tyBool$}
+        \begin{proof}
+            \pf\ by case analysis.
+        \end{proof}
+        \step{label-4.2}{$\stackapp{\aStack}{\aTerm} = \stackapp{\aStack'}{\ite{\aTerm}{\subs {\aTerm[1]} \env}{\subs {\aTerm[2]} \env}} $}
+        \begin{proof}
+            \pf\ by definition of \ref{stack-application}
+        \end{proof}
+        \step{label-4.3}{$\judge{\aContext}{\ite{\aTerm}{\subs {\aTerm[1]} \env}{\subs {\aTerm[2]} \env}}{\aType} $}
+        \begin{proof}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-4.1}}}} {\judge \aContext \aTerm \tyBool} {} \\
+                        \aRule {\text{by {\stepref{label-4.2}}}} {\judge \aContext {\subs {\aTerm[1]} \env} \aType} {} \\
+                        \aRule {\text{by {\stepref{label-4.2}}}} {\judge \aContext {\subs {\aTerm[2]} \env} \aType} {}}
+                        {\judge {\aContext}
+                            {\ite{\aTerm}{\subs {\aTerm[1]} \env}{\subs {\aTerm[2]} \env}}
+                            {\aType}}
+                        {}
+        \end{proof}
+        \step{label-4.4}{$\frameJudge{\aContext}{\aStack'}{\aType}{\aType[2]} $}
+        \begin{proof}
+            \pf\ by \ref{lB:H2}
+        \end{proof}
+        \qedstep
+        \begin{proof}
+            \pf\ by IH on  ${\frameJudge{\aContext}{\aStack'}{\aType}{\aType[2]}} \prec {\frameJudge{\aContext}{\aStack}{\tyBool}{\aType[2]}}$ and \stepref{label-4.3}.
+        \end{proof}
+    \end{proof}
+\end{proof}
+
 \end{document}
