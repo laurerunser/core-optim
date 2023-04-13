@@ -6,4 +6,4 @@ syntax:
 	pdflatex syntax.tex
 
 clean: 
-	rm *.log *.aux
+	rm *.log *.aux *.out
