@@ -207,6 +207,16 @@ and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aCo
          {Type checking}
 
 \end{mathpar}
+
+\subsection{Lemma} \label{lemma-substitution}
+\begin{proof}
+  \assume{\begin{enumerate}
+    \item $\judge {\ctxtExtend \aContext \aVar {\aType[1]}} \aTerm \aType$
+    \item $\judge \aContext \aBase {\aType[1]}$
+  \end{enumerate}}
+  \prove{$\judge \aContext {\subs \aTerm {\envextend \envid \aVar \aBase}} \aType$}
+\end{proof}
+
 \subsection{Type synthesis for stacks} \label{stack-typechecker}
 The type synthesis judgment for stacks is written
 \fbox{$\frameJudge \aContext \aStack {\aType[1]} \aType$}
@@ -296,12 +306,195 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {}
 
 \end{mathpar}
-{\bf Lemma 3:} $\judge {\ctxtExtend \aContext \aVar {\aType[1]}} \aTerm \aType \wedge \judge \aContext \aBase {\aType[1]} \Rightarrow \judge \aContext {\subs \aTerm {\envextend \envid \aVar \aBase}} \aType$ \\
-{\bf Lemma 4:} $\simplBeta \aTerm {\aTerm'} \Rightarrow \forall \aStack, \simplBeta {\stackapp \aStack \aTerm} {\stackapp \aStack {\aTerm'}}$
-\subsection{Stack simplifiable}
-A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff forall sub-stack $\aStack''$ of $\aStack$, forall $\scoped \aTerm \env$ in $\aFrame$, if $\simplBeta[*] {\stackapp {\aStack''} {\subs \aTerm \env}} {\betaNormal{\go {\scoped \aTerm \env} \aStack}}$ \\
-{\bf Lemma 5:} $\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal{\go {\scoped \aTerm \env} \aStack}} \wedge ~ \subs \aTerm \env$ stuck is $ \aStack \Rightarrow \simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal{\plug \aStack {(\subs \aTerm \env)}}}$
-\subsection{Correctness}
+
+\subsubsection{Lemma} \label{lemma-simpl-stable-context}
+\begin{proof}
+  \pflet{\begin{enumerate}
+    \item $\aStack$ be a stack
+    \item $\aTerm, \aTerm'$ be terms
+  \end{enumerate}}
+  \assume{$\simplBeta \aTerm {\aTerm'}$}
+  \prove{$\simplBeta {\stackapp \aStack \aTerm} {\stackapp \aStack {\aTerm'}}$}
+\end{proof}
+
+\subsection{{\sf go} definition}
+\begin{align*}
+\go {\scoped \aBase \env} \aStack &= 
+\begin{cases}
+  \go {\scoped {\aTerm[1]} {\env'}} {\aStack'} & \text{if } \subs \aBase \env = \true \text{ and } \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \\
+  \go {\scoped {\aTerm[2]} {\env'}} {\aStack'} & \text{if } \subs \aBase \env = \false \text{ and } \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \\
+  \plug \aStack {(\subs {\aBase} \env)} & \text{otherwise}
+\end{cases} \\
+\go {\scoped {(\tfun \aVar \aType \aTerm)} \env} {\aStack} &=
+\begin{cases}
+  \go {\scoped \aTerm {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'} & \text{if } \aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'} \\
+  \begin{aligned}
+    &\plug \aStack {(\tfun {\aVar[1]} {\subs \aType \env} {(\go {\scoped \aTerm {\envextend \env \aVar {\aVar[1]}}} \emptyStack)})} \\
+    &\text{with $\aVar[1] \notin FV(\subs \aTerm \env)$}
+  \end{aligned} & \text{otherwise} 
+\end{cases} \\
+\go {\scoped {(\ttyfun \aTypeVar \aTerm)} \env} {\aStack} &=
+\begin{cases}
+  \go {\scoped \aTerm {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'} & \text{if } \aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'} \\
+  \begin{aligned}
+    &\plug \aStack {(\ttyfun {\aTypeVar[1]} {(\go {\scoped \aTerm {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack)})} \\
+    &\text{with $\aTypeVar[1] \notin FV(\subs \aTerm \env)$}
+  \end{aligned} & \text{otherwise} 
+\end{cases} \\
+\go {\scoped {(\tapp \aTerm \aBase)} \env} \aStack &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aFunFrame \aStack)} \\
+\go {\scoped {(\ttyapp \aTerm {\aType[1]})} \env} \aStack &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aPolyFrame \aStack)} \\
+\go {\scoped {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env} &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aIteFrame \aStack)} \\
+\go {\scoped {(\tlet \aVar \aTerm {\aTerm[1]})} \env} \aStack &= \plug \aStack {(\tlet {\aVar[1]} {(\go {\scoped \aTerm \env} \emptyStack)} {(\go {\scoped {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack)})} \text{ with } \aVar[1] \notin FV(\tlet \aVar \aTerm {\aTerm[1]}) \cup FV(\env) \\ 
+\go {\scoped {(\ttyapp \aTerm \aType)} \env} \aStack &= \go {\scoped \aTerm \env} \aStack  
+\end{align*}
+
+\subsection{{\sf plug} definition}
+\begin{align*}
+\plug \emptyStack \aTerm &= \aTerm \\
+\plug {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \plug \aStack {(\tapp \aTerm {(\subs \aBase \env)})} \\
+\plug {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \plug \aStack {(\ttyapp \aTerm {\subs {\aType[1]} \env})} \\
+\plug {(\nonEmptyStack {(\aIteFrame)} \aStack)} \aTerm &= \plug \aStack {(\ite \aTerm {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} \env} \emptyStack})}
+\end{align*}
+
+\subsection{Neutral term}
+\begin{mathpar}
+\aRule  { }
+        {\aVar \text{ neutral}}
+        {}
+
+\aRule  {\aTerm \text{ neutral}}
+        {\tapp \aTerm \aBase \text{ neutral}}
+        {}
+
+\aRule  {\aTerm \text{ neutral}}
+        {\ttyapp \aTerm {\aType} \text{ neutral}}
+        {}
+
+\aRule  {\aTerm \text{ neutral} \\ \betaNormal {\aTerm[1]} \\ \betaNormal {\aTerm[2]}}
+        {\ite \aTerm {\aTerm[1]} {\aTerm[2]} \text{ neutral}}
+        {}
+
+\end{mathpar}
+
+\subsubsection{Lemma}\label{lemma-neutral-term}
+\begin{proof}
+  \assume{$\aTerm$ is a neutral term}
+  \prove{$\betaNormal{\aTerm}$}
+  \pfsketch\ Proof by induction on $\aTerm$
+\end{proof}
+
+\subsection{Simplifiable stack}
+\begin{mathpar}
+\aRule  { }
+        {\emptyStack \text{ simplifiable}}
+        {}
+
+\aRule  {\aStack \text{ simplifiable}}
+        {\nonEmptyStack \aFunFrame \aStack \text{ simplifiable}}
+        {}
+
+\aRule  {\aStack \text{ simplifiable}}
+        {\nonEmptyStack \aPolyFrame \aStack \text{ simplifiable}}
+        {}
+
+\aRule  {\aStack \text{ simplifiable} \\
+          \simplBeta[*] {\stackapp \emptyStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\emptyStack}}} \\
+          \simplBeta[*] {\stackapp \emptyStack {\subs {\aTerm[2]} \env}} {\betaNormal {\go {\scoped {\aTerm[2]} \env} {\emptyStack}}} \\
+          \simplBeta[*] {\stackapp \aStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\aStack}}} \\
+          \simplBeta[*] {\stackapp \aStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\aStack}}}}
+        {\nonEmptyStack \aIteFrame \aStack \text{ simplifiable}}
+        {}
+\end{mathpar}
+\subsubsection{Lemma} \label{neutral-simpl}
+\begin{proof}
+  \assume{\begin{enumerate}
+    \item $\aTerm$ is neutral term \label{pf:term-neutral}
+    \item $\aStack$ is a simplifiable stack \label{pf:stack-simplifiable}
+  \end{enumerate}}
+  \prove{$\simplBeta[*]{\stackapp \aStack \aTerm} {\betaNormal{\plug \aStack \aTerm}}$}
+  \pfsketch\ Proof by induction on $\aStack$
+  \step{label-1}{\case{$\aStack = \emptyStack$}}
+  \begin{proof}
+    \pf\ By lemma \ref{lemma-neutral-term}
+  \end{proof}
+  \step{label-2}{\case{$\aStack = \nonEmptyStack {\aFunFrame} {\aStack'}$}}
+  \begin{proof}
+    \pflet{$\aTerm' = \tapp \aTerm {(\subs \aBase \env)}$}
+    \step{label-2.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\aTerm'}$}
+    \begin{proof}
+      \pf\ By definition of $\stackapp {\_} {\_}$
+    \end{proof}
+    \step{label-2.2}{$\simplBeta[*]{\stackapp {\aStack'} {\aTerm'}} {\betaNormal{\plug {\aStack'} {\aTerm'}}}$}
+    \begin{proof}
+      \step{label-2.2.1}{$\aTerm'$ neutral}
+      \begin{proof}
+        \pf\ By \ref{pf:term-neutral}
+      \end{proof}
+      \step{label-2.2.2}{$\aStack'$ simplifiable}
+      \begin{proof}
+        \pf\ By inversion of \ref{pf:stack-simplifiable}
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By IH on $\aStack' < \aStack$
+      \end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ $\begin{aligned}[t]
+        \stackapp \aStack \aTerm &= \stackapp {\aStack'} {\aTerm'} && \text{\stepref{label-2.1}} \\
+        &\rightsquigarrow^* \plug {\aStack'} {\aTerm'} && \text{\stepref{label-2.2}} \\
+        &= \plug \aStack \aTerm && \text{definition of {\sf plug}} \\
+        &\not\rightsquigarrow && \text{\stepref{label-2.2}}
+      \end{aligned}$
+    \end{proof}
+  \end{proof}
+  \step{label-3}{\case{$\aStack = \nonEmptyStack {\aPolyFrame} {\aStack'}$}}
+  \step{label-4}{\case{$\aStack = \nonEmptyStack {\aIteFrame} {\aStack'}$}}
+  \begin{proof}
+    \step{label-4.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}}$}
+    \begin{proof}
+      \pf\ By definition of $\stackapp {\_} {\_}$
+    \end{proof}
+    \step{label-4.2}{$\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[1]} \env}} {\betaNormal{\go {\scoped {\aTerm[1]} \env} \emptyStack}}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{pf:stack-simplifiable}
+    \end{proof}
+    \step{label-4.3}{$\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[2]} \env}} {\betaNormal{\go {\scoped {\aTerm[2]} \env} \emptyStack}}$}
+    \pflet{$\aTerm' = \ite {\aTerm} {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} \env} \emptyStack}$}
+    \step{label-4.4}{$\simplBeta[*]{\stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}}}{\stackapp {\aStack'} {\aTerm'}}$}
+    \begin{proof}
+      \pf\ By \stepref{label-4.2} and \stepref{label-4.3} and lemma \ref{lemma-simpl-stable-context}
+    \end{proof}
+    \step{label-4.5}{$\simplBeta[*]{\stackapp {\aStack'} {\aTerm'}} {\betaNormal{\plug {\aStack'} {\aTerm'}}}$}
+    \begin{proof}
+      \step{label-4.5.1}{$\aTerm'$ neutral}
+      \begin{proof}
+        \pf\ By \ref{pf:term-neutral}, \stepref{label-4.2} and \stepref{label-4.3}
+      \end{proof}
+      \step{label-4.5.2}{$\aStack'$ simplifiable}
+      \begin{proof}
+        \pf\ By inversion of \ref{pf:stack-simplifiable}
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By IH on $\aStack' < \aStack$
+      \end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ $\begin{aligned}[t]
+        \stackapp \aStack \aTerm &= \stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}} && \text{\stepref{label-4.1}} \\
+        &\rightsquigarrow^* \stackapp {\aStack'} {\aTerm'} && \text{\stepref{label-4.4}} \\
+        &\rightsquigarrow^* \plug {\aStack'} {\aTerm'} && \text{\stepref{label-4.5}} \\
+        &= \plug \aStack \aTerm && \text{definition of {\sf plug}} \\
+        &\not\rightsquigarrow && \text{\stepref{label-4.5}}
+      \end{aligned}$
+    \end{proof}
+  \end{proof}
+\end{proof}
+
+\subsection{{\sf go} correctness}
 \begin{proof}
   \pflet 
   {\begin{enumerate}
@@ -313,11 +506,10 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
     \begin{enumerate}
       \item $\judge \aContext {\subs \aTerm \env} \aType$ \label{pf:term-typed}
       \item $\frameJudge \aContext \aStack \aType {\aType[1]}$ \label{pf:stack-typed}
-      \item $\aStack$ is simplifiable ?? \label{pf:stack-simpl}
-    \end{enumerate}
-    }
+      \item $\aStack$ is simplifiable \label{pf:stack-simpl}
+    \end{enumerate}}
   \prove{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\go {\scoped \aTerm \env} \aStack}}$}
-  \pfsketch\ Proof by lexicographic induction on $(\aStack, \aTerm)$.
+  \pfsketch\ Proof by induction on $\aTerm$.
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
   \begin{proof}
     \step{label-1.1}{\case{$\begin{conj} \subs \aBase \env = \true \\ \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \end{conj}$}}
@@ -328,38 +520,27 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
       \end{proof}
       \step{label-1.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} {\betaNormal {\go {\scoped {\aTerm[1]} {\env'} {\aStack'}}}}$}
       \begin{proof}
-        \step{label-1.1.2.1}{$\exists \aType[2]$ such that $\begin{conj}\judge \aContext {\subs {\aTerm[1]} {\env'}} {\aType[2]} \\ \frameJudge \aContext {\aStack'} {\aType[2]} {\aType[1]} \end{conj}$}
-        \begin{proof}
-          \pf\ By inversion of \ref{pf:stack-typed}
-        \end{proof}
-        \step{label-1.1.3}{$\aStack'$ is simplifiable}
-        \begin{proof}
-          \pf\ By inversion of \ref{pf:stack-simpl}
-        \end{proof}
-        \qedstep
-        \begin{proof}
-          \pf\ By IH on $(\aStack', u) < (\aStack, t)$
-        \end{proof}
+        \pf\ By inversion of \ref{pf:stack-simpl}
       \end{proof}
       \step{label-1.1.3}{$\simplBeta {\stackapp \aStack {\subs \aTerm \env}} {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}}$}
       \begin{proof}
         \pf\ \\ $ \stackapp {\nonEmptyStack {\aIteFrame[\env']} {\aStack'}} {\true} \\
             \begin{aligned}[t]
-            & = \stackapp {\aStack'} {\ite {\true} {\subs {\aTerm[1]} {\env'}} {\subs {\aTerm[2]} {\env'}}} && \text{by definition of $\_[\_]$} \\
-            & \simplBeta {}  {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{by definition of $\rightsquigarrow$ and lemma $4$ }
+            & = \stackapp {\aStack'} {\ite {\true} {\subs {\aTerm[1]} {\env'}} {\subs {\aTerm[2]} {\env'}}} && \text{definition of $\stackapp {\_} {\_}$} \\
+            & \simplBeta {}  {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{lemma \ref{lemma-simpl-stable-context}}
         \end{aligned}$
       \end{proof}
       \qedstep
       \begin{proof}
         \pf\ $\begin{aligned}[t]
-            \stackapp \aStack {\subs \aBase {\env}} &\rightsquigarrow {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{by \stepref{label-1.1.3}}
-            \\ &\rightsquigarrow^{*} {\go {\scoped {\aTerm[1]} {\env'}} {\aStack'}} && \text{by \stepref{label-1.1.2}}
-            \\ &= {\go {\scoped {\aBase} {\env}} {\aStack}} && \text{by \stepref{label-1.1.1}}
-            \\ &\not \rightsquigarrow && \text{by \stepref{label-1.1.2}}
+            \stackapp \aStack {\subs \aTerm {\env}} &\rightsquigarrow {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{\stepref{label-1.1.3}}
+            \\ &\rightsquigarrow^{*} {\go {\scoped {\aTerm[1]} {\env'}} {\aStack'}} && \text{\stepref{label-1.1.2}}
+            \\ &= {\go {\scoped {\aTerm} {\env}} {\aStack}} && \text{\stepref{label-1.1.1}}
+            \\ &\not \rightsquigarrow && \text{\stepref{label-1.1.2}}
             \end{aligned}$
       \end{proof}
     \end{proof}
-    \step{label-1.2}{\case{$\subs \aBase \env = \false$ and $\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}}
+    \step{label-1.2}{\case{$\begin{conj} \subs \aBase \env = \false \\ \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \end{conj}$}}
     \step{label-1.3}{\case{otherwise}}
     \begin{proof}
       \step{label-1.3.1}{$\go {\scoped \aTerm \env} \aStack = \plug \aStack {(\subs \aTerm \env)}$}
@@ -368,9 +549,16 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
       \end{proof}
       \step{label-1.3.2}{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\plug \aStack {(\subs \aTerm \env)}}}$}
       \begin{proof}
-        \step{label-1.3.2.1}{$\scoped \aTerm \env$ is stuck in $\aStack$}
+        \step{label-1.3.2.1}{$\subs \aTerm \env$ is neutral}
         \begin{proof}
-          \pf\ By definition of $\rightsquigarrow$ and $\_[\_]$
+          \step{label-1.3.2.1.1}{$\subs \aTerm \env$ is a variable}
+          \begin{proof}
+            \pf\ By \ref{pf:stack-typed} and case analysis
+          \end{proof}
+          \qedstep
+          \begin{proof}
+            \pf\ By definition of neutral term
+          \end{proof}
         \end{proof}
         \step{label-1.3.2.2}{$\aStack$ is simplifiable}
         \begin{proof}
@@ -378,15 +566,15 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ By lemma 5 ??
+          \pf\ By lemma \ref{neutral-simpl}
         \end{proof}
       \end{proof}
       \qedstep
       \begin{proof}
         \pf\ $\begin{aligned}[t]
-            \stackapp \aStack {\subs \aTerm {\env}} &\rightsquigarrow {\plug \aStack {(\subs \aTerm \env)}} && \text{by \stepref{label-1.3.2}}
-            \\ &= {\go {\scoped {\aTerm} {\env}} {\aStack}} && \text{by \stepref{label-1.3.1}}
-            \\ &\not \rightsquigarrow && \text{by \stepref{label-1.3.2}}
+            \stackapp \aStack {\subs \aTerm {\env}} &\rightsquigarrow^* {\plug \aStack {(\subs \aTerm \env)}} && \text{\stepref{label-1.3.2}}
+            \\ &= {\go {\scoped {\aTerm} {\env}} {\aStack}} && \text{\stepref{label-1.3.1}}
+            \\ &\not \rightsquigarrow && \text{\stepref{label-1.3.2}}
             \end{aligned}$
       \end{proof}
     \end{proof}
@@ -408,15 +596,15 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
           \begin{proof}
             \pf\ By substitution and inversion of \ref{pf:term-typed}
           \end{proof}
-          \step{label-2.1.2.1.2}{$\judge \aContext {\subs \aBase {\env'}} {\subs {\aType[2]} \env}$ and $\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]}$}
+          \step{label-2.1.2.1.2}{$\begin{conj} \judge \aContext {\subs \aBase {\env'}} {\subs {\aType[2]} \env} \\ \frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]} \end{conj}$}
           \begin{proof}
             \pf\ By inversion of \ref{pf:stack-typed}
           \end{proof}
-          \step{label-2.1.2.1.3}{$\judge \aContext {\subs {\aTerm[3]} {\env''}} \aType$}
+          \step{label-2.1.2.1.3}{$\judge \aContext {\subs {\aTerm[3]} {\env''}} {\aType[3]}$}
           \begin{proof}
-            \step{label-2.1.2.1.3.1}{$\judge \aContext {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} \aType$}
+            \step{label-2.1.2.1.3.1}{$\judge \aContext {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} {\aType[3]}$}
             \begin{proof}
-              \pf\ By lemma 3
+              \pf\ By \stepref{label-2.1.2.1.1}, \stepref{label-2.1.2.1.2} and lemma \ref{lemma-substitution}
             \end{proof}
             \qedstep
             \begin{proof}
@@ -430,42 +618,49 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ By IH on $(\aStack', \aTerm[3]) < (\aStack, \aTerm)$
+          \pf\ By IH on $\aTerm[3] < \aTerm$
         \end{proof}
       \end{proof}
       \step{label-2.1.3}{$\simplBeta {\stackapp {\aStack} {\subs {\aTerm} \env}}{\stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}}}$}
       \begin{proof}
         \pf\ \\
-          $\stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} (\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}}) \\
+          $\stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} \\
           \begin{aligned}
-          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} {\subs \aBase {\env'}} } && \text{by definition of \_[\_]}\\
-          & \rightsquigarrow \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} && \text{by definition of $\rightsquigarrow$ and lemma 4} \\
-          & = \stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}} && \text{as $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
+          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} {\subs \aBase {\env'}} } && \text{definition of $\stackapp \_ \_ $}\\
+          & \rightsquigarrow \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} && \text{lemma \ref{lemma-simpl-stable-context}} \\
+          & = \stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}} && \text{$\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
         \end{aligned}$
       \end{proof}
       \qedstep
       \begin{proof}
         \pf\ $\begin{aligned}[t]
             \stackapp \aStack {\subs {\aTerm} \env}
-            &\rightsquigarrow \stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}} && \text{by \stepref{label-2.1.3}} \\
-            &\rightsquigarrow^* \go {\scoped {\aTerm[3]} {\env''}} {\aStack'} && \text{by \stepref{label-2.1.2}} \\
-            &= \go {\scoped {\aTerm} \env} \aStack && \text{by \stepref{label-2.1.1}} \\
-            &\not \rightsquigarrow && \text{by \stepref{label-2.1.2}}
+            &\rightsquigarrow \stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}} && \text{\stepref{label-2.1.3}} \\
+            &\rightsquigarrow^* \go {\scoped {\aTerm[3]} {\env''}} {\aStack'} && \text{\stepref{label-2.1.2}} \\
+            &= \go {\scoped {\aTerm} \env} \aStack && \text{\stepref{label-2.1.1}} \\
+            &\not \rightsquigarrow && \text{\stepref{label-2.1.2}}
           \end{aligned}$
       \end{proof}
     \end{proof}
     \step{label-2.2}{\case{otherwise (line~\ref{go:fun-else})}}
     \begin{proof}
-      \pflet{$\env' = \envextend \env \aVar {\aVar[1]} \text{ with }\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
-      \pflet{$\aTerm[3]' = \go {\scoped {\aTerm[3]} {\env'}} \emptyStack $}
-      \pflet{$\aTerm' = (\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\aTerm[3]'})$}
+      \pflet{$\begin{conj}
+        \aVar[1] \notin FV(\aTerm) \cup FV(\env) \text{ such that } \subs \aTerm \env = (\tfun {\aVar[1]} {\subs {\aType[2]} \env}{\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}}) \\
+        \aVar[2] \notin FV(\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}) \\
+        \env' = \envextend \env \aVar {\aVar[2]} \\
+        \aTerm' = (\tfun {\aVar[2]} {\subs {\aType[2]} \env} {\go {\scoped {\aTerm[3]} {\env'}} \emptyStack})
+      \end{conj}$}
       \step{label-2.2.1}{$\go {\scoped {\aTerm} \env} \aStack = \plug \aStack {\aTerm'}$}
       \begin{proof}
         \pf\ By definition of \textsf{go}
       \end{proof}
       \step{label-2.2.2}{$\simplBeta[*] {\stackapp \aStack {\subs \aTerm \env}} {\betaNormal {\plug \aStack {\aTerm'}}}$}
       \begin{proof}
-        \step{label-2.2.2.1}{$\aTerm'$ is stuck in $\aStack$}
+        \step{label-2.2.2.1}{$\aStack$ is empty}
+        \begin{proof}
+          \pf\ By \ref{pf:stack-typed} and case analysis
+        \end{proof}
+        \step{label-2.2.2.2}{$\simplBeta[*]{\subs \aTerm \env} {\betaNormal{\aTerm'}}$}
         \begin{proof}
           \step{label-2.2.2.1.1}{$\simplBeta[*] {\stackapp {\emptyStack} {\subs {\aTerm[3]} {\env'}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\env'}} {\emptyStack}}}$}
           \begin{proof}
@@ -482,21 +677,21 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
             \end{proof}
             \step{label-2.2.2.1.1.2}{$\emptyStack$ is simplifiable}
             \begin{proof}
-              \pf\ ??
+              \pf\ By definition of simplifiable
             \end{proof}
             \qedstep
             \begin{proof}
-              \pf\ By IH on $(\emptyStack, \aTerm[3]) < (\aStack, \aTerm)$
+              \pf\ By IH on $\aTerm[3] < \aTerm$
             \end{proof}
           \end{proof}
-        \end{proof}
-        \step{label-2.2.2.2}{$\aStack$ is simplifiable}
-        \begin{proof}
-          \pf\ By \ref{pf:stack-simpl}
+          \qedstep
+          \begin{proof}
+            \pf\ By definition of $\rightsquigarrow^*$
+          \end{proof}
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ By lemma 5 ??
+          \pf\ By definition of $\stackapp {\_} {\_}$ and {\sf plug}
         \end{proof}
       \end{proof}
       \qedstep
@@ -511,22 +706,6 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
     \end{proof}
   \end{proof}
   \step{label-3}{\case{$\aTerm = \ttyfun \aTypeVar {\aTerm[3]}$}}
-  \begin{proof}
-    \step{label-3.1}{\case{$\aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'}$ (line~\ref{go:tyfun-holetype})}}
-    \begin{proof}
-      \step{label-3.1.1}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}} {\aStack'}$}
-      \step{label-3.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}} {\aStack'}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}} {\aStack'}} {{\subs {\aType[1]} {\env'}}}$}
-      \step{label-3.1.3}{$\simplBeta{\stackapp {(\nonEmptyStack {\aPolyFrame[\env']} {\aStack'})} {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env}} {\stackapp {\aStack'} {\subs {\aTerm[3]} {\envextend \env \aTypeVar {{\subs {\aType[1]} {\env'}}}}}}$}
-    \end{proof}
-    \step{label-3.2}{\case{Else (line~\ref{go:tyfun-else})}}
-    \begin{proof}
-      \step{label-3.2.1}{$\go {\scoped {(\ttyfun \aTypeVar {\aTerm[3]})} \env} \aStack = \stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
-      \step{label-3.2.2}{$\simplBeta[*] {\subs {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} {\betaNormal {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}$ and $\judge {\aContext \ctxtSep \aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}} \emptyStack}} {\aType[3]}$}
-      \step{label-3.2.3}{$\betaNormal{\stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}}$}
-      \step{label-3.2.4}{$\judge \aContext {\stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}} {\aType[1]}$}
-      \step{label-3.2.5}{$\simplBeta[*] {\stackapp \aStack {\subs {(\ttyfun \aTypeVar {\aTerm[3]})} \env}} {\stackapp \aStack {\ttyfun {\aTypeVar[1]} {\go {\scoped {\aTerm[3]} {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack}}}$}
-    \end{proof}
-  \end{proof}
   \step{label-4}{\case{$\aTerm = \tapp {\aTerm[3]} {\aBase}$ (line~\ref{go:funApply})}}
   \begin{proof}
     \pflet{$\aStack' = \nonEmptyStack {\aFunFrame[\env]} \aStack$}
@@ -536,7 +715,7 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
     \end{proof}
     \step{label-4.2}{$\stackapp \aStack {\subs {\aTerm} \env} = \stackapp {\aStack'} {\subs {\aTerm[3]} \env}$}
     \begin{proof}
-      \pf\ By definition of $\_[\_]$
+      \pf\ By definition of $\stackapp {\_} {\_}$
     \end{proof}
     \step{label-4.3}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[3]} \env}} \betaNormal{{\go {\scoped {\aTerm[3]} \env} {\aStack'}}}$}
     \begin{proof}
@@ -544,17 +723,17 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
       \begin{proof}
         \pf\ By substitution and inversion of \ref{pf:term-typed}
       \end{proof}
-      \step{label-4.3.2}{$\aStack'$ is fully simplifiable}
-      \begin{proof}
-        \pf\ By \ref{pf:stack-simpl}
-      \end{proof}
-      \step{label-4.3.3}{$\frameJudge \aContext {\aStack'} {\aType[2] \to \aType} {\aType[1]}$}
+      \step{label-4.3.2}{$\frameJudge \aContext {\aStack'} {\aType[2] \to \aType} {\aType[1]}$}
       \begin{proof}
         \pf\ By inversion of \ref{pf:stack-typed}
       \end{proof}
+      \step{label-4.3.3}{$\aStack'$ is fully simplifiable}
+      \begin{proof}
+        \pf\ By \ref{pf:stack-simpl}
+      \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $(\aStack', \aTerm[3]) < (\aStack, \aTerm)$ ??
+        \pf\ By IH on $\aTerm[3] < \aTerm$ 
       \end{proof}
     \end{proof}
     \qedstep
@@ -569,11 +748,6 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
     \end{proof}
   \end{proof}
   \step{label-5}{\case{$\aTerm = \ttyapp {\aTerm[3]} {\aType[2]}$ (line~\ref{go:typeApply})}}
-  \begin{proof}
-    \step{label-5.1}{$\go {\scoped {(\ttyapp {\aTerm[3]} {\aType[2]})} \env} \aStack = \go {\scoped {\aTerm[3]} \env {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)}}$}
-    \step{label-5.2}{$\simplBeta[*] {\stackapp {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)}}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env} {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)}} {\aType[1]}$}
-    \step{label-5.3}{$\stackapp \aStack {\subs {(\ttyapp {\aTerm[3]} {\aType[2]})} \env} = \stackapp {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} \env} \aStack)} {\subs {\aTerm[3]} \env}$}
-  \end{proof}
   \step{label-6}{\case{$\aTerm = \ite {\aTerm[3]} {\aTerm[4]} {\aTerm[5]}$ (line~\ref{go:ite})}}
   \begin{proof}
     \pflet{$\aStack' = \nonEmptyStack {\aIteFrameAll {\aTerm[4]} {\aTerm[5]} \env} \aStack$}
@@ -587,15 +761,19 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
       \begin{proof}
         \pf\ By inversion of \ref{pf:stack-typed}
       \end{proof}
+      \step{label-1.1.2.2}{$\emptyStack$ is simplifiable}
+      \begin{proof}
+        \pf\ By definition of simplifiable
+      \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $(\emptyStack, \aTerm[4]) < (\aStack, \aTerm)$
+        \pf\ By IH on $\aTerm[4] <  \aTerm$
       \end{proof}
     \end{proof}
     \step{label-6.3}{$\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[5]} \env}} {\betaNormal{\go {\scoped {\aTerm[5]} \env} \emptyStack}}$}
      \step{label-6.4}{${\stackapp \aStack {\subs {\aTerm} \env}} = {\stackapp {\aStack'} {\subs {\aTerm[3]} \env}}$}
     \begin{proof}
-      \pf\ By definition of $\_[\_]$
+      \pf\ By definition of $\stackapp {\_} {\_}$
     \end{proof}
     \step{label-6.5}{$\simplBeta[*]{\stackapp {\aStack'} {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env {\aStack'}}}$}}
     \begin{proof}
@@ -603,17 +781,17 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
       \begin{proof}
         \pf\ By inversion of \ref{pf:term-typed}
       \end{proof}
-      \step{label-6.5.2}{$\aStack'$ is simplifiable}
-      \begin{proof}
-        \pf\ By \stepref{label-6.2} and \stepref{label-6.3}
-      \end{proof}
-      \step{label-6.5.3}{$\frameJudge \aContext {\aStack'} \tyBool {\aType[1]}$}
+      \step{label-6.5.2}{$\frameJudge \aContext {\aStack'} \tyBool {\aType[1]}$}
       \begin{proof}
         \pf\ By \stepref{label-6.5.1} and inversion of \ref{pf:stack-typed}
       \end{proof}
+       \step{label-6.5.3}{$\aStack'$ is simplifiable}
+      \begin{proof}
+        \pf\ By \stepref{label-6.2}, \stepref{label-6.3} and \ref{pf:stack-simpl}
+      \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $(\aStack', \aTerm[3]) < (\aStack, \aTerm)$ ??
+        \pf\ By IH on $\aTerm[3] < \aTerm$
       \end{proof}
     \end{proof}
     \qedstep
@@ -627,20 +805,7 @@ A stack $\aStack = \nonEmptyStack {\aFrame} {\aStack'}$ is simplifiable iff fora
     \end{proof}
   \end{proof}
   \step{label-7}{\case{$\aTerm = \tlet \aVar {\aTerm[3]} {\aTerm[4]}$ (line~\ref{go:let})}}
-  \begin{proof}
-    \step{label-7.1}{$\go {\scoped {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env} \aStack = \stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})} \text{ with }\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
-    \step{label-7.2}{$\simplBeta[*] {\subs {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} {\betaNormal{\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack}}$ and $\judge {\ctxtExtend \aContext {\aVar[1]} {\aType[2]}} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack} \aType$}
-    \step{label-7.3}{$\simplBeta[*] {\subs {\aTerm[3]} \env } {\betaNormal{\go {\scoped {\aTerm[3]} \env} \emptyStack}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\aType[2]}$}
-    \step{label-7.4}{$\betaNormal{\stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})}}$}
-    \step{label-7.5}{$\judge \aContext {\stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})}} {\aType[1]}$}
-    \step{label-7.6}{$\simplBeta[*] {\stackapp \aStack {\subs {(\tlet \aVar {\aTerm[3]} {\aTerm[4]})} \env}} {\stackapp \aStack {(\tlet {\aVar[1]} {\go {\scoped {\aTerm[3]} \env} \emptyStack} {\go {\scoped {\aTerm[4]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack})}}$}
-  \end{proof}
   \step{label-8}{\case{$\aTerm = \ttyann {\aTerm[3]} {\aType[2]}$ (line~\ref{go:annot})}}
-  \begin{proof}
-    \step{label-8.1}{$\go {\scoped {\ttyann {\aTerm[3]} {\aType[2]}} \env} \aStack = \go {\scoped {\aTerm[3]} \env} \aStack$}
-    \step{label-8.2}{$\simplBeta[*] {\stackapp \aStack {\subs {\aTerm[3]} \env}} {\betaNormal{\go {\scoped {\aTerm[3]} \env} \aStack}}$ and $\judge \aContext {\go {\scoped {\aTerm[3]} \env} \aStack} {\aType[1]}$}
-    \step{label-8.3}{$\simplBeta{\stackapp \aStack {\subs {\ttyann {\aTerm[3]} {\aType[2]}} \env}} {\stackapp \aStack {\subs {\aTerm[3]} \env}}$}
-  \end{proof}
 \end{proof}
 
 \newgeometry{top=0.5cm}
