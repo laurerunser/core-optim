@@ -991,8 +991,8 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
                                     { }$}}
     \begin{proof}
         \step{label-1.1}{\begin{enumerate}
-                        \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[3]} {\aType}$
-                        \item $\judge \aContext \aBase {\aType[1]}$
+                        \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[3]} {\aType[1]}$
+                        \item $\judge \aContext \aBase {\aType}$
                         \end{enumerate}}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1} twice.
@@ -1002,15 +1002,17 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
            \pf\ \aRule  {\text{by substitution lemma and {\stepref{label-1.1}}}}
                     {\judge {\aContext}
                             {\subs{\aTerm[3]}{\envextend \envid \aVar \aBase}}
-                            {\aType}}
+                            {\aType[1]}}
                     {}
         \end{proof}
     \end{proof}
     \step{label-2}{\case{$\aRule    { }
-                                    {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} {\aType[1]}} {{\subs \aTerm {\envextend \envid \aTypeVar {\aType[1]}}}}}
+                                    {\simplBeta {\ttyapp {(\ttyfun \aTypeVar {\aTerm[3]})} {\aType}} {{\subs {\aTerm[3]} {\envextend \envid \aTypeVar {\aType}}}}}
                                     { }$}}
     \begin{proof}
-        \step{label-2.1}{$\judge {\ctxtExtend{\aContext}{\aTypeVar}{\aType[1]}} {\aTerm} {\aType}$}
+        \step{label-2.1}{$\exists \aType[1]'$ such that $\begin{conj}
+          \aType[1] = \subs {\aType[1]'} {\envextend \envid \aTypeVar {\aType}} \\
+          \judge {\ctxtExtend{\aContext}{\aTypeVar}{\aType}} {\aTerm[3]} {\aType[1]'} \end{conj}$}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1} twice.
         \end{proof}
@@ -1018,8 +1020,8 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
         \begin{proof}
             \pf\ \aRule {\text{by substitution lemma and {\stepref{label-2.1}}}}
                         {\judge {\aContext}
-                        {\subs{\aTerm}{\envextend \envid {\aTypeVar} {\aType[1]}}}
-                        {\aType}}
+                        {\subs{\aTerm[3]}{\envextend \envid {\aTypeVar} {\aType}}}
+                        {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
@@ -1027,7 +1029,7 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
                                     {\simplBeta {\ite \true {\aTerm[3]} {\aTerm[1]}} {\aTerm[3]}}
                                     { }$}}
     \begin{proof}
-        \step{label-3.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \step{label-3.1}{$\judge {\aContext} {\aTerm[3]} {\aType[1]}$}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
@@ -1036,24 +1038,25 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
             \pf\ \aRule {\text{by {\stepref{label-3.1}}}}
                         {\judge {\aContext}
                         {\aTerm[3]}
-                        {\aType}}
+                        {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
     \step{label-4}{\case{$\aRule    { }
-                                    {\simplBeta {\ite \true {\aTerm[1]} {\aTerm[3]}} {\aTerm[3]}}
+                                    {\simplBeta {\ite \false {\aTerm[1]} {\aTerm[3]}} {\aTerm[3]}}
                                     { }$}}
     \begin{proof}
         \pf\ Same reasoning than \stepref{label-3}
     \end{proof}
 
     \step{label-5}{\case{$\aRule    {\simplBeta {\subs {\aTerm[3]} {\envextend \envid \aVar \aVar}} {\aTerm[1]}}
-                                    {\simplBeta {\tfun \aVar {\aType[1]} {\aTerm[3]}} {\tfun \aVar {\aType[1]} {\aTerm[1]}}}
+                                    {\simplBeta {\tfun \aVar {\aType} {\aTerm[3]}} {\tfun \aVar {\aType} {\aTerm[1]}}}
                                     {}$}}
     \begin{proof}
         \step{label-5.1}{\begin{enumerate}
-            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\domToCod}$
-            \item $\judge \aContext {\aVar} {\aType[1]}$
+            \item $\judge \aContext {\tfun \aVar {\aType} {\aTerm[3]}} {\aType[1] = \aType[2] \mapsto \aType}$
+            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[3]} {\aType}$
+            \item $\judge \aContext {\aVar} {\aType[2]}$
             \end{enumerate}}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1} and by hypothesis.
@@ -1062,8 +1065,8 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
         \begin{proof}
             \pf\ \aRule {\text{by {\stepref{label-5.1}}}}
                         {\judge {\aContext}
-                            {\tfun \aVar {\aType[1]} {\aTerm[1]}}
-                            {\domToCod}}
+                            {\tfun \aVar {\aType} {\aTerm[1]}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
@@ -1073,23 +1076,23 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
                                     {}$}}
     \begin{proof}
         \step{label-6.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\domToCod}$
-            \item $\judge \aContext {\aBase} {\aType[1]}$
+            \item $\judge {\aContext} {\aTerm[3]} {\aType[2] \mapsto \aType}$
+            \item $\judge \aContext {\aBase} {\aType[2]}$
             \end{enumerate}}
         \begin{proof}
-            \pf\ By inversion of \ref{lA:H1} twice.
+            \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
-        \step{label-6.2}{$\judge {\aContext} {\aTerm[1]} {\domToCod}$}
+        \step{label-6.2}{$\judge {\aContext} {\aTerm[1]} {\aType[2] \mapsto \aType}$}
         \begin{proof}
             \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta{\tapp {\aTerm[3]} \aBase}{\tapp {\aTerm[1]} \aBase}}$
         \end{proof}
         \qedstep
         \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-6.2}}}} {\judge {\aContext} {\aTerm[1]} {\domToCod}} {} \\
-                        \aRule {\text{by {\stepref{label-6.1}}}} {\judge \aContext \aBase {\aType[1]}} {}}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-6.2}}}} {\judge {\aContext} {\aTerm[1]} {\codToDom}} {} \\
+                        \aRule {\text{by {\stepref{label-6.1}}}} {\judge \aContext \aBase {\aType}} {}}
                         {\judge {\aContext}
                             {\tapp {\aTerm[1]} \aBase}
-                            {\aType}}
+                            {\aType[2] \mapsto \aType}}
                         {}
         \end{proof}
     \end{proof}
@@ -1099,49 +1102,49 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
                                     {}$}}
     \begin{proof}
         \step{label-7.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\aType[1]}$
-            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\aType}$
+            \item $\judge {\aContext} {\aTerm[3]} {\aType}$
+            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}$
             \end{enumerate}}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
-        \step{label-7.2}{$\judge {\aContext} {\aTerm[3]'} {\aType[1]}$}
+        \step{label-7.2}{$\judge {\aContext} {\aTerm[3]'} {\aType}$}
         \begin{proof}
             \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[3]'}} \prec {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {{\aTerm[3]}'}} {\aTerm[1]}}$
         \end{proof}
         \qedstep
         \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-7.2}}}} {\judge {\aContext} {\aTerm[3]'} {\aType[1]}} {} \\
-                        \aRule {\text{by {\stepref{label-7.1}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\aType}} {}}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-7.2}}}} {\judge {\aContext} {\aTerm[3]'} {\aType}} {} \\
+                        \aRule {\text{by {\stepref{label-7.1}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}} {}}
                         {\judge {\aContext}
                             {\tlet \aVar {{\aTerm[3]}'}}
-                            {\aType}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
 
     \step{label-8}{\case{$\aRule    {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar \aVar}} {\aTerm[1]'}}
-                                    {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar \aTerm \aTerm[1]'}}
+                                    {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {\aTerm[3]} \aTerm[1]'}}
                                     {}$}}
     \begin{proof}
         \step{label-8.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\aType[1]}$
-            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]} {\aType}$
+            \item $\judge {\aContext} {\aTerm[3]} {\aType}$
+            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}$
             \end{enumerate}}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
-        \step{label-8.2}{$\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]'} {\aType}$}
+        \step{label-8.2}{$\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]'} {\aType[1]}$}
         \begin{proof}
             \pf\ by IH on ${\simplBeta{\aTerm[1]}{\aTerm[1]'}} \prec {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {\aTerm[3]}} {\aTerm[1]'}}$
         \end{proof}
         \qedstep
         \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-8.1}}}} {\judge {\aContext} {\aTerm[3]} {\aType[1]}} {} \\
-                        \aRule {\text{by {\stepref{label-8.2}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType[1]}} {\aTerm[1]'} {\aType}} {}}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-8.1}}}} {\judge {\aContext} {\aTerm[3]} {\aType}} {} \\
+                        \aRule {\text{by {\stepref{label-8.2}}} and substitution lemma} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]'} {\aType[1]}} {}}
                         {\judge {\aContext}
                             {\tlet \aVar {\aTerm[3]} {\aTerm[1]'}}
-                            {\aType}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
@@ -1152,8 +1155,8 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     \begin{proof}
         \step{label-9.1}{\begin{enumerate}
             \item $\judge {\aContext} {\aTerm[3]} {\tyBool}$
-            \item $\judge {\aContext} {\aTerm[1]} {\aType}$
-            \item $\judge {\aContext} {\aTerm[2]} {\aType}$
+            \item $\judge {\aContext} {\aTerm[1]} {\aType[1]}$
+            \item $\judge {\aContext} {\aTerm[2]} {\aType[1]}$
             \end{enumerate}}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
@@ -1165,11 +1168,11 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
         \qedstep
         \begin{proof}
             \pf\ \aRule {\aRule {\text{by {\stepref{label-9.2}}}} {\judge {\aContext} {\aTerm[3]'} {\tyBool}} {} \\
-                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[1]} {\aType}} {} \\
-                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType}} {}}
+                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[1]} {\aType[1]}} {} \\
+                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType[1]}} {}}
                         {\judge {\aContext}
                             {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}
-                            {\aType}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
@@ -1180,24 +1183,24 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     \begin{proof}
         \step{label-10.1}{\begin{enumerate}
             \item $\judge {\aContext} {\aTerm[3]} {\tyBool}$
-            \item $\judge {\aContext} {\aTerm[1]} {\aType}$
-            \item $\judge {\aContext} {\aTerm[2]} {\aType}$
+            \item $\judge {\aContext} {\aTerm[1]} {\aType[1]}$
+            \item $\judge {\aContext} {\aTerm[2]} {\aType[1]}$
             \end{enumerate}}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
-        \step{label-10.2}{$\judge {\aContext} {\aTerm[1]'} {\aType}$}
+        \step{label-10.2}{$\judge {\aContext} {\aTerm[1]'} {\aType[1]}$}
         \begin{proof}
             \pf\ by IH on ${\simplBeta{\aTerm[1]}{\aTerm[1]'}} \prec {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}}}$
         \end{proof}
         \qedstep
         \begin{proof}
             \pf\ \aRule {\aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[3]} {\tyBool}} {} \\
-                        \aRule {\text{by {\stepref{label-10.2}}}} {\judge {\aContext} {\aTerm[1]'} {\aType}} {} \\
-                        \aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType}} {}}
+                        \aRule {\text{by {\stepref{label-10.2}}}} {\judge {\aContext} {\aTerm[1]'} {\aType[1]}} {} \\
+                        \aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType[1]}} {}}
                         {\judge {\aContext}
                             {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}}
-                            {\aType}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
@@ -1214,9 +1217,13 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
                                     {\simplBeta {\ttyfun \aTypeVar {\aTerm[3]}} {\ttyfun \aTypeVar {\aTerm[1]}}}
                                     {}$}}
     \begin{proof}
-        \step{label-12.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \step{label-12.1}
+            {\begin{enumerate}
+                \item {$\judge \aContext {\ttyfun \aTypeVar {\aTerm[3]}} {\tforall{\aTypeVar}{\aType}}$}
+                \item {$\judge {\aContext, \aTypeVar} {\aTerm[3]} {\aType}$}
+            \end{enumerate}}
         \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
+            \pf\ By hypothesis and inversion of \ref{lA:H1}.
         \end{proof}
         \step{label-12.2}{$\judge {\aContext, \aTypeVar} {\aTerm[1]} {\aType}$}
         \begin{proof}
@@ -1227,38 +1234,38 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
             \pf\ \aRule {\aRule {\text{by {\stepref{label-12.2}}}} {\judge {\aContext, \aTypeVar } {\aTerm[1]} {\aType}} {}}
                         {\judge {\aContext}
                             {\ttyfun \aTypeVar {\aTerm[1]}}
-                            {\tforall \aTypeVar \aType}}
+                            {\tforall \aTypeVar {\aType}}}
                         {}
         \end{proof}
     \end{proof}
 
     \step{label-13}{\case{$\aRule   {\simplBeta {\aTerm[3]} {\aTerm[1]}}
-                                    {\simplBeta {\ttyapp {\aTerm[3]} {\aType[1]}} {\ttyapp {\aTerm[1]} {\aType[1]}}}
+                                    {\simplBeta {\ttyapp {\aTerm[3]} {\aType}} {\ttyapp {\aTerm[1]} {\aType}}}
                                     {}$}}
     \begin{proof}
-        \step{label-13.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \step{label-13.1}{$\judge {\aContext} {\aTerm[3]} {\tforall{\aTypeVar}{\aType[1]}}$}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
-        \step{label-13.2}{$\judge {\aContext} {\aTerm[1]} {\aType}$}
+        \step{label-13.2}{$\judge {\aContext} {\aTerm[1]} {\tforall{\aTypeVar}{\aType[1]}}$}
         \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta {\ttyapp {\aTerm[3]} {\aType[1]}} {\ttyapp {\aTerm[1]} {\aType[1]}}}$
+            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta {\ttyapp {\aTerm[3]} {\aType}} {\ttyapp {\aTerm[1]} {\aType}}}$
         \end{proof}
         \qedstep
         \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-13.2}}}} {\judge {\aContext} {\aTerm[1]} {\aType}} {}}
+            \pf\ \aRule {\aRule {\text{by {\stepref{label-13.2}}}} {\judge {\aContext} {\aTerm[1]} {\tforall{\aTypeVar}{\aType[1]}}} {}}
                         {\judge {\aContext}
-                            {\ttyapp {\aTerm[1]} {\aType[1]}}
-                            {\aType}}
+                            {\ttyapp {\aTerm[1]} {\aType}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
 
     \step{label-14}{\case{$\aRule   { }
-                                    {\simplBeta {\ttyann {\aTerm[3]} \aType} {\aTerm[3]}}
+                                    {\simplBeta {\ttyann {\aTerm[3]} {\aType[1]} {\aTerm[3]}}}
                                     {}$}}
     \begin{proof}
-        \step{label-14.1}{$\judge {\aContext} {\aTerm[3]} {\aType}$}
+        \step{label-14.1}{$\judge {\aContext} {\aTerm[3]} {\aType[1]}$}
         \begin{proof}
             \pf\ By inversion of \ref{lA:H1}.
         \end{proof}
@@ -1267,7 +1274,7 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
             \pf\ \aRule {\text{by {\stepref{label-14.1}}}}
                         {\judge {\aContext}
                             {\aTerm[3]}
-                            {\aType}}
+                            {\aType[1]}}
                         {}
         \end{proof}
     \end{proof}
