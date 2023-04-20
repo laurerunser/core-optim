@@ -211,10 +211,42 @@ and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aCo
 \subsection{Lemma} \label{lemma-substitution}
 \begin{proof}
   \assume{\begin{enumerate}
-    \item $\judge {\ctxtExtend \aContext \aVar {\aType[1]}} \aTerm \aType$
-    \item $\judge \aContext \aBase {\aType[1]}$
+    \item $\judge {\ctxtExtend \aContext \aVar {\aType[1]}} \aTerm \aType$ \label{pf:term-type}
+    \item $\judge \aContext \aBase {\aType[1]}$ \label{pf:subs-type}
   \end{enumerate}}
   \prove{$\judge \aContext {\subs \aTerm {\envextend \envid \aVar \aBase}} \aType$}
+  \pfsketch\ Proof by induction on $\aTerm$
+  \step{label-1}{\case{$\aTerm = \aBase'$}}
+  \begin{proof}
+    \step{label-1.1}{\case{$\aBase' = \aVar$}}
+    \begin{proof}
+      \step{label-1.1.1}{$\subs \aTerm {\envextend \envid \aVar \aBase} = \aBase$}
+      \qedstep
+      \begin{proof}
+        \pf\ By \ref{pf:term-type} and \ref{pf:subs-type}
+      \end{proof}
+    \end{proof}
+    \step{label-1.2}{\case{$\aBase' = \true$}}
+    \begin{proof}
+      \pf\ By typechecker, $\forall \aContext', \judge {\aContext'} \true \tyBool$
+    \end{proof}
+    \step{label-1.3}{\case{$\aBase' = \false$}}
+    \begin{proof}
+      \pf\ By typechecker, $\forall \aContext', \judge {\aContext'} \false \tyBool$
+    \end{proof}
+    \step{label-1.4}{\case{otherwise, $\aBase' = \aVar[1]$}}
+    \begin{proof}
+      \step{label-1.4.1}{$\subs \aTerm {\envextend \envid \aVar \aBase} = \aVar[1]$}
+      \qedstep
+      \begin{proof}
+        \pf\ By \ref{pf:term-type}
+      \end{proof}
+    \end{proof}
+  \end{proof}
+  \step{label-2}{\case{$\aTerm = \tfun \aVar \aType {\aTerm[1]}$}}
+  \begin{proof}
+    \step{label-2.1}{$\subs \aTerm {\envextend \envid \aVar \aBase} = (\tfun {\aVar[1]} \aType {\subs {\aTerm[1]} {\envextend \envid \aVar {\aVar[1]}}})$}
+  \end{proof}
 \end{proof}
 
 \subsection{Type synthesis for stacks} \label{stack-typechecker}
@@ -315,6 +347,29 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \end{enumerate}}
   \assume{$\simplBeta \aTerm {\aTerm'}$}
   \prove{$\simplBeta {\stackapp \aStack \aTerm} {\stackapp \aStack {\aTerm'}}$}
+  \pfsketch\ Proof by induction on $\aStack$
+  \step{label-1}{\case{$\aStack = \emptyStack$}}
+  \begin{proof}
+    \pf\ By definition of $\stackapp {\_} {\_}$
+  \end{proof}
+  \step{label-2}{\case{$\aStack = \nonEmptyStack \aFunFrame {\aStack'}$}}
+  \begin{proof}
+    \step{label-2.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\tapp \aTerm {(\subs \aBase \env)}}$}
+    \begin{proof}
+      \pf\ By definition of $\stackapp {\_} {\_}$  
+    \end{proof}
+    \step{label-2.2}{$\stackapp \aStack {\aTerm'} = \stackapp {\aStack'} {\tapp {\aTerm'} {(\subs \aBase \env)}}$}
+    \step{label-2.3}{$\simplBeta {\tapp \aTerm {(\subs \aBase \env)}} {\tapp {\aTerm'} {(\subs \aBase \env)}}$}
+    \begin{proof}
+      \pf\ By definition of $\rightsquigarrow$ 
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ By IH on $\aStack' < \aStack$
+    \end{proof}
+  \end{proof}
+  \step{label-3}{\case{$\aStack = \nonEmptyStack \aPolyFrame {\aStack'}$}}
+  \step{label-4}{\case{$\aStack = \nonEmptyStack \aIteFrame {\aStack'}$}}
 \end{proof}
 
 \subsection{{\sf go} definition}
@@ -381,6 +436,30 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \assume{$\aTerm$ is a neutral term}
   \prove{$\betaNormal{\aTerm}$}
   \pfsketch\ Proof by induction on $\aTerm$
+  \step{label-1}{\case{$\aTerm = \aVar$}}
+  \begin{proof}
+    \pf\ By definition of $\rightsquigarrow$
+  \end{proof}
+  \step{label-2}{\case{$\aTerm = \tapp {\aTerm'} \aBase$}}
+  \begin{proof}
+    \step{label-2.1}{$\betaNormal{\aTerm'}$}
+    \begin{proof}
+      \step{label-2.1.1}{$\aTerm'$ is neutral}
+      \begin{proof}
+        \pf\ By inversion of hypothesis
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By IH on $\aTerm' < \aTerm$
+      \end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ By definition of $\rightsquigarrow$
+    \end{proof}
+  \end{proof}
+  \step{label-3}{\case{$\aTerm = \ttyapp {\aTerm'} \aType$}}
+  \step{label-4}{\case{$\aTerm = \ite {\aTerm[3]}{\aTerm[4]}{\aTerm[5]}$}}
 \end{proof}
 
 \subsection{Simplifiable stack}
