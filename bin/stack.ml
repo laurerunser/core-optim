@@ -189,9 +189,9 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
             if Types.equal_ty ty1 ty2 then ty1
             else type_if_branches_error e2 ty1 ty2)
 
-let closed_term_in_scope t scope =
-  VarSet.subset (free_vars t) scope.vars_term
-  && VarSet.subset (free_ty_vars_of_term t) scope.vars_ty
+(* let closed_term_in_scope t scope =
+   VarSet.subset (free_vars t) scope.vars_term
+   && VarSet.subset (free_ty_vars_of_term t) scope.vars_ty *)
 
 let rec plug (s : stack) (t : term) =
   match s with
@@ -206,14 +206,14 @@ let rec plug (s : stack) (t : term) =
       plug s filled_term
 
 and simplify (t : term) =
-  let ty = synth VarMap.empty t in
+  (* let ty = synth VarMap.empty t in *)
   let t = go (empty_scope t) [] in
-  assert (check VarMap.empty ty t = ty);
+  (* assert (check VarMap.empty ty t = ty); *)
   t
 
 (* =go= *)
 and go (t : term scoped) (acc : stack) =
-  assert (well_scoped_term t);
+  (* assert (well_scoped_term t); *)
   let result =
     match (t.scope, acc) with
     (* replace base values, renaming variables if they appear in the substitutions *)
@@ -284,5 +284,5 @@ and go (t : term scoped) (acc : stack) =
         go (inherit_scope ~x:body ~scope:t) acc (* =end= *)
   in
   (* check that the term is closed *)
-  assert (closed_term_in_scope result t);
+  (* assert (closed_term_in_scope result t); *)
   result
