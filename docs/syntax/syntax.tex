@@ -78,7 +78,7 @@ $
 \end{array}
 $\\
 We will write $\scoped \aTerm \env$ to denote the pair of the term $\aTerm$ and its environment $\env$.  \\
-Similarly, $\scoped \aType \env$ denotes the pair of the type $\aType$ and its environment $\env$. \\
+%Similarly, $\scoped \aType \env$ denotes the pair of the type $\aType$ and its environment $\env$. \\
 
 \subsection{Substitution} \label{substitution}
 \subsubsection{Type substitution}
@@ -115,20 +115,20 @@ Similarly, $\scoped \aType \env$ denotes the pair of the type $\aType$ and its e
 \subs {\ttyann \aTerm \aType} \env &= \ttyann {\subs \aTerm \env} {\subs \aType \env}
 \end{align*}
 
-\subsection{Domaine}
-The domaine of an environment is written $D(\env)$ and is equal to $\{ \aVar ~\vert~ \exists \aBase. \aVar \ne \aBase \text{ and } \subs \aVar \env = \aBase \} \cup \{ \aTypeVar ~\vert~ \exists \aType. \aTypeVar \ne \aType \text{ and } \subs \aTypeVar \env = \aType \}$
-
-\subsection{Well scoped} \label{well-scoped-term}
-$\scoped \aTerm \env$ is well-scoped if $FV(\aTerm) \subseteq D(\env)$ \\
-$\scoped \aType \env$ is well-scoped if $FV(\aType) \subseteq D(\env)$
+%\subsection{Domaine}
+%The domaine of an environment is written $D(\env)$ and is equal to $\{ \aVar ~\vert~ \exists \aBase. \aVar \ne \aBase \text{ and } \subs \aVar \env = \aBase \} \cup \{ \aTypeVar ~\vert~ \exists \aType. \aTypeVar \ne \aType \text{ and } \subs \aTypeVar \env = \aType \}$
+%
+%\subsection{Well scoped} \label{well-scoped-term}
+%$\scoped \aTerm \env$ is well-scoped if $FV(\aTerm) \subseteq D(\env)$ \\
+%$\scoped \aType \env$ is well-scoped if $FV(\aType) \subseteq D(\env)$
 
 \section{Frames and stacks}
 $
 \begin{array}{ccll}
 \aFrame & ::= & \\
-& | & \aFunFrame & \text{(applied function)} \\
-& | & \aPolyFrame & \text{(instantiated polymorphism)} \\
-& | & \aIteFrame & \text{(if then else)}
+& | & \aFunFrame & \text{(function application)} \\
+& | & \aPolyFrame & \text{(type application)} \\
+& | & \aIteFrame & \text{(case analysis)}
 \end{array}
 $
 \newline

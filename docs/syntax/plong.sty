@@ -56,11 +56,11 @@
 \newcommand{\tfun}[3]%
            {\textbf{fun } \ttyann{#1}{#2} = #3}
 \newcommand{\ttyfun}[2]%
-           {\textbf{fun } [ #1 ] = #2}
+           {\textbf{fun } \langle #1 \rangle = #2}
 \newcommand{\tapp}[2]%
            {#1 \: #2}
 \newcommand{\ttyapp}[2]%
-           {#1 \: [ #2 ]}
+           {#1 \: \langle #2 \rangle}
 \newcommand{\ttysub}[2]%
            {#1 \mapsto #2}
 \newcommand{\tlet}[3]%
@@ -119,7 +119,7 @@
             {s_{\the\numexpr #1 - 1 \relax}}}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%
-          {#1 : #2}
+          {#1 \triangleright #2}
 \newcommand{\frameJudge}[4]%
           {#1 \, \vert \, #2 : #3 \vdash #4}
 \newcommand{\stackapp}[2]%
