@@ -136,7 +136,12 @@ let rec free_ty_vars_of_term t =
 
 module VarMap = Types.VarMap
 
-let sub_var x map = try VarMap.find x map with Not_found -> Var x
+let rec sub_var x map =
+  let sub x map = try VarMap.find x map with Not_found -> Var x in
+  match sub x map with
+  (* keep trying to substitute until you reach a fix point *)
+  | Var y -> if y = x then Var y else sub_var y map
+  | _ as y -> y
 
 let alpha_eq t1 t2 =
   let rec alpha_eq_aux p_var p_ty t1 t2 =
