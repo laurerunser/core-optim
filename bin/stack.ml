@@ -202,9 +202,7 @@ let rec plug (s : stack) (t : term) =
         match f with
         | HoleFun arg -> FunApply (t, arg.scope)
         | HoleType arg -> TypeApply (t, arg.scope)
-        | HoleIf (e1, e2) ->
-            IfThenElse
-              (t, simplify (discharge_term e1), simplify (discharge_term e2))
+        | HoleIf (e1, e2) -> IfThenElse (t, go e1 [], go e2 [])
       in
       plug s filled_term
 
