@@ -120,9 +120,9 @@ let discharge_term (t : term scoped) =
   in
   sub_terms t.scope
 
-(* let discharge_base (t : base scoped) =
-   match t.scope with Bool _ as b -> b | Var x -> sub_var x t.p_term
-*)
+let discharge_base (t : base scoped) =
+  match t.scope with Bool _ as b -> b | Var x -> sub_var x t.p_term
+
 let discharge_ty (t : ty scoped) = sub_ty t.scope t.p_ty
 
 let pretty_print_frame f =
@@ -200,8 +200,8 @@ let rec plug (s : stack) (t : term) =
   | f :: s ->
       let filled_term =
         match f with
-        | HoleFun arg -> FunApply (t, arg.scope)
-        | HoleType arg -> TypeApply (t, arg.scope)
+        | HoleFun arg -> FunApply (t, discharge_base arg)
+        | HoleType arg -> TypeApply (t, discharge_ty arg)
         | HoleIf (e1, e2) -> IfThenElse (t, go e1 [], go e2 [])
       in
       plug s filled_term
@@ -228,13 +228,14 @@ and go (t : term scoped) (acc : stack) =
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun arg :: acc (*@ \label{go:fun-holefun} *) ->
         let body_scoped =
-          scope_with_new_var ~term:body ~scope:t ~var:x ~base:arg.scope (***)
+          scope_with_new_var ~term:body ~scope:t ~var:x ~base:arg.scope (*!!!!*)
         in
         go body_scoped acc
     (*@ \label{go:tyfun-holetype} *)
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
         let body_scoped =
-          scope_with_new_ty ~term:body ~scope:t ~var:alpha ~ty:ty2.scope (***)
+          scope_with_new_ty ~term:body ~scope:t ~var:alpha
+            ~ty:ty2.scope (*!!!!*)
         in
         go body_scoped acc
     (* abstractions but can't simplify in the context *)
