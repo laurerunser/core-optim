@@ -48,19 +48,6 @@ let well_scoped (t : 'a scoped) (freevars_term : 'a -> VarSet.t)
       VarSet.subset f_term term_key && VarSet.subset f_ty ty_key
 
 let well_scoped_term t = well_scoped t free_vars free_ty_vars_of_term
-(* let well_scoped_base b = well_scoped b free_vars_base (fun _ -> VarSet.empty)
-   let well_scoped_ty ty = well_scoped ty (fun _ -> VarSet.empty) free_ty_vars *)
-
-(* let rec well_scoped_stack (s : stack) =
-   match s with
-   | [] -> true
-   | HoleFun a :: s ->
-       if not (well_scoped_base a) then false else well_scoped_stack s
-   | HoleType t :: s ->
-       if not (well_scoped_ty t) then false else well_scoped_stack s
-   | HoleIf (e1, e2) :: s ->
-       if not (well_scoped_term e1 || well_scoped_term e2) then false
-       else well_scoped_stack s *)
 
 (* Returns a scoped term where the scope is [t], and all the sets/maps are empty *)
 let empty_scope t =
@@ -190,9 +177,9 @@ let rec synth_stack (s : stack) (ty : ty) (ctxt : ty VarMap.t) =
             if Types.equal_ty ty1 ty2 then ty1
             else type_if_branches_error e2.scope ty1 ty2)
 
-(* let closed_term_in_scope t scope =
-   VarSet.subset (free_vars t) scope.vars_term
-   && VarSet.subset (free_ty_vars_of_term t) scope.vars_ty *)
+let closed_term_in_scope t scope =
+  VarSet.subset (free_vars t) scope.vars_term
+  && VarSet.subset (free_ty_vars_of_term t) scope.vars_ty
 
 let rec plug (s : stack) (t : term) =
   match s with
@@ -207,14 +194,14 @@ let rec plug (s : stack) (t : term) =
       plug s filled_term
 
 and simplify (t : term) =
-  (* let ty = synth VarMap.empty t in *)
+  let ty = synth VarMap.empty t in
   let t = go (empty_scope t) [] in
-  (* assert (check VarMap.empty ty t = ty); *)
+  assert (check VarMap.empty ty t = ty);
   t
 
 (* =go= *)
 and go (t : term scoped) (acc : stack) =
-  (* assert (well_scoped_term t); *)
+  assert (well_scoped_term t);
   let result =
     match (t.scope, acc) with
     (* replace base values, renaming variables if they appear in the substitutions *)
@@ -265,7 +252,7 @@ and go (t : term scoped) (acc : stack) =
     | TypeApply (f, ty), acc (*@ \label{go:typeApply}*) ->
         let f = inherit_scope ~x:f ~scope:t in
         let ty = inherit_scope ~x:ty ~scope:t in
-        go f (HoleType ty (***) :: acc)
+        go f (HoleType ty :: acc)
     | IfThenElse (t1, t2, t3), acc (*@ \label{go:ite}*) ->
         let t1 = inherit_scope ~x:t1 ~scope:t in
         let t2 = inherit_scope ~x:t2 ~scope:t in
@@ -286,5 +273,5 @@ and go (t : term scoped) (acc : stack) =
         go (inherit_scope ~x:body ~scope:t) acc (* =end= *)
   in
   (* check that the term is closed *)
-  (* assert (closed_term_in_scope result t); *)
+  assert (closed_term_in_scope result t);
   result
