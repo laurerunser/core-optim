@@ -268,9 +268,9 @@ and go (t : term scoped) (acc : stack) =
         go f (HoleType ty (***) :: acc)
     | IfThenElse (t1, t2, t3), acc (*@ \label{go:ite}*) ->
         let t1 = inherit_scope ~x:t1 ~scope:t in
-        let t2 = go (inherit_scope ~x:t2 ~scope:t) [] in
-        let t3 = go (inherit_scope ~x:t3 ~scope:t) [] in
-        go t1 (HoleIf (empty_scope t2, empty_scope t3) (***) :: acc)
+        let t2 = inherit_scope ~x:t2 ~scope:t in
+        let t3 = inherit_scope ~x:t3 ~scope:t in
+        go t1 (HoleIf (t2, t3) :: acc)
     (* other cases *)
     | Let (x, t1, body), acc (*@ \label{go:let}*) ->
         let x' = Atom.fresh x.identifier in
