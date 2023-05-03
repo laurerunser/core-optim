@@ -215,13 +215,14 @@ and go (t : term scoped) (acc : stack) =
     | Fun (x, _, body), HoleFun arg :: acc ->
         (*@ \label{go:fun-holefun} *)
         let body_scoped =
-          scope_with_new_var ~term:body ~scope:t ~var:x ~base:arg.scope (*!!!!*)
+          scope_with_new_var ~term:body ~scope:t ~var:x
+            ~base:(discharge_base arg)
         in
         go body_scoped acc
     | TypeAbstraction (alpha, body), HoleType ty2 :: acc ->
         let body_scoped =
           scope_with_new_ty ~term:body ~scope:t ~var:alpha
-            ~ty:ty2.scope (*!!!!*)
+            ~ty:(discharge_ty ty2)
         in
         go body_scoped acc
     (* abstractions but can't simplify in the context *)
