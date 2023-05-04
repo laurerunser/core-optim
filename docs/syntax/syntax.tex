@@ -663,36 +663,80 @@ $
   \pfsketch\ Proof by induction on $\aTerm$.
   \step{label-1}{\case{$\aTerm = \aBase$ (line~\ref{go:base})}}
   \begin{proof}
-    \step{label-1.1}{\case{$\begin{conj} \subs \aBase \env = \true \\ \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \end{conj}$}}
+    \step{label-1.1}{\case{$\subs \aBase \env = \true$}}
     \begin{proof}
-      \step{label-1.1.1}{$\go {\scoped \aTerm \env} \aStack = \go {\scoped {\aTerm[1]} {\env'} {\aStack'}}$}
+      \step{label-1.1.1}{$\begin{disj}
+        \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \\
+        \aStack = \emptyStack \end{disj}$}
       \begin{proof}
-        \pf\ By definition of \textsf{go}
+        \step{label-1.1.1.1}{$\aType = \tyBool$}
+        \begin{proof}
+          \pf\ By inversion of \ref{pf:term-typed}
+        \end{proof}
+        \qedstep
+        \begin{proof}
+          \pf\ By inversion of \ref{pf:stack-typed}
+        \end{proof}
       \end{proof}
-      \step{label-1.1.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} {\betaNormal {\go {\scoped {\aTerm[1]} {\env'} {\aStack'}}}}$}
+      \step{label-1.1.2}{\case{$\aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'}$}}
       \begin{proof}
-        \pf\ By inversion of \ref{pf:stack-simpl}
+        \step{label-1.1.2.1}{$\go {\scoped \aTerm \env} \aStack = \go {\scoped {\aTerm[1]} {\env'} {\aStack'}}$}
+        \begin{proof}
+          \pf\ By definition of \textsf{go}
+        \end{proof}
+        \step{label-1.1.2.2}{$\simplBeta[*] {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} {\betaNormal {\go {\scoped {\aTerm[1]} {\env'} {\aStack'}}}}$}
+        \begin{proof}
+          \pf\ By inversion of \ref{pf:stack-simpl}
+        \end{proof}
+        \step{label-1.1.2.3}{$\simplBeta {\stackapp \aStack {\subs \aTerm \env}} {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}}$}
+        \begin{proof}
+          \pf\ \\ $ \stackapp {\nonEmptyStack {\aIteFrame[\env']} {\aStack'}} {\true} \\
+              \begin{aligned}[t]
+              & = \stackapp {\aStack'} {\ite {\true} {\subs {\aTerm[1]} {\env'}} {\subs {\aTerm[2]} {\env'}}} && \text{definition of $\stackapp {\_} {\_}$} \\
+              & \simplBeta {}  {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{lemma \ref{lemma-simpl-stable-context}}
+          \end{aligned}$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+          \pf\ $\begin{aligned}[t]
+              \stackapp \aStack {\subs \aTerm {\env}} &\rightsquigarrow {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{\stepref{label-1.1.2.3}}
+              \\ &\rightsquigarrow^{*} {\go {\scoped {\aTerm[1]} {\env'}} {\aStack'}} && \text{\stepref{label-1.1.2.2}}
+              \\ &= {\go {\scoped {\aTerm} {\env}} {\aStack}} && \text{\stepref{label-1.1.2.1}}
+              \\ &\not \rightsquigarrow && \text{\stepref{label-1.1.2.2}}
+              \end{aligned}$
+        \end{proof}
       \end{proof}
-      \step{label-1.1.3}{$\simplBeta {\stackapp \aStack {\subs \aTerm \env}} {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}}$}
+      \step{label-1.1.3}{\case{$\aStack = \emptyStack$}}
       \begin{proof}
-        \pf\ \\ $ \stackapp {\nonEmptyStack {\aIteFrame[\env']} {\aStack'}} {\true} \\
-            \begin{aligned}[t]
-            & = \stackapp {\aStack'} {\ite {\true} {\subs {\aTerm[1]} {\env'}} {\subs {\aTerm[2]} {\env'}}} && \text{definition of $\stackapp {\_} {\_}$} \\
-            & \simplBeta {}  {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{lemma \ref{lemma-simpl-stable-context}}
-        \end{aligned}$
-      \end{proof}
-      \qedstep
-      \begin{proof}
-        \pf\ $\begin{aligned}[t]
-            \stackapp \aStack {\subs \aTerm {\env}} &\rightsquigarrow {\stackapp {\aStack'} {\subs {\aTerm[1]} {\env'}}} && \text{\stepref{label-1.1.3}}
-            \\ &\rightsquigarrow^{*} {\go {\scoped {\aTerm[1]} {\env'}} {\aStack'}} && \text{\stepref{label-1.1.2}}
-            \\ &= {\go {\scoped {\aTerm} {\env}} {\aStack}} && \text{\stepref{label-1.1.1}}
-            \\ &\not \rightsquigarrow && \text{\stepref{label-1.1.2}}
-            \end{aligned}$
+        \step{label-1.1.3.1}{$\go {\scoped \aTerm \env} \aStack = \plug \aStack (\subs \aTerm \env)$}
+        \begin{proof}
+          \pf\ By definition of \textsf{go}
+        \end{proof}
+        \step{label-1.1.3.2}{$\plug \aStack (\subs \aTerm \env) = \subs \aTerm \env$}
+        \begin{proof}
+          \pf\ By definition of \textsf{plug}
+        \end{proof}
+        \step{label-1.1.3.3}{$\stackapp \aStack {\subs \aTerm \env} = \subs \aTerm \env$}
+        \begin{proof}
+          \pf\ By definition of $\stackapp {\_} {\_}$
+        \end{proof}
+        \step{label-1.1.3.4}{$\betaNormal{\subs \aTerm \env}$}
+        \begin{proof}
+          \pf\ By definition of $\rightsquigarrow$
+        \end{proof}
+        \qedstep
+        \begin{proof}
+          \pf\  $\begin{aligned}[t]
+              \stackapp \aStack {\subs \aTerm {\env}} &= \subs \aTerm \env && \text{\stepref{label-1.1.3.3}}
+              \\ &= \plug \aStack (\subs \aTerm \env) && \text{\stepref{label-1.1.3.2}}
+              \\ &= \go {\scoped \aTerm \env} \aStack && \text{\stepref{label-1.1.3.1}}
+              \\ &\not \rightsquigarrow && \text{\stepref{label-1.1.3.4}}
+              \end{aligned}$
+        \end{proof}
       \end{proof}
     \end{proof}
-    \step{label-1.2}{\case{$\begin{conj} \subs \aBase \env = \false \\ \aStack = \nonEmptyStack {\aIteFrame[\env']} {\aStack'} \end{conj}$}}
-    \step{label-1.3}{\case{otherwise}}
+    \step{label-1.2}{\case{$\subs \aBase \env = \false$}}
+    \step{label-1.3}{\case{$\subs \aBase \env$ is a variable}}
     \begin{proof}
       \step{label-1.3.1}{$\go {\scoped \aTerm \env} \aStack = \plug \aStack {(\subs \aTerm \env)}$}
       \begin{proof}
@@ -702,14 +746,7 @@ $
       \begin{proof}
         \step{label-1.3.2.1}{$\subs \aTerm \env$ is neutral}
         \begin{proof}
-          \step{label-1.3.2.1.1}{$\subs \aTerm \env$ is a variable}
-          \begin{proof}
-            \pf\ By \ref{pf:stack-typed} and case analysis
-          \end{proof}
-          \qedstep
-          \begin{proof}
-            \pf\ By definition of neutral term
-          \end{proof}
+          \pf\ By definition of neutral term
         \end{proof}
         \step{label-1.3.2.2}{$\aStack$ is simplifiable}
         \begin{proof}
@@ -717,7 +754,7 @@ $
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ By lemma \ref{lemma-plug}
+          \pf\ By lemma \ref{plug-correctness}
         \end{proof}
       \end{proof}
       \qedstep
