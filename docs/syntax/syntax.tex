@@ -72,45 +72,50 @@ FV(\ttyann \aTerm \aType) &= FV(\aTerm) \cup FV(\aType) \\
 $
 \begin{array}{ccll}
 \env & ::= & \\
-& | & \envid & \text{(identity)}\\
-& | & \envextend \rho \aVar \aBase & \text{(variable)} \\
-& | & \envextend \rho \aTypeVar \aType & \text{(type variable)}
+& | & \envId & \text{(identity)}\\
+& | & \envExtend \rho \aVar \aBase & \text{(variable)} \\
+& | & \envExtend \rho \aTypeVar \aType & \text{(type variable)}
 \end{array}
 $\\
 We will write $\scoped \aTerm \env$ to denote the pair of the term $\aTerm$ and its environment $\env$.  \\
 %Similarly, $\scoped \aType \env$ denotes the pair of the type $\aType$ and its environment $\env$. \\
-
+\subsection{Free variables in environment}
+\begin{align*}
+FV(\envId) &= \emptyset \\
+FV(\envExtend \env \aVar \aBase) &= FV(\env) \cup FV(\aBase) \\
+FV(\envExtend \env \aTypeVar \aType) &= FV(\env) \cup FV(\aType)
+\end{align*}
 \subsection{Substitution} \label{substitution}
 \subsubsection{Type substitution}
 \begin{align*}
-\subs \aTypeVar \envid &= \aTypeVar \\
-\subs \aTypeVar {\envextend \env \aVar \aBase} &= \subs \aTypeVar \rho \\
-\subs \aTypeVar {\envextend \env {\aTypeVar[1]} \aType} &=
+\subs \aTypeVar \envId &= \aTypeVar \\
+\subs \aTypeVar {\envExtend \env \aVar \aBase} &= \subs \aTypeVar \rho \\
+\subs \aTypeVar {\envExtend \env {\aTypeVar[1]} \aType} &=
 \begin{cases}
   \aType & \text{if } \aTypeVar = \aTypeVar[1] \\
   \subs \aTypeVar \env & \text{otherwise} \\
 \end{cases} \\
 \subs \tyBool \env &= \tyBool \\
 \subs {(\aDomType \to \aCodType)} \env &= \subs \aDomType \env \to \subs \aCodType \env \\
-\subs {(\tforall \aTypeVar \aType)} \env &= \tforall {\aTypeVar[1]} {\subs \aType {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\tforall \aTypeVar \aType) \cup FV(\env) \\
+\subs {(\tforall \aTypeVar \aType)} \env &= \tforall {\aTypeVar[1]} {\subs \aType {\envExtend \env \aTypeVar {\aTypeVar[1]}}} \quad \text{with } \aTypeVar[1] \notin FV(\tforall \aTypeVar \aType) \cup FV(\env) \\
 \subs {(\aType[2] \tprod \aType[3] \tprod \ldots \tprod \aType_{k})} \env &= \subs {\aType[2]} \env \tprod \subs {\aType[3]} \env \tprod \ldots \subs {\tprod \aType_{k}} \env
 \end{align*}
 \subsubsection{Term substitution}
 \begin{align*}
-\subs \aVar \envid &= \aVar \\
-\subs \aVar {\envextend \env {\aVar[1]} \aBase} &=
+\subs \aVar \envId &= \aVar \\
+\subs \aVar {\envExtend \env {\aVar[1]} \aBase} &=
 \begin{cases}
   \aBase & \text{if } \aVar = \aVar[1] \\
   \subs \aVar \env & \text{otherwise}
 \end{cases} \\
-\subs \aVar {\envextend \env \aTypeVar \aType} &= \subs \aVar \env \\
+\subs \aVar {\envExtend \env \aTypeVar \aType} &= \subs \aVar \env \\
 \subs \true \env &= \true \\
 \subs \false \env &= \false \\
-\subs {(\tfun \aVar \aType \aTerm)} \env &= \tfun {\aVar[1]} {\subs \aType \env} {\subs \aTerm {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tfun \aVar \aType \aTerm) \cup FV(\env) \\
+\subs {(\tfun \aVar \aType \aTerm)} \env &= \tfun {\aVar[1]} {\subs \aType \env} {\subs \aTerm {\envExtend \env \aVar {\aVar[1]}}} \quad \text{with } \aVar[1] \notin FV(\tfun \aVar \aType \aTerm) \cup FV(\env) \\
 \subs {(\tapp \aTerm {\aTerm[1]})} \env &= \tapp {\subs \aTerm \env} {\subs {\aTerm[1]} \env} \\
-\subs {(\tlet \aVar \aTerm \aTerm[1])} \env &= \tlet {\aVar[1]} {\subs \aTerm \env} {\subs {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \quad \aVar[1] \notin FV(\tlet \aVar \aTerm \aTerm[1]) \cup FV(\env) \\
+\subs {(\tlet \aVar \aTerm \aTerm[1])} \env &= \tlet {\aVar[1]} {\subs \aTerm \env} {\subs {\aTerm[1]} {\envExtend \env \aVar {\aVar[1]}}} \quad \text{with } \aVar[1] \notin FV(\tlet \aVar \aTerm \aTerm[1]) \cup FV(\env) \\
 \subs {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env &= \ite {\subs \aTerm \env} {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env} \\
-\subs {(\ttyfun \aTypeVar \aTerm)} \env &= \ttyfun {\aTypeVar[1]} {\subs \aTerm {\envextend \env \aTypeVar {\aTypeVar[1]}}} \quad \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm) \cup FV(\env) \\
+\subs {(\ttyfun \aTypeVar \aTerm)} \env &= \ttyfun {\aTypeVar[1]} {\subs \aTerm {\envExtend \env \aTypeVar {\aTypeVar[1]}}} \quad \text{with } \aTypeVar[1] \notin FV(\ttyfun \aTypeVar \aTerm) \cup FV(\env) \\
 \subs {(\ttyapp \aTerm \aType)} \env &= \ttyapp {\subs \aTerm \env} {\subs \aType \env} \\
 \subs {\ttyann \aTerm \aType} \env &= \ttyann {\subs \aTerm \env} {\subs \aType \env}
 \end{align*}
@@ -145,7 +150,7 @@ $
 \end{align*}
 
 \section{Typechecker}
-\subsection{Type synthesis for terms} \label{term-typechecker}
+\subsection{Terms typechecker} \label{term-typechecker}
 The type synthesis judgment for terms is written
 \fbox{$\judge \aContext \aTerm \aType$}
 and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aContext$".
@@ -167,7 +172,7 @@ and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aCo
         {Abstraction}
 
 \aRule   {\judge \aContext \aTerm \domToCod \\
-          \judgecheck \aContext {\aType[1]} {\aTerm[1]}}
+          \judge \aContext {\aTerm[1]} {\aType[1]}}
          {\judge \aContext {\tapp \aTerm {\aTerm[1]}} \aType}
          {Function application}
 
@@ -177,9 +182,9 @@ and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aCo
          {Let binding}
 
 \aRule   {\judge \aContext \aTerm \tyBool \\
-          \judge \aContext {\aTerm[2]} \aType \\
-          \judge \aContext {\aTerm[3]} \aType}
-         {\judge \aContext {\ite \aTerm {\aTerm[2]} {\aTerm[3]}} \aType}
+          \judge \aContext {\aTerm[1]} \aType \\
+          \judge \aContext {\aTerm[2]} \aType}
+         {\judge \aContext {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} \aType}
          {If then else}
 
 \aRule   {\judge {\aContext \ctxtSep \aTypeVar} \aTerm \aType \\
@@ -188,68 +193,31 @@ and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aCo
          {Type abstraction}
 
 \aRule  {\judge \aContext \aTerm {\tforall \aTypeVar \aType}}
-        {\judge \aContext {\ttyapp \aTerm {\aType[1]}} {\subs \aType {\envextend \envid \aTypeVar {\aType[1]}}}}
+        {\judge \aContext {\ttyapp \aTerm {\aType[1]}} {\subs \aType {\envElem \aTypeVar {\aType[1]}}}}
         {Type application}
 
-\aRule  {\judgecheck \aContext \aType \aTerm}
+\aRule  {\judge \aContext \aTerm \aType}
         {\judge \aContext {\ttyann \aTerm \aType} \aType}
         {Type annotation}
 \end{mathpar}
 
-\subsection{Type checking for terms}
-The type checking judgment for terms is written
-\fbox{$\judgecheck \aContext \aType \aTerm$}
-and reads "We verify the type $\aType$ of the term $\aTerm$ in the context $\aContext$".
-\begin{mathpar}
-\aRule   {\judge \aContext \aTerm {\aType[1]} \\
-          \judgequiv \aContext {\aType[1]} \aType}
-         {\judgecheck \aContext \aType \aTerm}
-         {Type checking}
-
-\end{mathpar}
-
-\subsection{Lemma} \label{lemma-substitution}
+\subsection{Substitution lemma for terms} \label{lemma-term-substitution}
 \begin{proof}
   \assume{\begin{enumerate}
-    \item $\judge {\ctxtExtend \aContext \aVar {\aType[1]}} \aTerm \aType$ \label{pf:term-type}
-    \item $\judge \aContext \aBase {\aType[1]}$ \label{pf:subs-type}
+    \item $\judge {\ctxtExtend \aContext \aVar {\aType[1]}} \aTerm \aType$
+    \item $\judge \aContext \aBase {\aType[1]}$
   \end{enumerate}}
-  \prove{$\judge \aContext {\subs \aTerm {\envextend \envid \aVar \aBase}} \aType$}
-  \pfsketch\ Proof by induction on $\aTerm$
-  \step{label-1}{\case{$\aTerm = \aBase'$}}
-  \begin{proof}
-    \step{label-1.1}{\case{$\aBase' = \aVar$}}
-    \begin{proof}
-      \step{label-1.1.1}{$\subs \aTerm {\envextend \envid \aVar \aBase} = \aBase$}
-      \qedstep
-      \begin{proof}
-        \pf\ By \ref{pf:term-type} and \ref{pf:subs-type}
-      \end{proof}
-    \end{proof}
-    \step{label-1.2}{\case{$\aBase' = \true$}}
-    \begin{proof}
-      \pf\ By typechecker, $\forall \aContext', \judge {\aContext'} \true \tyBool$
-    \end{proof}
-    \step{label-1.3}{\case{$\aBase' = \false$}}
-    \begin{proof}
-      \pf\ By typechecker, $\forall \aContext', \judge {\aContext'} \false \tyBool$
-    \end{proof}
-    \step{label-1.4}{\case{otherwise, $\aBase' = \aVar[1]$}}
-    \begin{proof}
-      \step{label-1.4.1}{$\subs \aTerm {\envextend \envid \aVar \aBase} = \aVar[1]$}
-      \qedstep
-      \begin{proof}
-        \pf\ By \ref{pf:term-type}
-      \end{proof}
-    \end{proof}
-  \end{proof}
-  \step{label-2}{\case{$\aTerm = \tfun \aVar \aType {\aTerm[1]}$}}
-  \begin{proof}
-    \step{label-2.1}{$\subs \aTerm {\envextend \envid \aVar \aBase} = (\tfun {\aVar[1]} \aType {\subs {\aTerm[1]} {\envextend \envid \aVar {\aVar[1]}}})$}
-  \end{proof}
+  \prove{$\judge \aContext {\subs \aTerm {\envElem \aVar \aBase}} \aType$}
 \end{proof}
 
-\subsection{Type synthesis for stacks} \label{stack-typechecker}
+\subsection{Substitution lemma for types} \label{lemma-type-substitution}
+\begin{proof}
+  \pflet{$\aType$ be a type}
+  \assume{$\judge {\aContext \ctxtSep \aTypeVar} \aTerm {\aType[1]}$}
+  \prove{$\judge \aContext {\subs \aTerm {\envElem \aTypeVar \aType}} {\subs {\aType[1]} {\envElem \aTypeVar \aType}}$}
+\end{proof}
+
+\subsection{Stacks typechecker} \label{stack-typechecker}
 The type synthesis judgment for stacks is written
 \fbox{$\frameJudge \aContext \aStack {\aType[1]} \aType$}
 and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term of type $\aType[1]$ has type $\aType$".
@@ -259,18 +227,18 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {Empty stack}
 
 \aRule   {\frameJudge \aContext \aStack \aType {\aType[2]} \\
-          \judgecheck \aContext {\aType[1]} {\subs \aBase \env}}
-         {\frameJudge \aContext {(\nonEmptyStack \aFunFrame \aStack)} \domToCod {\aType[2]}}
+          \judge \aContext {\subs \aBase \env} {\aType[1]}}
+         {\frameJudge \aContext {\nonEmptyStack \aFunFrame \aStack} \domToCod {\aType[2]}}
          {Applied function frame}
 
-\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envextend \envid \aTypeVar {\subs {\aType[1]} \env}}} {\aType[2]}}
-         {\frameJudge \aContext {(\nonEmptyStack \aPolyFrame \aStack)} {\tforall \aTypeVar \aType} {\aType[2]}}
+\aRule   {\frameJudge \aContext \aStack {\subs \aType {\envElem \aTypeVar {\subs {\aType[1]} \env}}} {\aType[2]}}
+         {\frameJudge \aContext {\nonEmptyStack \aPolyFrame \aStack} {\tforall \aTypeVar \aType} {\aType[2]}}
          {Instantiated polymorphism frame}
 
 \aRule  {\judge \aContext {\subs {\aTerm[1]} \env} {\aType[2]} \\
           \judge \aContext {\subs {\aTerm[2]} \env} {\aType[2]} \\
           \frameJudge \aContext \aStack {\aType[2]} {\aType}}
-        {\frameJudge \aContext {(\nonEmptyStack \aIteFrame \aStack)} \tyBool \aType}
+        {\frameJudge \aContext {\nonEmptyStack \aIteFrame \aStack} \tyBool \aType}
         {IfThenElse frame}
 
 \end{mathpar}
@@ -280,11 +248,11 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \subsubsection{Rules}
 \begin{mathpar}
 \aRule   { }
-         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {{\subs \aTerm {\envextend \envid \aVar \textcolor{orange}{\frak{\aBase}}}}}}
+         {\simplBeta {\tapp {(\tfun \aVar \aType \aTerm)} \aBase} {{\subs \aTerm {\envElem \aVar \aBase}}}}
          {}
 
 \aRule   { }
-         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {{\subs \aTerm {\envextend \envid \aTypeVar \textcolor{orange}{\frak{\aType}}}}}}
+         {\simplBeta {\ttyapp {(\ttyfun \aTypeVar \aTerm)} \aType} {{\subs \aTerm {\envElem \aTypeVar \aType}}}}
          {}
 
 \aRule   { }
@@ -297,8 +265,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \end{mathpar}
 \subsubsection{Congruence rules}
 \begin{mathpar}
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\aTerm[1]}}
-         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun {\textcolor{orange}{\frak{\aVar}}} \aType {\aTerm[1]}}}
+\aRule   {\simplBeta \aTerm {\aTerm[1]}}
+         {\simplBeta {\tfun \aVar \aType \aTerm} {\tfun \aVar \aType {\aTerm[1]}}}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm[1]}}
@@ -309,8 +277,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar {\aTerm'}} {\aTerm[1]}}
          {}
 
-\aRule   {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar {\textcolor{orange}{\frak{\aVar}}}}} {\aTerm[1]'}}
-         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet {\textcolor{orange}{\frak{\aVar}}} \aTerm \aTerm[1]'}}
+\aRule   {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
+         {\simplBeta {\tlet \aVar \aTerm {\aTerm[1]}} {\tlet \aVar \aTerm \aTerm[1]'}}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm'}}
@@ -325,8 +293,8 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
          {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\aTerm[2]'}}}
          {}
 
-\aRule   {\simplBeta {\subs \aTerm {\envextend \envid \aTypeVar {\textcolor{orange}{\frak{\aTypeVar}}}}} {\aTerm[1]}}
-         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun {\textcolor{orange}{\frak{\aTypeVar}}} {\aTerm[1]}}}
+\aRule   {\simplBeta \aTerm {\aTerm[1]}}
+         {\simplBeta {\ttyfun \aTypeVar \aTerm} {\ttyfun \aTypeVar {\aTerm[1]}}}
          {}
 
 \aRule   {\simplBeta \aTerm {\aTerm[1]}}
@@ -354,22 +322,52 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \end{proof}
   \step{label-2}{\case{$\aStack = \nonEmptyStack \aFunFrame {\aStack'}$}}
   \begin{proof}
-    \step{label-2.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\tapp \aTerm {(\subs \aBase \env)}}$}
+    \step{label-2.1}{$\begin{conj} \stackapp \aStack \aTerm = \stackapp {\aStack'} {\tapp \aTerm {(\subs \aBase \env)}}
+        \\ \stackapp \aStack {\aTerm'} = \stackapp {\aStack'} {\tapp {\aTerm'} {(\subs \aBase \env)}} \end{conj}$}
     \begin{proof}
       \pf\ By definition of $\stackapp {\_} {\_}$  
     \end{proof}
-    \step{label-2.2}{$\stackapp \aStack {\aTerm'} = \stackapp {\aStack'} {\tapp {\aTerm'} {(\subs \aBase \env)}}$}
-    \step{label-2.3}{$\simplBeta {\tapp \aTerm {(\subs \aBase \env)}} {\tapp {\aTerm'} {(\subs \aBase \env)}}$}
+    \step{label-2.2}{$\simplBeta {\tapp \aTerm {(\subs \aBase \env)}} {\tapp {\aTerm'} {(\subs \aBase \env)}}$}
     \begin{proof}
       \pf\ By definition of $\rightsquigarrow$ 
     \end{proof}
     \qedstep
     \begin{proof}
-      \pf\ By IH on $\aStack' < \aStack$
+      \pf\ By IH on $\aStack' \prec \aStack$
     \end{proof}
   \end{proof}
   \step{label-3}{\case{$\aStack = \nonEmptyStack \aPolyFrame {\aStack'}$}}
+  \begin{proof}
+    \step{label-3.1}{$\begin{conj} \stackapp \aStack \aTerm = \stackapp {\aStack'} {\ttyapp \aTerm {\subs {\aType[1]} \env}}
+        \\ \stackapp \aStack {\aTerm'} = \stackapp {\aStack'} {\ttyapp {\aTerm'} {\subs {\aType[1]} \env}} \end{conj}$}
+    \begin{proof}
+      \pf\ By definition of $\stackapp {\_} {\_}$  
+    \end{proof}
+    \step{label-3.2}{$\simplBeta {\ttyapp \aTerm {\subs {\aType[1]} \env}} {\ttyapp {\aTerm'} {\subs {\aType[1]} \env}}$}
+    \begin{proof}
+      \pf\ By definition of $\rightsquigarrow$ 
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ By IH on $\aStack' \prec \aStack$
+    \end{proof}
+  \end{proof}
   \step{label-4}{\case{$\aStack = \nonEmptyStack \aIteFrame {\aStack'}$}}
+    \begin{proof}
+    \step{label-4.1}{$\begin{conj} \stackapp \aStack \aTerm = \stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}}
+        \\ \stackapp \aStack {\aTerm'} = \stackapp {\aStack'} {\ite {\aTerm'} {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}} \end{conj}$}
+    \begin{proof}
+      \pf\ By definition of $\stackapp {\_} {\_}$  
+    \end{proof}
+    \step{label-4.2}{$\simplBeta {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}} {\ite {\aTerm'} {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}}$}
+    \begin{proof}
+      \pf\ By definition of $\rightsquigarrow$ 
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ By IH on $\aStack' \prec \aStack$
+    \end{proof}
+  \end{proof}
 \end{proof}
 
 \subsection{{\sf go} definition}
@@ -382,25 +380,27 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \end{cases} \\
 \go {\scoped {(\tfun \aVar \aType \aTerm)} \env} {\aStack} &=
 \begin{cases}
-  \go {\scoped \aTerm {\envextend \env \aVar {\subs \aBase {\env'}}}} {\aStack'} & \text{if } \aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'} \\
-  \begin{aligned}
-    &\plug \aStack {(\tfun {\aVar[1]} {\subs \aType \env} {(\go {\scoped \aTerm {\envextend \env \aVar {\aVar[1]}}} \emptyStack)})} \\
+  \go {\scoped \aTerm {\envExtend \env \aVar {\subs \aBase {\env'}}}} {\aStack'} & \text{if } \aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'} \\
+  \plug \aStack {(\tfun {\aVar[1]} {\subs \aType \env} {(\go {\scoped \aTerm {\envExtend \env \aVar {\aVar[1]}}} \emptyStack)})}
+  &\begin{aligned}
+    &\text{otherwise} \\
     &\text{with $\aVar[1] \notin FV(\subs \aTerm \env)$}
-  \end{aligned} & \text{otherwise} 
+  \end{aligned}
 \end{cases} \\
 \go {\scoped {(\ttyfun \aTypeVar \aTerm)} \env} {\aStack} &=
 \begin{cases}
-  \go {\scoped \aTerm {\envextend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'} & \text{if } \aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'} \\
-  \begin{aligned}
-    &\plug \aStack {(\ttyfun {\aTypeVar[1]} {(\go {\scoped \aTerm {\envextend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack)})} \\
+  \go {\scoped \aTerm {\envExtend \env \aTypeVar {\subs {\aType[1]} {\env'}}}} {\aStack'} & \text{if } \aStack = \nonEmptyStack {\aPolyFrame[\env']} {\aStack'} \\
+  \plug \aStack {(\ttyfun {\aTypeVar[1]} {(\go {\scoped \aTerm {\envExtend \env \aTypeVar {\aTypeVar[1]}}} \emptyStack)})}
+  & \begin{aligned}
+    &\text{otherwise} \\
     &\text{with $\aTypeVar[1] \notin FV(\subs \aTerm \env)$}
-  \end{aligned} & \text{otherwise} 
+  \end{aligned}
 \end{cases} \\
 \go {\scoped {(\tapp \aTerm \aBase)} \env} \aStack &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aFunFrame \aStack)} \\
 \go {\scoped {(\ttyapp \aTerm {\aType[1]})} \env} \aStack &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aPolyFrame \aStack)} \\
-\go {\scoped {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env} &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aIteFrame \aStack)} \\
-\go {\scoped {(\tlet \aVar \aTerm {\aTerm[1]})} \env} \aStack &= \plug \aStack {(\tlet {\aVar[1]} {(\go {\scoped \aTerm \env} \emptyStack)} {(\go {\scoped {\aTerm[1]} {\envextend \env \aVar {\aVar[1]}}} \emptyStack)})} \text{ with } \aVar[1] \notin FV(\tlet \aVar \aTerm {\aTerm[1]}) \cup FV(\env) \\ 
-\go {\scoped {(\ttyapp \aTerm \aType)} \env} \aStack &= \go {\scoped \aTerm \env} \aStack  
+\go {\scoped {(\ite \aTerm {\aTerm[1]} {\aTerm[2]})} \env} \aStack &= \go {\scoped \aTerm \env} {(\nonEmptyStack \aIteFrame \aStack)} \\
+\go {\scoped {(\tlet \aVar \aTerm {\aTerm[1]})} \env} \aStack &= \plug \aStack {\aTerm'} \text{ with } \aTerm' = (\tlet {\aVar[1]} {(\go {\scoped \aTerm \env} \emptyStack)} {(\go {\scoped {\aTerm[1]} {\envExtend \env \aVar {\aVar[1]}}} \emptyStack)}) \text{ and } \aVar[1] \notin FV(\subs {\aTerm[2]} \env) \\ 
+\go {\scoped {\ttyann \aTerm \aType} \env} \aStack &= \go {\scoped \aTerm \env} \aStack  
 \end{align*}
 
 \subsection{{\sf plug} definition}
@@ -408,7 +408,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
 \plug \emptyStack \aTerm &= \aTerm \\
 \plug {(\nonEmptyStack \aFunFrame \aStack)} \aTerm &= \plug \aStack {(\tapp \aTerm {(\subs \aBase \env)})} \\
 \plug {(\nonEmptyStack \aPolyFrame \aStack)} \aTerm &= \plug \aStack {(\ttyapp \aTerm {\subs {\aType[1]} \env})} \\
-\plug {(\nonEmptyStack {(\aIteFrame)} \aStack)} \aTerm &= \plug \aStack {(\ite \aTerm {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} \env} \emptyStack})}
+\plug {(\nonEmptyStack \aIteFrame \aStack)} \aTerm &= \plug \aStack {(\ite \aTerm {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} \env} \emptyStack})}
 \end{align*}
 
 \subsection{Neutral term}
@@ -450,7 +450,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $\aTerm' < \aTerm$
+        \pf\ By IH on $\aTerm' \prec \aTerm$
       \end{proof}
     \end{proof}
     \qedstep
@@ -459,7 +459,41 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \end{proof}
   \end{proof}
   \step{label-3}{\case{$\aTerm = \ttyapp {\aTerm'} \aType$}}
+    \begin{proof}
+    \step{label-3.1}{$\betaNormal{\aTerm'}$}
+    \begin{proof}
+      \step{label-3.1.1}{$\aTerm'$ is neutral}
+      \begin{proof}
+        \pf\ By inversion of hypothesis
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By IH on $\aTerm' \prec \aTerm$
+      \end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ By definition of $\rightsquigarrow$
+    \end{proof}
+  \end{proof}
   \step{label-4}{\case{$\aTerm = \ite {\aTerm[3]}{\aTerm[4]}{\aTerm[5]}$}}
+    \begin{proof}
+    \step{label-2.1}{$\betaNormal{\aTerm[3]}$}
+    \begin{proof}
+      \step{label-2.1.1}{$\aTerm[3]$ is neutral}
+      \begin{proof}
+        \pf\ By inversion of hypothesis
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By IH on $\aTerm[3] \prec \aTerm$
+      \end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ By definition of $\rightsquigarrow$
+    \end{proof}
+  \end{proof}
 \end{proof}
 
 \subsection{Simplifiable stack}
@@ -477,14 +511,16 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         {}
 
 \aRule  {\aStack \text{ simplifiable} \\
-          \simplBeta[*] {\stackapp \emptyStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\emptyStack}}} \\
-          \simplBeta[*] {\stackapp \emptyStack {\subs {\aTerm[2]} \env}} {\betaNormal {\go {\scoped {\aTerm[2]} \env} {\emptyStack}}} \\
-          \simplBeta[*] {\stackapp \aStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\aStack}}} \\
-          \simplBeta[*] {\stackapp \aStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\aStack}}}}
+          {\begin{array}{ll}
+            \simplBeta[*] {\stackapp \emptyStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\emptyStack}}}
+            & \simplBeta[*] {\stackapp \aStack {\subs {\aTerm[1]} \env}} {\betaNormal {\go {\scoped {\aTerm[1]} \env} {\aStack}}} \\
+            \simplBeta[*] {\stackapp \emptyStack {\subs {\aTerm[2]} \env}} {\betaNormal {\go {\scoped {\aTerm[2]} \env} {\emptyStack}}}
+            & \simplBeta[*] {\stackapp \aStack {\subs {\aTerm[2]} \env}} {\betaNormal {\go {\scoped {\aTerm[2]} \env} {\aStack}}}
+          \end{array}}}
         {\nonEmptyStack \aIteFrame \aStack \text{ simplifiable}}
         {}
 \end{mathpar}
-\subsubsection{Lemma} \label{neutral-simpl}
+\subsection{{\sf plug} correctness} \label{plug-correctness}
 \begin{proof}
   \assume{\begin{enumerate}
     \item $\aTerm$ is neutral term \label{pf:term-neutral}
@@ -515,7 +551,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $\aStack' < \aStack$
+        \pf\ By IH on $\aStack' \prec \aStack$
       \end{proof}
     \end{proof}
     \qedstep
@@ -529,45 +565,77 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \end{proof}
   \end{proof}
   \step{label-3}{\case{$\aStack = \nonEmptyStack {\aPolyFrame} {\aStack'}$}}
-  \step{label-4}{\case{$\aStack = \nonEmptyStack {\aIteFrame} {\aStack'}$}}
   \begin{proof}
-    \step{label-4.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}}$}
+    \pflet{$\aTerm' = \ttyapp \aTerm {\subs {\aType[1]} \env}$}
+    \step{label-3.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\aTerm'}$}
     \begin{proof}
       \pf\ By definition of $\stackapp {\_} {\_}$
     \end{proof}
-    \step{label-4.2}{$\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[1]} \env}} {\betaNormal{\go {\scoped {\aTerm[1]} \env} \emptyStack}}$}
+    \step{label-3.2}{$\simplBeta[*]{\stackapp {\aStack'} {\aTerm'}} {\betaNormal{\plug {\aStack'} {\aTerm'}}}$}
     \begin{proof}
-      \pf\ By inversion of \ref{pf:stack-simplifiable}
-    \end{proof}
-    \step{label-4.3}{$\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[2]} \env}} {\betaNormal{\go {\scoped {\aTerm[2]} \env} \emptyStack}}$}
-    \pflet{$\aTerm' = \ite {\aTerm} {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} \env} \emptyStack}$}
-    \step{label-4.4}{$\simplBeta[*]{\stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}}}{\stackapp {\aStack'} {\aTerm'}}$}
-    \begin{proof}
-      \pf\ By \stepref{label-4.2} and \stepref{label-4.3} and lemma \ref{lemma-simpl-stable-context}
-    \end{proof}
-    \step{label-4.5}{$\simplBeta[*]{\stackapp {\aStack'} {\aTerm'}} {\betaNormal{\plug {\aStack'} {\aTerm'}}}$}
-    \begin{proof}
-      \step{label-4.5.1}{$\aTerm'$ neutral}
+      \step{label-3.2.1}{$\aTerm'$ neutral}
       \begin{proof}
-        \pf\ By \ref{pf:term-neutral}, \stepref{label-4.2} and \stepref{label-4.3}
+        \pf\ By \ref{pf:term-neutral}
       \end{proof}
-      \step{label-4.5.2}{$\aStack'$ simplifiable}
+      \step{label-3.2.2}{$\aStack'$ simplifiable}
       \begin{proof}
         \pf\ By inversion of \ref{pf:stack-simplifiable}
       \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $\aStack' < \aStack$
+        \pf\ By IH on $\aStack' \prec \aStack$
       \end{proof}
     \end{proof}
     \qedstep
     \begin{proof}
       \pf\ $\begin{aligned}[t]
-        \stackapp \aStack \aTerm &= \stackapp {\aStack'} {\ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}} && \text{\stepref{label-4.1}} \\
-        &\rightsquigarrow^* \stackapp {\aStack'} {\aTerm'} && \text{\stepref{label-4.4}} \\
-        &\rightsquigarrow^* \plug {\aStack'} {\aTerm'} && \text{\stepref{label-4.5}} \\
+        \stackapp \aStack \aTerm &= \stackapp {\aStack'} {\aTerm'} && \text{\stepref{label-3.1}} \\
+        &\rightsquigarrow^* \plug {\aStack'} {\aTerm'} && \text{\stepref{label-3.2}} \\
         &= \plug \aStack \aTerm && \text{definition of {\sf plug}} \\
-        &\not\rightsquigarrow && \text{\stepref{label-4.5}}
+        &\not\rightsquigarrow && \text{\stepref{label-3.2}}
+      \end{aligned}$
+    \end{proof}
+  \end{proof}
+  \step{label-4}{\case{$\aStack = \nonEmptyStack {\aIteFrame} {\aStack'}$}}
+  \begin{proof}
+    \pflet{$\aTerm' = \ite \aTerm {\subs {\aTerm[1]} \env} {\subs {\aTerm[2]} \env}$}
+    \step{label-4.1}{$\stackapp \aStack \aTerm = \stackapp {\aStack'} {\aTerm'}$}
+    \begin{proof}
+      \pf\ By definition of $\stackapp {\_} {\_}$
+    \end{proof}
+    \step{label-4.2}{$\begin{conj}\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[1]} \env}} {\betaNormal{\go {\scoped {\aTerm[1]} \env} \emptyStack}} \\
+      \simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[2]} \env}} {\betaNormal{\go {\scoped {\aTerm[2]} \env} \emptyStack}} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{pf:stack-simplifiable}
+    \end{proof}
+    \pflet{$\aTerm'' = \ite {\aTerm} {\go {\scoped {\aTerm[1]} \env} \emptyStack} {\go {\scoped {\aTerm[2]} \env} \emptyStack}$}
+    \step{label-4.3}{$\simplBeta[*]{\stackapp {\aStack'} {\aTerm'}}{\stackapp {\aStack'} {\aTerm''}}$}
+    \begin{proof}
+      \pf\ By \stepref{label-4.2} and lemma \ref{lemma-simpl-stable-context}
+    \end{proof}
+    \step{label-4.4}{$\simplBeta[*]{\stackapp {\aStack'} {\aTerm''}} {\betaNormal{\plug {\aStack'} {\aTerm''}}}$}
+    \begin{proof}
+      \step{label-4.4.1}{$\aTerm''$ neutral}
+      \begin{proof}
+        \pf\ By \ref{pf:term-neutral} and \stepref{label-4.2}
+      \end{proof}
+      \step{label-4.4.2}{$\aStack'$ simplifiable}
+      \begin{proof}
+        \pf\ By inversion of \ref{pf:stack-simplifiable}
+      \end{proof}
+      \qedstep
+      \begin{proof}
+        \pf\ By IH on $\aStack' \prec \aStack$
+      \end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ $\begin{aligned}[t]
+        \stackapp \aStack \aTerm &= \stackapp {\aStack'} {\aTerm'} && \text{\stepref{label-4.1}} \\
+        &\rightsquigarrow^* \stackapp {\aStack'} {\aTerm''} && \text{\stepref{label-4.3}} \\
+        &\rightsquigarrow^* \plug {\aStack'} {\aTerm''} && \text{\stepref{label-4.4}} \\
+        &= \plug \aStack \aTerm && \text{definition of {\sf plug}} \\
+        &\not\rightsquigarrow && \text{\stepref{label-4.4}}
       \end{aligned}$
     \end{proof}
   \end{proof}
@@ -645,7 +713,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ By lemma \ref{neutral-simpl}
+          \pf\ By lemma \ref{lemma-plug}
         \end{proof}
       \end{proof}
       \qedstep
@@ -662,7 +730,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
   \begin{proof}
     \step{label-2.1}{\case{$\aStack = \nonEmptyStack {\aFunFrame[\env']} {\aStack'}$ (line~\ref{go:fun-holefun})}}
     \begin{proof}
-      \pflet{$\env'' = \envextend \env \aVar {\subs \aBase {\env'}}$}
+      \pflet{$\env'' = \envExtend \env \aVar {\subs \aBase {\env'}}$}
       \step{label-2.1.1}{$\go {\scoped {\aTerm} \env} \aStack = \go {\scoped {\aTerm[3]} {\env''}} {\aStack'}$}
       \begin{proof}
         \pf\ By definition of \textsf{go}
@@ -671,7 +739,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \begin{proof}
         \step{label-2.1.2.1}{$\exists \aType[3]$ such that $\begin{conj}\aType = \subs {\aType[2]} \env \to \aType[3] \\ \judge {\aContext} {\subs {\aTerm[3]} {\env''}} {\aType[3]} \\ \frameJudge {\aContext} {\aStack'} {\aType[3]} {\aType[1]} \end{conj}$}
         \begin{proof}
-          \step{label-2.1.2.1.1}{$\exists \aType[3]$ such that $\begin{conj} \aType = \subs {\aType[2]} \env \to \aType[3] \\ \judge {\ctxtExtend \aContext {\aVar[1]} {\subs {\aType[2]} \env}} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} \aType[3]$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env) \end{conj}$}
+          \step{label-2.1.2.1.1}{$\exists \aType[3]$ such that $\begin{conj} \aType = \subs {\aType[2]} \env \to \aType[3] \\ \judge {\ctxtExtend \aContext {\aVar[1]} {\subs {\aType[2]} \env}} {\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}} \aType[3]$ with $\aVar[1] \notin FV(\aTerm) \cup FV(\env) \end{conj}$}
           \begin{proof}
             \pf\ By substitution and inversion of \ref{pf:term-typed}
           \end{proof}
@@ -681,9 +749,9 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
           \end{proof}
           \step{label-2.1.2.1.3}{$\judge \aContext {\subs {\aTerm[3]} {\env''}} {\aType[3]}$}
           \begin{proof}
-            \step{label-2.1.2.1.3.1}{$\judge \aContext {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} {\aType[3]}$}
+            \step{label-2.1.2.1.3.1}{$\judge \aContext {\subs {\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}} {\envElem {\aVar[1]} {\subs \aBase {\env'}}}} {\aType[3]}$}
             \begin{proof}
-              \pf\ By \stepref{label-2.1.2.1.1}, \stepref{label-2.1.2.1.2} and lemma \ref{lemma-substitution}
+              \pf\ By \stepref{label-2.1.2.1.1}, \stepref{label-2.1.2.1.2} and lemma \ref{term-lemma-substitution}
             \end{proof}
             \qedstep
             \begin{proof}
@@ -697,16 +765,16 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
         \end{proof}
         \qedstep
         \begin{proof}
-          \pf\ By IH on $\aTerm[3] < \aTerm$
+          \pf\ By IH on $\aTerm[3] \prec \aTerm$
         \end{proof}
       \end{proof}
       \step{label-2.1.3}{$\simplBeta {\stackapp {\aStack} {\subs {\aTerm} \env}}{\stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}}}$}
       \begin{proof}
         \pf\ \\
-          $\stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} \\
+          $\stackapp {(\nonEmptyStack {\aFunFrame[\env']} {\aStack'})} {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}})} \\
           \begin{aligned}
-          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}})} {\subs \aBase {\env'}} } && \text{definition of $\stackapp \_ \_ $}\\
-          & \rightsquigarrow \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}} {\envextend \envid {\aVar[1]} {\subs \aBase {\env'}}}} && \text{lemma \ref{lemma-simpl-stable-context}} \\
+          & = \stackapp {\aStack'} {\tapp {(\tfun {\aVar[1]} {\subs {\aType[2]} \env} {\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}})} {\subs \aBase {\env'}} } && \text{definition of $\stackapp \_ \_ $}\\
+          & \rightsquigarrow \stackapp {\aStack'} {\subs {\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}} {\envElem {\aVar[1]} {\subs \aBase {\env'}}}} && \text{lemma \ref{lemma-simpl-stable-context}} \\
           & = \stackapp {\aStack'} {\subs {\aTerm[3]} {\env''}} && \text{$\aVar[1] \notin FV(\aTerm) \cup FV(\env)$}
         \end{aligned}$
       \end{proof}
@@ -724,9 +792,9 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
     \step{label-2.2}{\case{otherwise (line~\ref{go:fun-else})}}
     \begin{proof}
       \pflet{$\begin{conj}
-        \aVar[1] \notin FV(\aTerm) \cup FV(\env) \text{ such that } \subs \aTerm \env = (\tfun {\aVar[1]} {\subs {\aType[2]} \env}{\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}}) \\
-        \aVar[2] \notin FV(\subs {\aTerm[3]} {\envextend \env \aVar {\aVar[1]}}) \\
-        \env' = \envextend \env \aVar {\aVar[2]} \\
+        \aVar[1] \notin FV(\aTerm) \cup FV(\env) \text{ such that } \subs \aTerm \env = (\tfun {\aVar[1]} {\subs {\aType[2]} \env}{\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}}) \\
+        \aVar[2] \notin FV(\subs {\aTerm[3]} {\envExtend \env \aVar {\aVar[1]}}) \\
+        \env' = \envExtend \env \aVar {\aVar[2]} \\
         \aTerm' = (\tfun {\aVar[2]} {\subs {\aType[2]} \env} {\go {\scoped {\aTerm[3]} {\env'}} \emptyStack})
       \end{conj}$}
       \step{label-2.2.1}{$\go {\scoped {\aTerm} \env} \aStack = \plug \aStack {\aTerm'}$}
@@ -760,7 +828,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
             \end{proof}
             \qedstep
             \begin{proof}
-              \pf\ By IH on $\aTerm[3] < \aTerm$
+              \pf\ By IH on $\aTerm[3] \prec \aTerm$
             \end{proof}
           \end{proof}
           \qedstep
@@ -812,7 +880,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $\aTerm[3] < \aTerm$ 
+        \pf\ By IH on $\aTerm[3] \prec \aTerm$ 
       \end{proof}
     \end{proof}
     \qedstep
@@ -846,7 +914,7 @@ and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term o
       \end{proof}
       \qedstep
       \begin{proof}
-        \pf\ By IH on $\aTerm[4] <  \aTerm$
+        \pf\ By IH on $\aTerm[4] \prec  \aTerm$
       \end{proof}
     \end{proof}
     \step{label-6.3}{$\simplBeta[*]{\stackapp \emptyStack {\subs {\aTerm[5]} \env}} {\betaNormal{\go {\scoped {\aTerm[5]} \env} \emptyStack}}$}
@@ -904,7 +972,7 @@ $$
         \tyBool)} \true 
 $$
 
-After 2 rounds of simplification, we end up with the following stack, with $\env = \envextend {\envextend \envid \aTypeVar \tyBool} \aVar \true$.
+After 2 rounds of simplification, we end up with the following stack, with $\env = \envExtend {\envElem \aTypeVar \tyBool} \aVar \true$.
 
 \begin{mathpar}
 \aRule 
@@ -915,14 +983,14 @@ After 2 rounds of simplification, we end up with the following stack, with $\env
                  {\emptyStack}
                  {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}
                  {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}  \\
-                {\judge {\aContext} {\aVar[1]} {\aTypeVar[1]}}
+                {\judge {\aContext} {\subs {\aVar[1]} \env} {\aTypeVar[1]}}
               }
               {{\frameJudge 
                 {\aContext}
                 {\nonEmptyStack {\aFunFrameAll {\aVar[1]} \rho} \emptyStack}
                 {{\aTypeVar[1]} \to {\aType[2][{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}}
                 {\aType[2] [{\aTypeVar[2]} \mapsto {\aTypeVar[1]}]}} \\
-                {\judge {\aContext} {\aVar} {\aTypeVar}}
+                {\judge {\aContext} {\subs \aVar \env} {\aTypeVar}}
                 }
               {}}
               {\frameJudge 
@@ -964,7 +1032,7 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     {}}
   {\frameJudge 
     {\aContext = \aTypeVar, {\aTypeVar[1]}}
-    {{\square \: \scoped {\aTypeVar[1]} {{\env[2]} = \envid, \aTypeVar \mapsto \mathbb{N}, {\aTypeVar[1]} \mapsto \tyBool}} : {\square \: \scoped {\aTypeVar} {{\env[3]} = \aTypeVar \mapsto \mathbb{N}}} : \emptyStack}
+    {{\square \: \scoped {\aTypeVar[1]} {{\env[2]} = \envId, \aTypeVar \mapsto \mathbb{N}, {\aTypeVar[1]} \mapsto \tyBool}} : {\square \: \scoped {\aTypeVar} {{\env[3]} = \aTypeVar \mapsto \mathbb{N}}} : \emptyStack}
     {\forall {\aType[2]} {\forall {\aType[3]} {{{\aType[3]} \times {\aType[2]}}}}}
     {\mathbb{N} \times \tyBool}} 
   {}
@@ -973,311 +1041,299 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
 
 \subsection{Lemma A}
 \begin{proof}
-    \pflet
-    {\begin{enumerate}
-        \item $\aContext$ be a context
-        \item $\aTerm$ and $\aTerm'$ be terms
-        \item $\aType[1]$ be a type
-    \end{enumerate}}
-    \assume{
-        \begin{enumerate}
-        \item $\judge \aContext \aTerm {\aType[1]}$ \label{lA:H1}
-        \item $\simplBeta \aTerm {\aTerm'}$ \label{lA:H2}
-        \end{enumerate}}
-    \prove{$\judge \aContext {\aTerm'} {\aType[1]}$}
-    \pfsketch\ Proof by induction on $\simplBeta \aTerm {\aTerm'}$.
-    \step{label-1}{\case{$\aRule   { }
-                                    {\simplBeta {\tapp {(\tfun \aVar \aType {\aTerm[3]})} \aBase} {{\subs {\aTerm[3]} {\envextend \envid \aVar {\aBase}}}}}
-                                    { }$}}
+  \pflet{\begin{enumerate}
+    \item $\aContext$ be a context
+    \item $\aTerm$ and $\aTerm'$ be terms
+    \item $\aType[1]$ be a type
+  \end{enumerate}}
+  \assume{\begin{enumerate}
+    \item $\judge \aContext \aTerm {\aType[1]}$ \label{lA:H1}
+    \item $\simplBeta \aTerm {\aTerm'}$ \label{lA:H2}
+  \end{enumerate}}
+  \prove{$\judge \aContext {\aTerm'} {\aType[1]}$}
+  \pfsketch\ Proof by induction on $\simplBeta \aTerm {\aTerm'}$.
+  \step{label-1}{\case{$\aRule  { }
+                                {\simplBeta {\tapp {(\tfun \aVar \aType {\aTerm[3]})} \aBase} {{\subs {\aTerm[3]} {\envElem \aVar {\aBase}}}}}
+                                { }$}}
+  \begin{proof}
+    \step{label-1.1}{$\begin{conj}
+      \judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[3]} {\aType[1]} \\
+      \judge \aContext \aBase {\aType} \end{conj}$}
     \begin{proof}
-        \step{label-1.1}{\begin{enumerate}
-                        \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[3]} {\aType[1]}$
-                        \item $\judge \aContext \aBase {\aType}$
-                        \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1} twice.
-        \end{proof}
-        \qedstep
-        \begin{proof}
-           \pf\ \aRule  {\text{by substitution lemma and {\stepref{label-1.1}}}}
-                    {\judge {\aContext}
-                            {\subs{\aTerm[3]}{\envextend \envid \aVar \aBase}}
-                            {\aType[1]}}
-                    {}
-        \end{proof}
+      \pf\ By inversion of \ref{lA:H1} twice.
     \end{proof}
-    \step{label-2}{\case{$\aRule    { }
-                                    {\simplBeta {\ttyapp {(\ttyfun \aTypeVar {\aTerm[3]})} {\aType}} {{\subs {\aTerm[3]} {\envextend \envid \aTypeVar {\aType}}}}}
-                                    { }$}}
+    \qedstep
     \begin{proof}
-        \step{label-2.1}{$\exists \aType[1]'$ such that $\begin{conj}
-          \aType[1] = \subs {\aType[1]'} {\envextend \envid \aTypeVar {\aType}} \\
-          \judge {\ctxtExtend{\aContext}{\aTypeVar}{\aType}} {\aTerm[3]} {\aType[1]'} \end{conj}$}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1} twice.
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\text{by substitution lemma and {\stepref{label-2.1}}}}
-                        {\judge {\aContext}
-                        {\subs{\aTerm[3]}{\envextend \envid {\aTypeVar} {\aType}}}
-                        {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ \aRule  {\text{by lemma \ref{lemma-term-substitution} and {\stepref{label-1.1}}}}
+                   {\judge {\aContext} {\subs{\aTerm[3]}{\envElem \aVar \aBase}} {\aType[1]}}
+                   {}
     \end{proof}
-    \step{label-3}{\case{$\aRule    { }
-                                    {\simplBeta {\ite \true {\aTerm[3]} {\aTerm[1]}} {\aTerm[3]}}
-                                    { }$}}
+  \end{proof}
+  \step{label-2}{\case{$\aRule { }
+                               {\simplBeta {\ttyapp {(\ttyfun \aTypeVar {\aTerm[3]})} {\aType}} {{\subs {\aTerm[3]} {\envElem \aTypeVar {\aType}}}}}
+                               { }$}}
+  \begin{proof}
+    \step{label-2.1}{$\exists \aType[1]'$ such that $\begin{conj}
+      \aType[1] = \subs {\aType[1]'} {\envElem \aTypeVar {\aType}} \\
+      \judge {\aContext \ctxtSep \aTypeVar} {\aTerm[3]} {\aType[1]'} \end{conj}$}
     \begin{proof}
-        \step{label-3.1}{$\judge {\aContext} {\aTerm[3]} {\aType[1]}$}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\text{by {\stepref{label-3.1}}}}
-                        {\judge {\aContext}
-                        {\aTerm[3]}
-                        {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ By inversion of \ref{lA:H1} twice.
     \end{proof}
-    \step{label-4}{\case{$\aRule    { }
-                                    {\simplBeta {\ite \false {\aTerm[1]} {\aTerm[3]}} {\aTerm[3]}}
-                                    { }$}}
+    \qedstep
     \begin{proof}
-        \pf\ Same reasoning than \stepref{label-3}
+      \pf\ \aRule {\text{by lemma \ref{lemma-type-substitution} and {\stepref{label-2.1}}}}
+                  {\judge {\aContext} {\subs{\aTerm[3]}{\envElem {\aTypeVar} {\aType}}} {\aType[1]}}
+                  {}
     \end{proof}
-
-    \step{label-5}{\case{$\aRule    {\simplBeta {\subs {\aTerm[3]} {\envextend \envid \aVar \aVar}} {\aTerm[1]}}
-                                    {\simplBeta {\tfun \aVar {\aType} {\aTerm[3]}} {\tfun \aVar {\aType} {\aTerm[1]}}}
-                                    {}$}}
+  \end{proof}
+  \step{label-3}{\case{$\aRule { }
+                               {\simplBeta {\ite \true {\aTerm[1]} {\aTerm[2]}} {\aTerm[1]}}
+                               { }$}}
+  \begin{proof}
+    \step{label-3.1}{$\judge {\aContext} {\aTerm[1]} {\aType[1]}$}
     \begin{proof}
-        \step{label-5.1}{\begin{enumerate}
-            \item $\judge \aContext {\tfun \aVar {\aType} {\aTerm[3]}} {\aType[1] = \aType[2] \mapsto \aType}$
-            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[3]} {\aType}$
-            \item $\judge \aContext {\aVar} {\aType[2]}$
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1} and by hypothesis.
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\text{by {\stepref{label-5.1}}}}
-                        {\judge {\aContext}
-                            {\tfun \aVar {\aType} {\aTerm[1]}}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ By inversion of \ref{lA:H1}.
     \end{proof}
-
-    \step{label-6}{\case{$\aRule    {\simplBeta {\aTerm[3]} {\aTerm[1]}}
-                                    {\simplBeta {\tapp {\aTerm[3]} \aBase} \tapp {\aTerm[1]} \aBase}
-                                    {}$}}
+    \qedstep
     \begin{proof}
-        \step{label-6.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\aType[2] \mapsto \aType}$
-            \item $\judge \aContext {\aBase} {\aType[2]}$
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-6.2}{$\judge {\aContext} {\aTerm[1]} {\aType[2] \mapsto \aType}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta{\tapp {\aTerm[3]} \aBase}{\tapp {\aTerm[1]} \aBase}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-6.2}}}} {\judge {\aContext} {\aTerm[1]} {\codToDom}} {} \\
-                        \aRule {\text{by {\stepref{label-6.1}}}} {\judge \aContext \aBase {\aType}} {}}
-                        {\judge {\aContext}
-                            {\tapp {\aTerm[1]} \aBase}
-                            {\aType[2] \mapsto \aType}}
-                        {}
-        \end{proof}
+      \pf\ \aRule {\text{by {\stepref{label-3.1}}}}
+                  {\judge {\aContext} {\aTerm[1]} {\aType[1]}}
+                  {}
     \end{proof}
-
-    \step{label-7}{\case{$\aRule    {\simplBeta {\aTerm[3]} {\aTerm[3]}'}
-                                    {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {{\aTerm[3]}'}} {\aTerm[1]}}
-                                    {}$}}
+  \end{proof}
+  \step{label-4}{\case{$\aRule { }
+                               {\simplBeta {\ite \false {\aTerm[1]} {\aTerm[2]}} {\aTerm[2]}}
+                               { }$}}
+  \begin{proof}
+    \step{label-4.1}{$\judge {\aContext} {\aTerm[2]} {\aType[1]}$}
     \begin{proof}
-        \step{label-7.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\aType}$
-            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}$
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-7.2}{$\judge {\aContext} {\aTerm[3]'} {\aType}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[3]'}} \prec {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {{\aTerm[3]}'}} {\aTerm[1]}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-7.2}}}} {\judge {\aContext} {\aTerm[3]'} {\aType}} {} \\
-                        \aRule {\text{by {\stepref{label-7.1}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}} {}}
-                        {\judge {\aContext}
-                            {\tlet \aVar {{\aTerm[3]}'}}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ By inversion of \ref{lA:H1}.
     \end{proof}
-
-    \step{label-8}{\case{$\aRule    {\simplBeta {\subs {\aTerm[1]} {\envextend \envid \aVar \aVar}} {\aTerm[1]'}}
-                                    {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {\aTerm[3]} \aTerm[1]'}}
-                                    {}$}}
+    \qedstep
     \begin{proof}
-        \step{label-8.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\aType}$
-            \item $\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}$
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-8.2}{$\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]'} {\aType[1]}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[1]}{\aTerm[1]'}} \prec {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {\aTerm[3]}} {\aTerm[1]'}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-8.1}}}} {\judge {\aContext} {\aTerm[3]} {\aType}} {} \\
-                        \aRule {\text{by {\stepref{label-8.2}}} and substitution lemma} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]'} {\aType[1]}} {}}
-                        {\judge {\aContext}
-                            {\tlet \aVar {\aTerm[3]} {\aTerm[1]'}}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ \aRule {\text{by {\stepref{label-4.1}}}}
+                  {\judge {\aContext} {\aTerm[2]} {\aType[1]}}
+                  {}
     \end{proof}
-
+  \end{proof}
+  \step{label-5}{\case{$\aRule {\simplBeta {\aTerm[1]} {\aTerm[2]}}
+                               {\simplBeta {\tfun \aVar {\aType} {\aTerm[1]}} {\tfun \aVar {\aType} {\aTerm[2]}}}
+                               {}$}}
+  \begin{proof}
+    \step{label-5.1}{$\exists \aType[2]$ such that $\begin{conj}
+      \aType[1] = \aType \to \aType[2] \\ 
+      \judge {\ctxtExtend \aContext \aVar \aType} {\aTerm[1]} {\aType[2]} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}
+    \end{proof}
+    \step{label-5.2}{$\judge {\ctxtExtend \aContext \aVar \aType} {\aTerm[2]} {\aType[2]}$}
+    \begin{proof}
+      \pf\ By \stepref{label-5.1} and IH on $\aTerm[1] \rightsquigarrow \aTerm[2] \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-5.2}}}} {\judge {\ctxtExtend \aContext \aVar \aType} {\aTerm[2]} {\aType[2]}} {}}
+                  {\judge {\aContext} {\tfun \aVar {\aType} {\aTerm[2]}} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
+  \step{label-6}{\case{$\aRule {\simplBeta {\aTerm[1]} {\aTerm[2]}}
+                               {\simplBeta {\tapp {\aTerm[1]} \aBase} \tapp {\aTerm[2]} \aBase}
+                               {}$}}
+  \begin{proof}
+    \step{label-6.1}{$\exists \aType$ such that $\begin{conj}
+      \judge {\aContext} {\aTerm[1]} {\aType \to \aType[1]} \\
+      \judge \aContext {\aBase} {\aType} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \step{label-6.2}{$\judge {\aContext} {\aTerm[2]} {\aType \to \aType[1]}$}
+    \begin{proof}
+      \pf\ By \stepref{label-6.1} and IH on $\aTerm[1] \rightsquigarrow \aTerm[2] \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-6.2}}}} {\judge {\aContext} {\aTerm[2]} {\aType \to \aType[1]}} {} \\
+                  \aRule {\text{by {\stepref{label-6.1}}}} {\judge \aContext \aBase {\aType}} {}}
+                  {\judge {\aContext} {\tapp {\aTerm[2]} \aBase} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
+  \step{label-7}{\case{$\aRule {\simplBeta {\aTerm[3]} {\aTerm[3]}'}
+                               {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {{\aTerm[3]}'}} {\aTerm[1]}}
+                               {}$}}
+  \begin{proof}
+    \step{label-7.1}{$\exists \aType$ such that $\begin{conj}
+      \judge {\aContext} {\aTerm[3]} {\aType} \\
+      \judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \step{label-7.2}{$\judge {\aContext} {\aTerm[3]'} {\aType}$}
+    \begin{proof}
+      \pf\ By \stepref{label-7.1} and IH on $\aTerm[3] \rightsquigarrow \aTerm[3]' \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-7.2}}}} {\judge {\aContext} {\aTerm[3]'} {\aType}} {} \\
+                    \aRule {\text{by {\stepref{label-7.1}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]}} {}}
+                  {\judge {\aContext} {\tlet \aVar {\aTerm[3]'} {\aTerm[1]}} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
+  \step{label-8}{\case{$\aRule {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
+                               {\simplBeta {\tlet \aVar {\aTerm[3]} {\aTerm[1]}} {\tlet \aVar {\aTerm[3]} \aTerm[1]'}}
+                               {}$}}
+  \begin{proof}
+    \step{label-8.1}{$\exists \aType$ such that $\begin{conj}
+      \judge {\aContext} {\aTerm[3]} {\aType} \\
+      \judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]} {\aType[1]} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \step{label-8.2}{$\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]'} {\aType[1]}$}
+    \begin{proof}
+      \pf\ By \stepref{label-8.1} and IH on $\aTerm[1] \rightsquigarrow \aTerm[1]' \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-8.1}}}} {\judge {\aContext} {\aTerm[3]} {\aType}} {} \\
+                   \aRule {\text{by {\stepref{label-8.2}}}} {\judge {\ctxtExtend{\aContext}{\aVar}{\aType}} {\aTerm[1]'} {\aType[1]}} {}}
+                  {\judge {\aContext} {\tlet \aVar {\aTerm[3]} {\aTerm[1]'}} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
   \step{label-9}{\case{$\aRule  {\simplBeta {\aTerm[3]} {\aTerm[3]'}}
                                 {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}}
                                 {}$}}
+  \begin{proof}
+    \step{label-9.1}{$\begin{conj}
+      \judge {\aContext} {\aTerm[3]} {\tyBool} \\
+      \judge {\aContext} {\aTerm[1]} {\aType[1]} \\
+      \judge {\aContext} {\aTerm[2]} {\aType[1]} \end{conj}$}
     \begin{proof}
-        \step{label-9.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\tyBool}$
-            \item $\judge {\aContext} {\aTerm[1]} {\aType[1]}$
-            \item $\judge {\aContext} {\aTerm[2]} {\aType[1]}$
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-9.2}{$\judge {\aContext} {\aTerm[3]'} {\tyBool}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[3]'}} \prec {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-9.2}}}} {\judge {\aContext} {\aTerm[3]'} {\tyBool}} {} \\
-                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[1]} {\aType[1]}} {} \\
-                        \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType[1]}} {}}
-                        {\judge {\aContext}
-                            {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ By inversion of \ref{lA:H1}.
     \end{proof}
-
-    \step{label-10}{\case{$\aRule   {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
-                                    {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]'} {\aTerm[2]} }}
-                                    {} $}}
+    \step{label-9.2}{$\judge {\aContext} {\aTerm[3]'} {\tyBool}$}
     \begin{proof}
-        \step{label-10.1}{\begin{enumerate}
-            \item $\judge {\aContext} {\aTerm[3]} {\tyBool}$
-            \item $\judge {\aContext} {\aTerm[1]} {\aType[1]}$
-            \item $\judge {\aContext} {\aTerm[2]} {\aType[1]}$
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-10.2}{$\judge {\aContext} {\aTerm[1]'} {\aType[1]}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[1]}{\aTerm[1]'}} \prec {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[3]} {\tyBool}} {} \\
-                        \aRule {\text{by {\stepref{label-10.2}}}} {\judge {\aContext} {\aTerm[1]'} {\aType[1]}} {} \\
-                        \aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType[1]}} {}}
-                        {\judge {\aContext}
-                            {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ By \stepref{label-9.1} and IH on $\aTerm[3] \rightsquigarrow \aTerm[3]' \prec \aTerm \rightsquigarrow \aTerm'$
     \end{proof}
-
-    \step{label-11}{\case{$\aRule   {\simplBeta {\aTerm[2]} {\aTerm[2]'}}
-                                    {\simplBeta {\ite \aTerm {\aTerm[1]} {\aTerm[2]}} {\ite \aTerm {\aTerm[1]} {\aTerm[2]'} }}
-                                    {} $}}
+    \qedstep
     \begin{proof}
-        \pf\ same reasoning than \stepref{label-10}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-9.2}}}} {\judge {\aContext} {\aTerm[3]'} {\tyBool}} {} \\
+                   \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[1]} {\aType[1]}} {} \\
+                   \aRule {\text{by {\stepref{label-9.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType[1]}} {}}
+                  {\judge {\aContext} {\ite {\aTerm[3]'} {\aTerm[1]} {\aTerm[2]}} {\aType[1]}}
+                  {}
     \end{proof}
-
-
-    \step{label-12}{\case{$\aRule   {\simplBeta {\subs {\aTerm[3]} {\envextend \envid \aTypeVar \aTypeVar}} {\aTerm[1]}}
-                                    {\simplBeta {\ttyfun \aTypeVar {\aTerm[3]}} {\ttyfun \aTypeVar {\aTerm[1]}}}
-                                    {}$}}
+  \end{proof}
+  \step{label-10}{\case{$\aRule {\simplBeta {\aTerm[1]} {\aTerm[1]'}}
+                                {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]} }}
+                                {} $}}
+  \begin{proof}
+    \step{label-10.1}{$\begin{conj}
+      \judge {\aContext} {\aTerm[3]} {\tyBool} \\
+      \judge {\aContext} {\aTerm[1]} {\aType[1]} \\
+      \judge {\aContext} {\aTerm[2]} {\aType[1]} \end{conj}$}
     \begin{proof}
-        \step{label-12.1}
-            {\begin{enumerate}
-                \item {$\judge \aContext {\ttyfun \aTypeVar {\aTerm[3]}} {\tforall{\aTypeVar}{\aType}}$}
-                \item {$\judge {\aContext, \aTypeVar} {\aTerm[3]} {\aType}$}
-            \end{enumerate}}
-        \begin{proof}
-            \pf\ By hypothesis and inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-12.2}{$\judge {\aContext, \aTypeVar} {\aTerm[1]} {\aType}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta {\ttyfun \aTypeVar {\aTerm[3]}} {\ttyfun \aTypeVar {\aTerm[1]}}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-12.2}}}} {\judge {\aContext, \aTypeVar } {\aTerm[1]} {\aType}} {}}
-                        {\judge {\aContext}
-                            {\ttyfun \aTypeVar {\aTerm[1]}}
-                            {\tforall \aTypeVar {\aType}}}
-                        {}
-        \end{proof}
+      \pf\ By inversion of \ref{lA:H1}.
     \end{proof}
-
-    \step{label-13}{\case{$\aRule   {\simplBeta {\aTerm[3]} {\aTerm[1]}}
-                                    {\simplBeta {\ttyapp {\aTerm[3]} {\aType}} {\ttyapp {\aTerm[1]} {\aType}}}
-                                    {}$}}
+    \step{label-10.2}{$\judge {\aContext} {\aTerm[1]'} {\aType[1]}$}
     \begin{proof}
-        \step{label-13.1}{$\judge {\aContext} {\aTerm[3]} {\tforall{\aTypeVar}{\aType[1]}}$}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \step{label-13.2}{$\judge {\aContext} {\aTerm[1]} {\tforall{\aTypeVar}{\aType[1]}}$}
-        \begin{proof}
-            \pf\ by IH on ${\simplBeta{\aTerm[3]}{\aTerm[1]}} \prec {\simplBeta {\ttyapp {\aTerm[3]} {\aType}} {\ttyapp {\aTerm[1]} {\aType}}}$
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\aRule {\text{by {\stepref{label-13.2}}}} {\judge {\aContext} {\aTerm[1]} {\tforall{\aTypeVar}{\aType[1]}}} {}}
-                        {\judge {\aContext}
-                            {\ttyapp {\aTerm[1]} {\aType}}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ By \stepref{label-10.1} and IH on $\aTerm[1] \rightsquigarrow \aTerm[1]' \prec \aTerm \rightsquigarrow \aTerm'$
     \end{proof}
-
-    \step{label-14}{\case{$\aRule   { }
-                                    {\simplBeta {\ttyann {\aTerm[3]} {\aType[1]} {\aTerm[3]}}}
-                                    {}$}}
+    \qedstep
     \begin{proof}
-        \step{label-14.1}{$\judge {\aContext} {\aTerm[3]} {\aType[1]}$}
-        \begin{proof}
-            \pf\ By inversion of \ref{lA:H1}.
-        \end{proof}
-        \qedstep
-        \begin{proof}
-            \pf\ \aRule {\text{by {\stepref{label-14.1}}}}
-                        {\judge {\aContext}
-                            {\aTerm[3]}
-                            {\aType[1]}}
-                        {}
-        \end{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[3]} {\tyBool}} {} \\
+                   \aRule {\text{by {\stepref{label-10.2}}}} {\judge {\aContext} {\aTerm[1]'} {\aType[1]}} {} \\
+                   \aRule {\text{by {\stepref{label-10.1}}}} {\judge {\aContext} {\aTerm[2]} {\aType[1]}} {}}
+                  {\judge {\aContext} {\ite {\aTerm[3]} {\aTerm[1]'} {\aTerm[2]}} {\aType[1]}}
+                  {}
     \end{proof}
+  \end{proof}
+  \step{label-11}{\case{$\aRule {\simplBeta {\aTerm[2]} {\aTerm[2]'}}
+                                {\simplBeta {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]}} {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]'} }}
+                                {} $}}
+   \begin{proof}
+    \step{label-11.1}{$\begin{conj}
+      \judge {\aContext} {\aTerm[3]} {\tyBool} \\
+      \judge {\aContext} {\aTerm[1]} {\aType[1]} \\
+      \judge {\aContext} {\aTerm[2]} {\aType[1]} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \step{label-11.2}{$\judge {\aContext} {\aTerm[2]'} {\aType[1]}$}
+    \begin{proof}
+      \pf\ By \stepref{label-11.1} and IH on $\aTerm[2] \rightsquigarrow \aTerm[2]' \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-11.1}}}} {\judge {\aContext} {\aTerm[3]} {\tyBool}} {} \\
+                   \aRule {\text{by {\stepref{label-11.1}}}} {\judge {\aContext} {\aTerm[1]} {\aType[1]}} {} \\
+                   \aRule {\text{by {\stepref{label-11.2}}}} {\judge {\aContext} {\aTerm[2]'} {\aType[1]}} {}}
+                  {\judge {\aContext} {\ite {\aTerm[3]} {\aTerm[1]} {\aTerm[2]'}} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
+  \step{label-12}{\case{$\aRule {\simplBeta {\aTerm[1]} {\aTerm[2]}}
+                                {\simplBeta {\ttyfun \aTypeVar {\aTerm[1]}} {\ttyfun \aTypeVar {\aTerm[2]}}}
+                                {}$}}
+  \begin{proof}
+    \step{label-12.1}{$\exists \aType$ such that $\begin{conj}
+      \aType[1] = \tforall \aTypeVar \aType \\
+      \aTypeVar \notin FV(\aContext) \\
+      \judge {\aContext \ctxtSep \aTypeVar} {\aTerm[1]} {\aType} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \step{label-12.2}{$\judge {\aContext \ctxtSep \aTypeVar} {\aTerm[2]} {\aType}$}
+    \begin{proof}
+      \pf\ By \stepref{label-12.1} and IH on $\aTerm[1] \rightsquigarrow \aTerm[2] \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-12.2}}}} {\judge {\aContext \ctxtSep \aTypeVar } {\aTerm[2]} {\aType}} {} \\ 
+                   \aRule {\text{by \stepref{label-12.1}}} {\aTypeVar \notin FV(\aContext)} {}}
+                  {\judge {\aContext} {\ttyfun \aTypeVar {\aTerm[2]}} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
+  \step{label-13}{\case{$\aRule {\simplBeta {\aTerm[1]} {\aTerm[2]}}
+                                {\simplBeta {\ttyapp {\aTerm[1]} {\aType}} {\ttyapp {\aTerm[2]} {\aType}}}
+                                {}$}}
+  \begin{proof}
+    \step{label-13.1}{$\exists \aType[2]$ such that $\begin{conj}
+      \aType[1] = \subs {\aType[2]} {\envElem \aTypeVar \aType} \\
+      \judge {\aContext} {\aTerm[1]} {\tforall{\aTypeVar}{\aType[2]}} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \step{label-13.2}{$\judge {\aContext} {\aTerm[2]} {\tforall{\aTypeVar}{\aType[2]}}$}
+    \begin{proof}
+      \pf\ By \stepref{label-13.1} and IH on $\aTerm[1] \rightsquigarrow \aTerm[2] \prec \aTerm \rightsquigarrow \aTerm'$
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\aRule {\text{by {\stepref{label-13.2}}}} {\judge {\aContext} {\aTerm[2]} {\tforall{\aTypeVar}{\aType[2]}}} {}}
+                  {\judge {\aContext} {\ttyapp {\aTerm[2]} {\aType}} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
+  \step{label-14}{\case{$\aRule { }
+                                {\simplBeta {\ttyann {\aTerm[1]} {\aType}} {\aTerm[1]}}
+                                {}$}}
+  \begin{proof}
+    \step{label-14.1}{$\begin{conj} \aType[1] = \aType \\ \judge {\aContext} {\aTerm[1]} {\aType[1]} \end{conj}$}
+    \begin{proof}
+      \pf\ By inversion of \ref{lA:H1}.
+    \end{proof}
+    \qedstep
+    \begin{proof}
+      \pf\ \aRule {\text{by {\stepref{label-14.1}}}}
+                  {\judge {\aContext} {\aTerm[1]} {\aType[1]}}
+                  {}
+    \end{proof}
+  \end{proof}
 \end{proof}
 
 \subsection{Lemma B}
@@ -1311,8 +1367,8 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
   \end{proof}
 
   \step{label-2}{\case{$\aRule  {\frameJudge \aContext {\aStack'} {\aType[3]} {\aType[1]} \\
-                                \judgecheck \aContext {\aType[2]} {\subs \aBase \env}}
-                                {\frameJudge \aContext {(\nonEmptyStack \aFunFrame {\aStack'})} {\aType[2] \to \aType[3]} {\aType[1]}}
+                                \judge \aContext {\subs \aBase \env} {\aType[2]}}
+                                {\frameJudge \aContext {\nonEmptyStack \aFunFrame {\aStack'}} {\aType[2] \to \aType[3]} {\aType[1]}}
                                 {}$}}
   \begin{proof}
     \step{label-2.1}{$\judge \aContext \aTerm {\aType[2] \to \aType[3]}$}
@@ -1342,8 +1398,8 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     \end{proof}
   \end{proof}
 
-  \step{label-3}{\case{$\aRule  {\frameJudge \aContext {\aStack'} {\subs {\aType[3]} {\envextend \envid \aTypeVar {\subs {\aType[2]} \env}}} {\aType[1]}}
-                                {\frameJudge \aContext {(\nonEmptyStack {\aPolyFrameAll {\aType[2]} {\env}} {\aStack'})} {\tforall \aTypeVar {\aType[3]}} {\aType[1]}}
+  \step{label-3}{\case{$\aRule  {\frameJudge \aContext {\aStack'} {\subs {\aType[3]} {\envElem \aTypeVar {\subs {\aType[2]} \env}}} {\aType[1]}}
+                                {\frameJudge \aContext {\nonEmptyStack {\aPolyFrameAll {\aType[2]} {\env}} {\aStack'}} {\tforall \aTypeVar {\aType[3]}} {\aType[1]}}
                                 {}$}}
   \begin{proof}
     \step{label-3.1}{$\judge \aContext \aTerm {\tforall \aTypeVar {\aType[3]}}$}
@@ -1354,21 +1410,21 @@ $$\ttyapp {(\ttyfun \aTypeVar {\ttyapp {(\ttyapp {(\ttyfun {\aTypeVar[1]} {\ttya
     \begin{proof}
       \pf\ By definition of $\stackapp {\_} {\_}$
     \end{proof}
-    \step{label-3.3}{$\judge{\aContext}{\ttyapp{\aTerm}{\subs {\aType[2]} \env}}{\subs {\aType[3]} {\envextend \envid \aTypeVar {\subs {\aType[2]} \env}}}$}
+    \step{label-3.3}{$\judge{\aContext}{\ttyapp{\aTerm}{\subs {\aType[2]} \env}}{\subs {\aType[3]} {\envElem \aTypeVar {\subs {\aType[2]} \env}}}$}
     \begin{proof}
       \pf\ \aRule {\aRule {\text{by {\stepref{label-3.1}}}} {\judge \aContext \aTerm {\tforall \aTypeVar {\aType[3]}}} {}}
                   {\judge {\aContext}
                       {\ttyapp{\aTerm}{\subs {\aType[2]} \env}}
-                      {\subs {\aType[3]} {\envextend \envid \aTypeVar {\subs {\aType[2]} \env}}}}
+                      {\subs {\aType[3]} {\envElem \aTypeVar {\subs {\aType[2]} \env}}}}
                   {}
     \end{proof}
-    \step{label-3.4}{$\frameJudge{\aContext}{\aStack'}{\subs {\aType[3]} {\envextend \envid \aTypeVar {\subs {\aType[2]} \env}}}{\aType[1]}$}
+    \step{label-3.4}{$\frameJudge{\aContext}{\aStack'}{\subs {\aType[3]} {\envElem \aTypeVar {\subs {\aType[2]} \env}}}{\aType[1]}$}
     \begin{proof}
       \pf\ By \stepref{label-3}
     \end{proof}
     \qedstep
     \begin{proof}
-      \pf\ By \stepref{label-3.2} and IH on $\frameJudge{\aContext}{\aStack'}{\subs {\aType[3]} {\envextend \envid \aTypeVar {\subs {\aType[2]} \env}}}{\aType[1]} \prec {\frameJudge{\aContext}{\aStack}{\tforall \aTypeVar {\aType[3]}}{\aType[1]}}$ and \stepref{label-3.3}.
+      \pf\ By \stepref{label-3.2} and IH on $\frameJudge{\aContext}{\aStack'}{\subs {\aType[3]} {\envElem \aTypeVar {\subs {\aType[2]} \env}}}{\aType[1]} \prec {\frameJudge{\aContext}{\aStack}{\tforall \aTypeVar {\aType[3]}}{\aType[1]}}$ and \stepref{label-3.3}.
     \end{proof}
   \end{proof}
 
