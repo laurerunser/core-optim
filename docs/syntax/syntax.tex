@@ -151,10 +151,12 @@ $
 
 \section{Typechecker}
 \subsection{Terms typechecker} \label{term-typechecker}
-The type synthesis judgment for terms is written
-\fbox{$\judge \aContext \aTerm \aType$}
-and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aContext$".
+
 \begin{mathpar}
+\fbox{$\judge \aContext \aTerm \aType$}\\
+\footnotesize{\qquad\text{``term $\aTerm$ has type $\aType$ in context $\aContext$''}}
+\\
+
 \aRule  {\judgequal \aContext \aVar \aType}
         {\judge \aContext \aVar \aType}
         {Variable}
@@ -218,10 +220,12 @@ and reads "We infer the type $\aType$ for the term $\aTerm$ in the context $\aCo
 \end{proof}
 
 \subsection{Stacks typechecker} \label{stack-typechecker}
-The type synthesis judgment for stacks is written
-\fbox{$\frameJudge \aContext \aStack {\aType[1]} \aType$}
-and reads "In the context $\aContext$, the stack $\aStack$ plugged with a term of type $\aType[1]$ has type $\aType$".
+
 \begin{mathpar}
+\fbox{$\frameJudge \aContext \aStack {\aType[1]} \aType$}\\
+\footnotesize{\qquad\text{``stack $\aStack$ complemented with a term of type $\aType[1]$ produces a type $\aType$ in context $\aContext$''}}
+\\
+
 \aRule   { }
          {\frameJudge \aContext \emptyStack \aType {\aType}}
          {Empty stack}
