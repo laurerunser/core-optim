@@ -4,10 +4,15 @@
 \RequirePackage{xifthen}
 \RequirePackage{mathpartir}
 
+\newcommand{\aBase}[1][0]%
+           {\ifthenelse{#1 = 0}{b}%
+            {b_{\the\numexpr #1 - 1 \relax}}}
+
 \newcommand{\aTerm}[1][0]%
            {\ifthenelse{#1 = 0}{t}%
              {\ifthenelse{#1 = 1}{u}%
-               {t_{\the\numexpr #1 - 2 \relax}}}}
+               {\ifthenelse{#1 = 2}{v}%
+                 {t_{\the\numexpr #1 - 3 \relax}}}}}
 
 \newcommand{\aVar}[1][0]%
            {\ifthenelse{#1 = 0}{x}%
@@ -31,6 +36,7 @@
 \newcommand{\aCodType}{T}
 
 \newcommand{\domToCod} {\aDomType \to \aCodType}
+\newcommand{\codToDom} {\aCodType \to \aDomType}
 
 \newcommand{\aContext}{\Gamma}
 \newcommand{\ctxtSep}{\mathrel{,}}
@@ -44,17 +50,17 @@
                {\ifthenelse{#1 = 2}{Z}%
                  {x_{\the\numexpr #1 - 3 \relax}}}}}
 
-\newcommand{\hasType}[2]{#1 \::\: #2}
+\newcommand{\hasType}[2]{#1 : #2}
 
 \newcommand{\ttyann}[2]{(\hasType{#1}{#2})}
 \newcommand{\tfun}[3]%
            {\textbf{fun } \ttyann{#1}{#2} = #3}
 \newcommand{\ttyfun}[2]%
-           {\textbf{fun } [ #1 ] = #2}
+           {\textbf{fun } \langle #1 \rangle = #2}
 \newcommand{\tapp}[2]%
            {#1 \: #2}
 \newcommand{\ttyapp}[2]%
-           {#1 \: [ #2 ]}
+           {#1 \: \langle #2 \rangle}
 \newcommand{\ttysub}[2]%
            {#1 \mapsto #2}
 \newcommand{\tlet}[3]%
@@ -68,9 +74,7 @@
 \newcommand{\tprod}{\mathrel{\times}}
 
 \newcommand{\judge}[3]%
-          {#1 \vdash #2 \in #3}
-\newcommand{\judgecheck}[3]%
-          {#1 \vdash #2 \ni #3}
+          {#1 \vdash #2 \mathrel{:} #3}
 \newcommand{\judgequal}[3]%
           {#1 (#2) = #3}
 \newcommand{\judgequiv}[3]%
@@ -80,22 +84,55 @@
            {\inferrule [#3] {#1} {#2}}
            % #3 is the name of the rule
 
+\newcommand{\env}[1][0]%
+           {\ifthenelse{#1 = 0}{\rho}%
+               {\rho_{\the\numexpr #1 - 1 \relax}}}
+\newcommand{\envId}
+            {\textsf {id}}
+\newcommand{\envElem}[2]
+            {#1 \mapsto #2}
+\newcommand{\envExtend}[3]
+            {#1, \envElem {#2} {#3}}
+\newcommand{\scoped}[2]
+           {#1 ^{#2} }
+\newcommand{\subs}[2]
+           {#1 \left\{ #2 \right\} }
+
 \newcommand{\aFrame}{F}
 \newcommand{\aFunFrame}[1][\env]
-            {\square \: \scoped \aBase {#1} }
-\newcommand{\aPolyFrame}[1][\env]
-            {\square \: \scoped {\aType[1]} {#1} }
-\newcommand{\aIteFrame}[1][\env]
-            {\textbf{if } \square \: \textbf{then } \scoped {\aTerm[1]} {#1} \textbf{ else } \scoped {\aTerm[2]} {#1} }
+            {\scoped \square {#1} \: \aBase }
+\newcommand{\aFunFrameAll}[2]
+            {\scoped \square {#2} \:{#1}}
 
-\newcommand{\aStack}{s}
+\newcommand{\aPolyFrame}[1][\env]
+           {\scoped \square {#1} \: {\aType[1]} }
+\newcommand{\aPolyFrameAll}[2]
+           {\scoped \square {#2}  \:  {#1} }
+
+\newcommand{\aIteFrame}[1][\env]
+           {\textbf{if } \scoped \square {#1} \: \textbf{then } {\aTerm[1]}  \textbf{ else } {\aTerm[2]}  }
+\newcommand{\aIteFrameAll}[3]
+            {\textbf{if }  \scoped \square {#3} \: \textbf{then } {#1} \textbf{ else } {#2} }
+               
+\newcommand{\aStack}[1][0]
+            {\ifthenelse{#1 = 0}{s}
+            {s_{\the\numexpr #1 - 1 \relax}}}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%
-          {#1 : #2}
+          {#1 \triangleright #2}
 \newcommand{\frameJudge}[4]%
           {#1 \, \vert \, #2 : #3 \vdash #4}
 \newcommand{\stackapp}[2]%
-          {#1 \lbrack #2 \rbrack}
+          {#1 \left[ #2 \right]}
+
+\newcommand{\simplBeta}[3][]
+          {#2 \rightsquigarrow^{#1} #3}
+
+\newcommand{\betaNormal}[1]
+           {#1 \not\rightsquigarrow}
 
 \newcommand{\go}[2]%
           {\textsf{go } #1 \: #2}
+
+\newcommand{\plug}[2]%
+          {\textsf{plug } #1 \: #2}
