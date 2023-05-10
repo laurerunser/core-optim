@@ -38,3 +38,15 @@ val pretty_print_type : ty -> PPrint.document
 val to_string : ty -> string
 val pp_ty : Format.formatter -> ty -> unit
 val equal_ty : ty -> ty -> bool
+
+module VarMap : sig
+  include Map.S with type key = Atom.t and type 'a t = 'a Map.Make(Atom).t
+end
+
+module VarSet : sig
+  include Set.S with type elt = Atom.t and type t = Set.Make(Atom).t
+end
+
+val sub_ty : ty -> ty VarMap.t -> ty
+val sub_tyvar : VarMap.key -> ty VarMap.t -> ty
+val free_ty_vars : ty -> VarSet.t

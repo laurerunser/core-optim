@@ -3,6 +3,7 @@ open Terms
 open Types
 open Typechecker
 open Stack
+open Simplify
 
 let () =
   let open Alcotest in
@@ -178,5 +179,55 @@ let () =
           test_case "Stack Both" `Quick test_stack_both;
           test_case "Stack If good" `Quick test_stack_if_good;
           test_case "Stack If bad" `Quick test_stack_if_bad;
+        ] );
+      ( "test alpha equivalence",
+        [
+          test_case "Base bool same" `Quick test_alpha_eq_bool1;
+          test_case "Base bool diff" `Quick test_alpha_eq_bool2;
+          test_case "Base var same" `Quick test_alpha_eq_var1;
+          test_case "Base var same" `Quick test_alpha_eq_var2;
+          test_case "Base diff" `Quick test_alpha_eq_base;
+          test_case "Fun 1" `Quick test_alpha_eq_fun1;
+          test_case "Fun 2" `Quick test_alpha_eq_fun2;
+          test_case "Fun 3" `Quick test_alpha_eq_fun3;
+          test_case "FunApply 1" `Quick test_alpha_eq_funapply1;
+          test_case "FunApply 2" `Quick test_alpha_eq_funapply2;
+          test_case "FunApply 3" `Quick test_alpha_eq_funapply3;
+          test_case "Let 1" `Quick test_alpha_eq_let1;
+          test_case "Let 2" `Quick test_alpha_eq_let2;
+          test_case "Let 3" `Quick test_alpha_eq_let3;
+          test_case "Let 4" `Quick test_alpha_eq_let4;
+          test_case "TypeAbstract 1" `Quick test_alpha_eq_typeabstract1;
+          test_case "TypeAbstract 2" `Quick test_alpha_eq_typeabstract2;
+          test_case "TypeAbstract 3" `Quick test_alpha_eq_typeabstract3;
+          test_case "TypeApply 1" `Quick test_alpha_eq_typeapply1;
+          test_case "TypeApply 2" `Quick test_alpha_eq_typeapply2;
+          test_case "TypeApply 3" `Quick test_alpha_eq_typeapply3;
+        ] );
+      ( "test simplification",
+        [
+          test_case "Atom bool" `Quick test_simplification_atom_bool;
+          test_case "Fun" `Quick test_simplification_fun;
+          test_case "Fun simple" `Quick test_simplification_fun1;
+          test_case "Fun with apply" `Quick test_simplification_fun2;
+          test_case "FunApply simple var" `Quick test_simplification_funapply1;
+          test_case "FunApply simple bool" `Quick test_simplification_funapply2;
+          test_case "FunApply with apply" `Quick test_simplification_funapply3;
+          test_case "Let simple" `Quick test_simplification_let1;
+          test_case "Let simple with in def" `Quick test_simplification_let2;
+          test_case "Let simple with in def and exp" `Quick
+            test_simplification_let3;
+          test_case "TypeAbstract with apply in letin" `Quick
+            test_simplification_typeabstract;
+          test_case "TypeApply with apply in letin" `Quick
+            test_simplification_typeapply;
+          test_case "TypeAnnotation with apply in letin" `Quick
+            test_simplification_annotation;
+          test_case "IfThenElse with true" `Quick test_simplification_ite_true;
+          test_case "IfThenElse with false" `Quick test_simplification_ite_false;
+          test_case "IfThenElse with apply in condition" `Quick
+            test_simplification_ite1;
+          test_case "Fun with x as condition" `Quick test_simplification_fun_if;
+          test_case "IfThenElse with var" `Quick test_simplification_var_if;
         ] );
     ]

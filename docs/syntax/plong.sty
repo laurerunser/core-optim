@@ -81,12 +81,21 @@
            % #3 is the name of the rule
 
 \newcommand{\aFrame}{F}
-\newcommand{\aFunFrame}{\square \: {\aTerm[1]}}
-\newcommand{\aPolyFrame}{\square \: {\aType[1]}}
-\newcommand{\aIteFrame}{\textbf{if } \square \: \textbf{then } t \textbf{ else } u}
+\newcommand{\aFunFrame}[1][\env]
+            {\square \: \scoped \aBase {#1} }
+\newcommand{\aPolyFrame}[1][\env]
+            {\square \: \scoped {\aType[1]} {#1} }
+\newcommand{\aIteFrame}[1][\env]
+            {\textbf{if } \square \: \textbf{then } \scoped {\aTerm[1]} {#1} \textbf{ else } \scoped {\aTerm[2]} {#1} }
+
 \newcommand{\aStack}{s}
 \newcommand{\emptyStack}{\varepsilon}
 \newcommand{\nonEmptyStack}[2]%
           {#1 : #2}
 \newcommand{\frameJudge}[4]%
           {#1 \, \vert \, #2 : #3 \vdash #4}
+\newcommand{\stackapp}[2]%
+          {#1 \lbrack #2 \rbrack}
+
+\newcommand{\go}[2]%
+          {\textsf{go } #1 \: #2}

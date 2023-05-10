@@ -362,3 +362,114 @@ let test_free_var_type_annotation () =
     ^ fv ty
   in
   test_free_vars [ a; d; e ] t
+
+(*****************************************************************************)
+(* Alpha_eq *)
+let test_alpha_eq succes t1 t2 =
+  let check_term = Alcotest.testable pp_term alpha_eq in
+  Alcotest.(check (if succes then check_term else neg check_term))
+    (Format.asprintf "Term1: %a\nTerm2: %a" pp_term t1 pp_term t2)
+    t1 t2
+
+let test_alpha_eq_bool1 () =
+  let t = Base (Bool true) in
+  test_alpha_eq true t t
+
+let test_alpha_eq_bool2 () =
+  let t1 = Base (Bool true) in
+  let t2 = Base (Bool false) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_var1 () =
+  let t = Base (Var a) in
+  test_alpha_eq true t t
+
+let test_alpha_eq_var2 () =
+  let t1 = Base (Var a) in
+  let t2 = Base (Var b) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_base () =
+  let t1 = Base (Bool true) in
+  let t2 = Base (Var a) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_fun1 () =
+  let t1 = fn x (TyFreeVar tt) (fun x -> Base x) in
+  let t2 = fn y (TyFreeVar tt) (fun x -> Base x) in
+  test_alpha_eq true t1 t2
+
+let test_alpha_eq_fun2 () =
+  let t1 = fn x (TyFreeVar tt) (fun x -> Base x) in
+  let t2 = fn y (TyFreeVar tt) (fun _ -> Base (Var a)) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_fun3 () =
+  let t1 = fn x (TyFreeVar tt) (fun x -> Base x) in
+  let t2 = fn y (TyFreeVar ts) (fun x -> Base x) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_funapply1 () =
+  let t1 = fn x (TyFreeVar tt) (fun x -> Base x) $ Var a in
+  let t2 = fn y (TyFreeVar tt) (fun x -> Base x) $ Var a in
+  test_alpha_eq true t1 t2
+
+let test_alpha_eq_funapply2 () =
+  let t1 = fn x (TyFreeVar tt) (fun x -> Base x) $ Var a in
+  let t2 = fn y (TyFreeVar ts) (fun x -> Base x) $ Var a in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_funapply3 () =
+  let t1 = fn x (TyFreeVar tt) (fun x -> Base x) $ Var a in
+  let t2 = fn y (TyFreeVar tt) (fun x -> Base x) $ Var b in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_let1 () =
+  let t1 = letin x (Base (Var a)) (fun x -> Base x) in
+  let t2 = letin y (Base (Var a)) (fun x -> Base x) in
+  test_alpha_eq true t1 t2
+
+let test_alpha_eq_let2 () =
+  let t1 = letin x (Base (Var x)) (fun x -> Base x) in
+  let t2 = letin y (Base (Var x)) (fun x -> Base x) in
+  test_alpha_eq true t1 t2
+
+let test_alpha_eq_let3 () =
+  let t1 = letin x (Base (Var a)) (fun x -> Base x) in
+  let t2 = letin y (Base (Var b)) (fun x -> Base x) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_let4 () =
+  let t1 = letin x (Base (Var a)) (fun x -> Base x) in
+  let t2 = letin y (Base (Var a)) (fun _ -> Base (Var a)) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_typeabstract1 () =
+  let t1 = ty_fn tx (fun ty -> Base (Var a) ^ ty) in
+  let t2 = ty_fn ty (fun ty -> Base (Var a) ^ ty) in
+  test_alpha_eq true t1 t2
+
+let test_alpha_eq_typeabstract2 () =
+  let t1 = ty_fn tx (fun ty -> Base (Var a) ^ ty) in
+  let t2 = ty_fn ty (fun _ -> Base (Var a) ^ TyFreeVar tt) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_typeabstract3 () =
+  let t1 = ty_fn tx (fun ty -> Base (Var a) ^ ty) in
+  let t2 = ty_fn ty (fun ty -> Base (Var b) ^ ty) in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_typeapply1 () =
+  let t1 = ty_fn tx (fun ty -> Base (Var a) ^ ty) $! TyFreeVar tt in
+  let t2 = ty_fn ty (fun ty -> Base (Var a) ^ ty) $! TyFreeVar tt in
+  test_alpha_eq true t1 t2
+
+let test_alpha_eq_typeapply2 () =
+  let t1 = ty_fn tx (fun ty -> Base (Var a) ^ ty) $! TyFreeVar tt in
+  let t2 = ty_fn ty (fun ty -> Base (Var b) ^ ty) $! TyFreeVar tt in
+  test_alpha_eq false t1 t2
+
+let test_alpha_eq_typeapply3 () =
+  let t1 = ty_fn tx (fun ty -> Base (Var a) ^ ty) $! TyFreeVar tt in
+  let t2 = ty_fn ty (fun ty -> Base (Var b) ^ ty) $! TyFreeVar ts in
+  test_alpha_eq false t1 t2

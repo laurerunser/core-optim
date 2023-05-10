@@ -2,7 +2,6 @@ open Libfun
 open Terms
 open Types
 open Atom
-open Typechecker
 open Syntax
 open Stack
 
@@ -231,7 +230,7 @@ let test_typechecking_stack expected stack ty ctxt =
     (Format.asprintf "type: %a\nin stack: %a\nexpected: %a" pp_ty ty pp_stack
        stack pp_ty expected)
     expected
-    (Typechecker.synth_stack stack ty ctxt)
+    (synth_stack stack ty ctxt)
 
 let test_fail_typecheck_stack msg stack t ctxt =
   Alcotest.(
@@ -240,7 +239,7 @@ let test_fail_typecheck_stack msg stack t ctxt =
         ()))
 
 let test_stack_fun1_good () =
-  let stack = [ HoleFun (Var x) ] in
+  let stack = [ hfun (Var x) ] in
   let ty = TyFreeVar ts => TyFreeVar tt in
   let ctxt = VarMap.singleton x (TyFreeVar ts) in
   let expected_ty = TyFreeVar tt in
@@ -248,7 +247,7 @@ let test_stack_fun1_good () =
 
 let test_stack_fun1_bad () =
   (* same test than the previous one, except the type of `x` in the ctxt *)
-  let stack = [ HoleFun (Var x) ] in
+  let stack = [ hfun (Var x) ] in
   let ty = TyFreeVar ts => TyFreeVar tt in
   let ctxt = VarMap.singleton x (TyFreeVar tx) in
   test_fail_typecheck_stack
@@ -261,13 +260,13 @@ let test_stack_fun1_bad () =
     stack ty ctxt
 
 let test_stack_poly1_good () =
-  let stack = [ HoleType (TyFreeVar tx) ] in
+  let stack = [ htype (TyFreeVar tx) ] in
   let ty = poly_ty (fresh "X") (fun x -> x => TyFreeVar ts) in
   let expected_ty = TyFreeVar tx => TyFreeVar ts in
   test_typechecking_stack expected_ty stack ty VarMap.empty
 
 let test_stack_poly1_bad () =
-  let stack = [ HoleType (TyFreeVar tx) ] in
+  let stack = [ htype (TyFreeVar tx) ] in
   let ty = TyFreeVar ts in
   test_fail_typecheck_stack
     (Printf.sprintf
@@ -276,7 +275,7 @@ let test_stack_poly1_bad () =
     stack ty VarMap.empty
 
 let test_stack_fun2_good () =
-  let stack = [ HoleFun (Var y); HoleFun (Var x) ] in
+  let stack = [ hfun (Var y); hfun (Var x) ] in
   let ty = TyFreeVar tx => (TyFreeVar ts => TyFreeVar toto) in
   let ctxt = VarMap.singleton y (TyFreeVar tx) in
   let ctxt = VarMap.add x (TyFreeVar ts) ctxt in
@@ -284,7 +283,7 @@ let test_stack_fun2_good () =
   test_typechecking_stack expected_ty stack ty ctxt
 
 let test_stack_fun2_bad () =
-  let stack = [ HoleFun (Var y); HoleFun (Var x) ] in
+  let stack = [ hfun (Var y); hfun (Var x) ] in
   (* this one will fail because the return type of f is not a function,
      which means it cannot plug the next hole *)
   let ty = TyFreeVar tx => TyFreeVar toto in
@@ -298,7 +297,7 @@ let test_stack_fun2_bad () =
     stack ty ctxt
 
 let test_stack_poly2_good () =
-  let stack = [ HoleType (TyFreeVar tx); HoleType (TyFreeVar ts) ] in
+  let stack = [ htype (TyFreeVar tx); htype (TyFreeVar ts) ] in
   let ty =
     poly_ty (fresh "X") (fun _ -> poly_ty (fresh "Y") (fun _ -> TyFreeVar toto))
   in
@@ -306,7 +305,7 @@ let test_stack_poly2_good () =
   test_typechecking_stack expected_ty stack ty VarMap.empty
 
 let test_stack_both () =
-  let stack = [ HoleFun (Var x); HoleType (TyFreeVar tx) ] in
+  let stack = [ hfun (Var x); htype (TyFreeVar tx) ] in
   let ty = TyFreeVar tt => poly_ty (fresh "X") (fun _ -> TyFreeVar toto) in
   let ctxt = VarMap.singleton x (TyFreeVar tt) in
   let expected_ty = TyFreeVar toto in
@@ -314,7 +313,7 @@ let test_stack_both () =
 
 let test_stack_if_good () =
   let ty = TyFreeVar tx in
-  let stack = [ HoleIf (Base (Var x), Base (Var y)) ] in
+  let stack = [ hif (Base (Var x)) (Base (Var y)) ] in
   let ctxt = VarMap.singleton x ty in
   let ctxt = VarMap.add y ty ctxt in
   test_typechecking_stack ty stack TyBool ctxt
@@ -322,7 +321,7 @@ let test_stack_if_good () =
 let test_stack_if_bad () =
   let ty = TyFreeVar tx in
   let ty2 = TyFreeVar ts in
-  let stack = [ HoleIf (Base (Var x), Base (Var y)) ] in
+  let stack = [ hif (Base (Var x)) (Base (Var y)) ] in
   let ctxt = VarMap.singleton x ty in
   let ctxt = VarMap.add y ty2 ctxt in
   test_fail_typecheck_stack
