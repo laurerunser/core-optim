@@ -17,9 +17,9 @@ type 'a scoped = {
 }
 
 type frame =
-  | HoleFun of Terms.base
-  | HoleType of Types.ty
-  | HoleIf of Terms.term * Terms.term
+  | HoleFun of Terms.base scoped
+  | HoleType of Types.ty scoped
+  | HoleIf of Terms.term scoped * Terms.term scoped
 
 and stack = frame list
 
@@ -50,7 +50,7 @@ val discharge_term : Terms.term scoped -> Terms.term
 (* [discharge_term t] applies the substitutions t.p_term and t.p_ty to t.scope.
    [t] must be a well_scoped term *)
 
-val discharge_base : Terms.base scoped -> Terms.base
+(* val discharge_base : Terms.base scoped -> Terms.base *)
 (* [discharge_base b] applies the substitution t.p_term to t.scope*)
 
 val discharge_ty : Types.ty scoped -> Types.ty

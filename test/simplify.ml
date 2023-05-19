@@ -164,3 +164,13 @@ let test_simplification_var_if () =
     fn x TyBool (fun x -> ite (Base x) (Base (Bool true)) (Base (Bool false)))
   in
   test_simplification expected t
+
+let test_simplification_if_in_fun () =
+  let t =
+    fn x TyBool (fun x ->
+        ite (Base (Bool true))
+          (ite (Base (Bool true)) (Base x) (Base (Bool false)))
+          (Base (Bool false)))
+  in
+  let expected = fn x TyBool (fun x -> Base x) in
+  test_simplification expected t
