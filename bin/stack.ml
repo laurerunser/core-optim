@@ -213,7 +213,6 @@ and go (t : term scoped) (acc : stack) =
         | _ -> plug acc t)
     (* abstractions with the right context to simplify *)
     | Fun (x, _, body), HoleFun arg :: acc ->
-        (*@ \label{go:fun-holefun} *)
         let body_scoped =
           scope_with_new_var ~term:body ~scope:t ~var:x
             ~base:(discharge_base arg)
@@ -248,12 +247,12 @@ and go (t : term scoped) (acc : stack) =
     | FunApply (f, arg), acc ->
         let f = inherit_scope ~x:f ~scope:t in
         let arg = inherit_scope ~x:arg ~scope:t in
-        go f (HoleFun arg (***) :: acc)
-    | TypeApply (f, ty), acc (*@ \label{go:typeApply}*) ->
+        go f (HoleFun arg :: acc)
+    | TypeApply (f, ty), acc ->
         let f = inherit_scope ~x:f ~scope:t in
         let ty = inherit_scope ~x:ty ~scope:t in
         go f (HoleType ty :: acc)
-    | IfThenElse (t1, t2, t3), acc (*@ \label{go:ite}*) ->
+    | IfThenElse (t1, t2, t3), acc ->
         let t1 = inherit_scope ~x:t1 ~scope:t in
         let t2 = inherit_scope ~x:t2 ~scope:t in
         let t3 = inherit_scope ~x:t3 ~scope:t in
@@ -270,7 +269,6 @@ and go (t : term scoped) (acc : stack) =
         plug acc t
     (* throw away the type annotation *)
     | TypeAnnotation (body, _), acc -> go (inherit_scope ~x:body ~scope:t) acc
-    (* =end= *)
   in
   (* check that the term is closed *)
   assert (closed_term_in_scope result t);
